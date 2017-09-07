@@ -37,6 +37,19 @@ import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 
 
+Cids = namedtuple('Cids', 'pplus he4 n14 al27 fe56')
+PARTICLES = Cids(14, 402, 1407, 2713, 5626)
+
+
+def amu(particle):
+    """
+    :param particle: primary particle's corsika id
+
+    :returns: the atomic mass of particle
+    """
+    return particle/100
+
+    
 def overburden(cos_theta, depth=1950, elevation=2400):
     """
     Overburden for a detector buried underneath a flat surface.
@@ -93,7 +106,7 @@ class fpe_context(object):
 
 @lru_cache(maxsize=512)
 def mcsolver(primary_energy, cos_theta, particle):
-    Solutions = namedtuple('Solutions', 'x mu numu nue charm')
+    Solutions = namedtuple('Solutions', 'el mu numu nue charm')
     mceq_run = MCEqRun(
         # provide the string of the interaction model
     interaction_model='SIBYLL2.3',
@@ -108,31 +121,30 @@ def mcsolver(primary_energy, cos_theta, particle):
     mceq_run.set_single_primary_particle(primary_energy, particle)
     mceq_run.solve()
 
-    x = mceq_run.e_grid/primary_energy
+    # en = primary_energy/amu(particle)
+    # x = mceq_run.e_grid/en
 
     mu = mceq_run.get_solution('mu-', 0) + mceq_run.get_solution('mu+',0)
     numu = mceq_run.get_solution('conv_numu', 0)+mceq_run.get_solution('conv_antinumu',0)
     nue = mceq_run.get_solution('conv_nue', 0)+mceq_run.get_solution('conv_antinue',0)
     charm = mceq_run.get_solution('pr_numu', 0)+mceq_run.get_solution('pr_antinumu',0) \
         + mceq_run.get_solution('pr_nue', 0)+mceq_run.get_solution('pr_antinue',0) 
-    return Solutions(x, mu, numu, nue, charm)
+    return Solutions(mceq_run.e_grid, mu, numu, nue, charm)
 
 
 def mceq_yield(primary_energy, cos_theta, particle, kind='mu'):
     mcs = mcsolver(primary_energy, cos_theta, particle)
     if kind == 'mu':
-        return mcs.x, mcs.mu
+        return mcs.el, mcs.mu
     elif kind == 'numu':
-        return mcs.x, mcs.numu
+        return mcs.el, mcs.numu
     elif kind == 'nue':
-        return mcs.x, mcs.nue
+        return mcs.el, mcs.nue
     elif kind == 'charm':
-        return mcs.x, mcs.charm
+        return mcs.el, mcs.charm
 
-
-class ParticleType(object):
-    PPlus = 14
-    He4Nucleus = 402
-    N14Nucleus = 1407
-    Al27Nucleus = 2713
-    Fe56Nucleus = 5626
+def flux(primary_energy, particle):
+    return
+    
+def response_function(primary_energy, cos_theta, particle, kind='mu'):
+    return flux(primary_energy, particle)*mceq_yield(primary_energy, cos_theta, particle, kind=kind)
