@@ -30,6 +30,7 @@ detector with no accompanying muons.
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 from collections import namedtuple
+from enum import Enum
 from functools32 import lru_cache
 import numpy as np
 from MCEq.core import MCEqRun
@@ -37,8 +38,7 @@ import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 
 
-Cids = namedtuple('Cids', 'pplus he4 n14 al27 fe56')
-PARTICLES = Cids(14, 402, 1407, 2713, 5626)
+Kinds = Enum('Kinds', 'mu numu nue charm')
 
 
 def amu(particle):
@@ -106,7 +106,8 @@ class fpe_context(object):
 
 @lru_cache(maxsize=512)
 def mcsolver(primary_energy, cos_theta, particle):
-    Solutions = namedtuple('Solutions', 'el mu numu nue charm')
+    Info = namedtuple('Info', 'e_grid e_widths')
+    Yields = namedtuple('Yields', 'mu numu nue charm')
     mceq_run = MCEqRun(
         # provide the string of the interaction model
     interaction_model='SIBYLL2.3',
@@ -129,22 +130,37 @@ def mcsolver(primary_energy, cos_theta, particle):
     nue = mceq_run.get_solution('conv_nue', 0)+mceq_run.get_solution('conv_antinue',0)
     charm = mceq_run.get_solution('pr_numu', 0)+mceq_run.get_solution('pr_antinumu',0) \
         + mceq_run.get_solution('pr_nue', 0)+mceq_run.get_solution('pr_antinue',0) 
-    return Solutions(mceq_run.e_grid, mu, numu, nue, charm)
+    return Info(mceq_run.e_grid, mceq_run.e_widths), Yields(mu, numu, nue, charm)
 
 
-def mceq_yield(primary_energy, cos_theta, particle, kind='mu'):
-    mcs = mcsolver(primary_energy, cos_theta, particle)
-    if kind == 'mu':
-        return mcs.el, mcs.mu
-    elif kind == 'numu':
-        return mcs.el, mcs.numu
-    elif kind == 'nue':
-        return mcs.el, mcs.nue
-    elif kind == 'charm':
-        return mcs.el, mcs.charm
+def mceq_yield(primary_energy, cos_theta, particle, kind=Kinds.mu):
+    Solution = namedtuple('Solution', 'info yields')
+    info, mcs = mcsolver(primary_energy, cos_theta, particle)
+    if kind == Kinds.mu:
+        return Solution(info, mcs.mu)
+    elif kind == Kinds.numu:
+        return Solution(info, mcs.numu)
+    elif kind == Kinds.nue:
+        return Solution(info, mcs.nue)
+    elif kind == Kinds.charm:
+        return Solution(info, mcs.charm)
+
 
 def flux(primary_energy, particle):
-    return
-    
-def response_function(primary_energy, cos_theta, particle, kind='mu'):
-    return flux(primary_energy, particle)*mceq_yield(primary_energy, cos_theta, particle, kind=kind)
+    """ Primary flux
+    """
+    pmod = pm.HillasGaisser2012('H3a')
+    return pmod.nucleus_flux(particle, primary_energy)
+
+
+def response_function(primary_energy, cos_theta, particle, kind=Kinds.mu):
+    """ response function in https://arxiv.org/pdf/1405.0525.pdf
+    """
+    return flux(primary_energy, particle)*mceq_yield(primary_energy, cos_theta, particle, kind=kind).yields
+
+
+def prob_nomu(primary_energy, cos_theta, particle):
+    emu_min = minimum_muon_energy(overburden(cos_theta))
+    mu = mceq_yield(primary_energy, cos_theta, particle, kind=Kinds.mu)
+    above = mu.info.e_grid > emu_min
+    return np.exp(-np.sum(mu.info.e_widths[above] * mu.yields[above]))
