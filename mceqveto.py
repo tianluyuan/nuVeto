@@ -53,9 +53,6 @@ MCEQ = MCEqRun(
     **config)
 
 
-Kinds = Enum('Kinds', 'mu numu nue charm')
-
-
 def amu(particle):
     """
     :param particle: primary particle's corsika id
@@ -122,7 +119,7 @@ class fpe_context(object):
 @lru_cache(maxsize=512)
 def mcsolver(primary_energy, cos_theta, particle):
     Info = namedtuple('Info', 'e_grid e_widths')
-    Yields = namedtuple('Yields', 'mu numu nue charm')
+    Yields = namedtuple('Yields', 'mu numu nue conv_numu conv_nue pr_numu pr_nue')
     MCEQ.set_single_primary_particle(primary_energy, particle)
     MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
     MCEQ.solve()
@@ -131,24 +128,19 @@ def mcsolver(primary_energy, cos_theta, particle):
     # x = MCEQ.e_grid/en
 
     mu = MCEQ.get_solution('total_mu-', 0) + MCEQ.get_solution('total_mu+',0)
-    numu = MCEQ.get_solution('conv_numu', 0)+MCEQ.get_solution('conv_antinumu',0)
-    nue = MCEQ.get_solution('conv_nue', 0)+MCEQ.get_solution('conv_antinue',0)
-    charm = MCEQ.get_solution('pr_numu', 0)+MCEQ.get_solution('pr_antinumu',0) \
-        + MCEQ.get_solution('pr_nue', 0)+MCEQ.get_solution('pr_antinue',0) 
-    return Info(MCEQ.e_grid, MCEQ.e_widths), Yields(mu, numu, nue, charm)
+    numu = MCEQ.get_solution('total_numu', 0)+MCEQ.get_solution('total_antinumu',0)
+    nue = MCEQ.get_solution('total_nue', 0)+MCEQ.get_solution('total_antinue',0)
+    conv_numu = MCEQ.get_solution('conv_numu', 0)+MCEQ.get_solution('conv_antinumu',0)
+    conv_nue = MCEQ.get_solution('conv_nue', 0)+MCEQ.get_solution('conv_antinue',0)
+    pr_numu = MCEQ.get_solution('pr_numu', 0)+MCEQ.get_solution('pr_antinumu',0)
+    pr_nue = MCEQ.get_solution('pr_nue', 0)+MCEQ.get_solution('pr_antinue',0)
+    return Info(MCEQ.e_grid, MCEQ.e_widths), Yields(mu, numu, nue, conv_numu, conv_nue, pr_numu, pr_nue)
 
 
-def mceq_yield(primary_energy, cos_theta, particle, kind=Kinds.mu):
+def mceq_yield(primary_energy, cos_theta, particle, kind='mu'):
     Solution = namedtuple('Solution', 'info yields')
     info, mcs = mcsolver(primary_energy, cos_theta, particle)
-    if kind == Kinds.mu:
-        return Solution(info, mcs.mu)
-    elif kind == Kinds.numu:
-        return Solution(info, mcs.numu)
-    elif kind == Kinds.nue:
-        return Solution(info, mcs.nue)
-    elif kind == Kinds.charm:
-        return Solution(info, mcs.charm)
+    return Solution(info, mcs._asdict()[kind])
 
 
 def flux(primary_energy, particle):
@@ -158,7 +150,7 @@ def flux(primary_energy, particle):
     return pmod.nucleus_flux(particle, primary_energy)
 
 
-def response_function(primary_energy, cos_theta, particle, elep, kind=Kinds.mu):
+def response_function(primary_energy, cos_theta, particle, elep, kind='mu'):
     """ response function in https://arxiv.org/pdf/1405.0525.pdf
     """
     sol = mceq_yield(primary_energy, cos_theta, particle, kind=kind)
@@ -167,12 +159,12 @@ def response_function(primary_energy, cos_theta, particle, elep, kind=Kinds.mu):
 
 def prob_nomu(primary_energy, cos_theta, particle):
     emu_min = minimum_muon_energy(overburden(cos_theta))
-    mu = mceq_yield(primary_energy, cos_theta, particle, kind=Kinds.mu)
+    mu = mceq_yield(primary_energy, cos_theta, particle, kind='mu')
     above = mu.info.e_grid > emu_min
     return np.exp(-np.trapz(mu.yields[above], mu.info.e_grid[above]))
 
 
-def passing_rate(enu, cos_theta, kind=Kinds.numu):
+def passing_rate(enu, cos_theta, kind='numu'):
     pmod = SETUP['flux'](SETUP['gen'])
 
     epedges = np.logspace(2, 11, 10)
