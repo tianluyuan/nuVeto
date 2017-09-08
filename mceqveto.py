@@ -38,6 +38,19 @@ import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 
 
+SETUP = {'flux':pm.HillasGaisser2012,
+         'gen':'H3a',
+         'hadr':'SIBYLL2.3c'}
+MCEQ = MCEqRun(
+    # provide the string of the interaction model
+    interaction_model=SETUP['hadr'],
+    # primary cosmic ray flux model
+    # support a tuple (primary model class (not instance!), arguments)
+    primary_model=(SETUP['flux'], SETUP['gen']),
+    # expand the rest of the options from mceq_config.py
+    **config)
+
+
 Kinds = Enum('Kinds', 'mu numu nue charm')
 
 
@@ -47,7 +60,7 @@ def amu(particle):
 
     :returns: the atomic mass of particle
     """
-    return particle/100
+    return 1 if particle==14 else particle/100
 
     
 def overburden(cos_theta, depth=1950, elevation=2400):
@@ -108,29 +121,19 @@ class fpe_context(object):
 def mcsolver(primary_energy, cos_theta, particle):
     Info = namedtuple('Info', 'e_grid e_widths')
     Yields = namedtuple('Yields', 'mu numu nue charm')
-    mceq_run = MCEqRun(
-        # provide the string of the interaction model
-    interaction_model='SIBYLL2.3',
-        # primary cosmic ray flux model
-        # support a tuple (primary model class (not instance!), arguments)
-    primary_model=(pm.HillasGaisser2012, "H3a"),
-        # Zenith angle in degrees. 0=vertical, 90=horizontal
-    theta_deg=np.degrees(np.arccos(cos_theta)),
-        # expand the rest of the options from mceq_config.py
-    **config)
-
-    mceq_run.set_single_primary_particle(primary_energy, particle)
-    mceq_run.solve()
+    MCEQ.set_single_primary_particle(primary_energy, particle)
+    MCEQ.set_theta_deg(np.arccos(cos_theta))
+    MCEQ.solve()
 
     # en = primary_energy/amu(particle)
-    # x = mceq_run.e_grid/en
+    # x = MCEQ.e_grid/en
 
-    mu = mceq_run.get_solution('mu-', 0) + mceq_run.get_solution('mu+',0)
-    numu = mceq_run.get_solution('conv_numu', 0)+mceq_run.get_solution('conv_antinumu',0)
-    nue = mceq_run.get_solution('conv_nue', 0)+mceq_run.get_solution('conv_antinue',0)
-    charm = mceq_run.get_solution('pr_numu', 0)+mceq_run.get_solution('pr_antinumu',0) \
-        + mceq_run.get_solution('pr_nue', 0)+mceq_run.get_solution('pr_antinue',0) 
-    return Info(mceq_run.e_grid, mceq_run.e_widths), Yields(mu, numu, nue, charm)
+    mu = MCEQ.get_solution('mu-', 0) + MCEQ.get_solution('mu+',0)
+    numu = MCEQ.get_solution('conv_numu', 0)+MCEQ.get_solution('conv_antinumu',0)
+    nue = MCEQ.get_solution('conv_nue', 0)+MCEQ.get_solution('conv_antinue',0)
+    charm = MCEQ.get_solution('pr_numu', 0)+MCEQ.get_solution('pr_antinumu',0) \
+        + MCEQ.get_solution('pr_nue', 0)+MCEQ.get_solution('pr_antinue',0) 
+    return Info(MCEQ.e_grid, MCEQ.e_widths), Yields(mu, numu, nue, charm)
 
 
 def mceq_yield(primary_energy, cos_theta, particle, kind=Kinds.mu):
@@ -149,18 +152,41 @@ def mceq_yield(primary_energy, cos_theta, particle, kind=Kinds.mu):
 def flux(primary_energy, particle):
     """ Primary flux
     """
-    pmod = pm.HillasGaisser2012('H3a')
+    pmod = SETUP['flux'](SETUP['gen'])
     return pmod.nucleus_flux(particle, primary_energy)
 
 
-def response_function(primary_energy, cos_theta, particle, kind=Kinds.mu):
+def response_function(primary_energy, cos_theta, particle, elep, kind=Kinds.mu):
     """ response function in https://arxiv.org/pdf/1405.0525.pdf
     """
-    return flux(primary_energy, particle)*mceq_yield(primary_energy, cos_theta, particle, kind=kind).yields
+    sol = mceq_yield(primary_energy, cos_theta, particle, kind=kind)
+    return flux(primary_energy, particle)*np.interp(elep, sol.info.e_grid, sol.yields)
 
 
 def prob_nomu(primary_energy, cos_theta, particle):
     emu_min = minimum_muon_energy(overburden(cos_theta))
     mu = mceq_yield(primary_energy, cos_theta, particle, kind=Kinds.mu)
     above = mu.info.e_grid > emu_min
-    return np.exp(-np.sum(mu.info.e_widths[above] * mu.yields[above]))
+    return np.exp(-np.trapz(mu.yields[above], mu.info.e_grid[above]))
+
+
+def passing_rate(enu, cos_theta, kind=Kinds.numu):
+    pmod = SETUP['flux'](SETUP['gen'])
+
+    epedges = np.logspace(2, 11, 10)
+    epcenters = 10**((np.log10(epedges[:-1])+np.log10(epedges[1:]))/2)
+    
+    passed = 0
+    total = 0
+    for particle in pmod.nucleus_ids:
+        numer = []
+        denom = []
+        for primary_energy in epcenters:
+            res = response_function(primary_energy, cos_theta, particle, enu, kind=kind)
+            pnm = prob_nomu(primary_energy, cos_theta, particle)
+            numer.append(res*pnm)
+            denom.append(res)
+
+        passed += np.trapz(numer, epcenters)
+        total += np.trapz(denom, epcenters)
+    return passed/total
