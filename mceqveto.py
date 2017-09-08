@@ -47,6 +47,8 @@ MCEQ = MCEqRun(
     # primary cosmic ray flux model
     # support a tuple (primary model class (not instance!), arguments)
     primary_model=(SETUP['flux'], SETUP['gen']),
+    # zenith angle \theta in degrees, measured positively from vertical direction
+    theta_deg = 0.,
     # expand the rest of the options from mceq_config.py
     **config)
 
