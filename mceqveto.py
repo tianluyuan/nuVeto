@@ -124,13 +124,13 @@ def mcsolver(primary_energy, cos_theta, particle):
     Info = namedtuple('Info', 'e_grid e_widths')
     Yields = namedtuple('Yields', 'mu numu nue charm')
     MCEQ.set_single_primary_particle(primary_energy, particle)
-    MCEQ.set_theta_deg(np.arccos(cos_theta))
+    MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
     MCEQ.solve()
 
     # en = primary_energy/amu(particle)
     # x = MCEQ.e_grid/en
 
-    mu = MCEQ.get_solution('mu-', 0) + MCEQ.get_solution('mu+',0)
+    mu = MCEQ.get_solution('total_mu-', 0) + MCEQ.get_solution('total_mu+',0)
     numu = MCEQ.get_solution('conv_numu', 0)+MCEQ.get_solution('conv_antinumu',0)
     nue = MCEQ.get_solution('conv_nue', 0)+MCEQ.get_solution('conv_antinue',0)
     charm = MCEQ.get_solution('pr_numu', 0)+MCEQ.get_solution('pr_antinumu',0) \
