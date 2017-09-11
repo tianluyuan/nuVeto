@@ -12,11 +12,14 @@ def test_pr(cos_theta=1, kind='numu', pmods=(), **kwargs):
 
 
 def test_barr(cos_theta=1, kind='numu'):
-    all_pmods = [((211, 'h1', 0.15),(211, 'h2', 0.15),(211, 'i', 0.122),
+    all_pmods = [((211, 'g', 0.3),
+                  (211, 'h1', 0.15),(211, 'h2', 0.15),(211, 'i', 0.122),
+                  (321, 'w6', 0.4),
                   (321, 'y1', 0.3),(321, 'y2', 0.3),(321, 'z', 0.122)),
-                 ((211, 'h1', -0.15),(211, 'h2', -0.15),(211, 'i', -0.122),
+                 ((211, 'g', -0.3),
+                  (211, 'h1', -0.15),(211, 'h2', -0.15),(211, 'i', -0.122),
+                  (321, 'w6', -0.4),
                   (321, 'y1', -0.3),(321, 'y2', -0.3),(321, 'z', -0.122))]
-    pr = test_pr(cos_theta, kind)
+    pr = test_pr(cos_theta, kind, label='{}, cth={}'.format(kind, cos_theta))
     for pmods in all_pmods:
         test_pr(cos_theta, kind, pmods, color=pr.get_color(), alpha=1-abs(pmods[0][-1]))
-
