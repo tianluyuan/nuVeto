@@ -53,6 +53,69 @@ MCEQ = MCEqRun(
     **config)
 
 
+# Global Barr parameter table 
+# format (x_min, x_max, E_min, E_max) | x is x_lab= E_pi/E, E projectile-air interaction energy
+BARR = {
+    'a': [(0.0, 0.5, 0.00, 8.0)],
+    'b1': [(0.5, 1.0, 0.00, 8.0)],
+    'b2': [(0.6, 1.0, 8.00, 15.0)],
+    'c': [(0.2, 0.6, 8.00, 15.0)],
+    'd1': [(0.0, 0.2, 8.00, 15.0)],
+    'd2': [(0.0, 0.1, 15.0, 30.0)],
+    'd3': [(0.1, 0.2, 15.0, 30.0)],
+    'e': [(0.2, 0.6, 15.0, 30.0)],
+    'f': [(0.6, 1.0, 15.0, 30.0)],
+    'g': [(0.0, 0.1, 30.0, 1e11)],
+    'h1': [(0.1, 1.0, 30.0, 500.)],
+    'h2': [(0.1, 1.0, 500.0, 1e11)],
+    'i': [(0.1, 1.0, 500.0, 1e11)],
+    'w1': [(0.0, 1.0, 0.00, 8.0)],
+    'w2': [(0.0, 1.0, 8.00, 15.0)],
+    'w3': [(0.0, 0.1, 15.0, 30.0)],
+    'w4': [(0.1, 0.2, 15.0, 30.0)],
+    'w5': [(0.0, 0.1, 30.0, 500.)],
+    'w6': [(0.0, 0.1, 500., 1e11)],
+    'x': [(0.2, 1.0, 15.0, 30.0)],
+    'y1': [(0.1, 1.0, 30.0, 500.)],
+    'y2': [(0.1, 1.0, 500., 1e11)],
+    'z': [(0.1, 1.0, 500., 1e11)],
+    'ch_a': [(0.0, 0.1, 0., 1e11)],
+    'ch_b': [(0.1, 1.0, 0., 1e11)],
+    'ch_e': [(0.1, 1.0, 800., 1e11)],
+}
+
+
+def barr_unc(xmat, egrid, pname, value):
+    """Implementation of hadronic uncertainties as in Barr et al. PRD 74 094009 (2006)
+
+    The names of parameters are explained in Fig. 2 and Fig. 3 in the paper."""
+
+
+    # Energy dependence
+    u = lambda E, val, ethr, maxerr, expected_err: val*min(
+        maxerr/expected_err,
+        0.122/expected_err*np.log10(E / ethr)) if E > ethr else 0.
+
+    modmat = np.ones_like(xmat)
+    modmat[np.tril_indices(xmat.shape[0], -1)] = 0.
+
+    for minx, maxx, mine, maxe in BARR[pname]:
+        eidcs = np.where((mine < egrid) & (egrid <= maxe))[0]
+        for eidx in eidcs:
+            xsel = np.where((xmat[:eidx + 1, eidx] >= minx) &
+                            (xmat[:eidx + 1, eidx] <= maxx))[0]
+            if not np.any(xsel):
+                continue
+            if pname in ['i', 'z']:
+                modmat[xsel, eidx] += u(egrid[eidx], value, 500., 0.5, 0.122)
+            elif pname in ['ch_e']:
+                modmat[xsel, eidx] += u(egrid[eidx], value, 800., 0.3, 0.25)
+            else:
+                modmat[xsel, eidx] += value
+
+    return modmat
+
+
 def amu(particle):
     """
     :param particle: primary particle's corsika id
@@ -101,45 +164,42 @@ def effective_costheta(costheta):
     return np.sqrt((x**2 + p[0]**2 + p[1] * x**p[2] + p[3] * x**p[4]) / (1 + p[0]**2 + p[1] + p[3]))
 
 
-class fpe_context(object):
-    """
-    Temporarily modify floating-point exception handling
-    """
-
-    def __init__(self, **kwargs):
-        self.new_kwargs = kwargs
-
-    def __enter__(self):
-        self.old_kwargs = np.seterr(**self.new_kwargs)
-
-    def __exit__(self, *args):
-        np.seterr(**self.old_kwargs)
-
-
 @lru_cache(maxsize=512)
-def mcsolver(primary_energy, cos_theta, particle):
+def mcsolver(primary_energy, cos_theta, particle, mods=()):
     Info = namedtuple('Info', 'e_grid e_widths')
     Yields = namedtuple('Yields', 'mu numu nue conv_numu conv_nue pr_numu pr_nue')
     MCEQ.set_single_primary_particle(primary_energy, particle)
     MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
+
+    # In case there was something before, reset modifications
+    MCEQ.unset_mod_pprod(dont_fill=True)
+    for mod in mods:
+        # Modify proton-air -> mod[0]
+        MCEQ.set_mod_pprod(2212,mod[0],barr_unc,mod[1:], delay_init=True)
+    # Populate the modifications to the matrices by re-filling the interaction matrix
+    MCEQ._init_default_matrices(skip_D_matrix=True)
+    # Print the changes
+    print "\n \n This is the printout from the print_mod_pprod routine"
+    MCEQ.y.print_mod_pprod()
+    print "\n \n"
     MCEQ.solve()
 
     # en = primary_energy/amu(particle)
     # x = MCEQ.e_grid/en
 
-    mu = MCEQ.get_solution('total_mu-', 0) + MCEQ.get_solution('total_mu+',0)
-    numu = MCEQ.get_solution('total_numu', 0)+MCEQ.get_solution('total_antinumu',0)
-    nue = MCEQ.get_solution('total_nue', 0)+MCEQ.get_solution('total_antinue',0)
-    conv_numu = MCEQ.get_solution('conv_numu', 0)+MCEQ.get_solution('conv_antinumu',0)
-    conv_nue = MCEQ.get_solution('conv_nue', 0)+MCEQ.get_solution('conv_antinue',0)
-    pr_numu = MCEQ.get_solution('pr_numu', 0)+MCEQ.get_solution('pr_antinumu',0)
-    pr_nue = MCEQ.get_solution('pr_nue', 0)+MCEQ.get_solution('pr_antinue',0)
+    mu = MCEQ.get_solution('total_mu-') + MCEQ.get_solution('total_mu+')
+    numu = MCEQ.get_solution('total_numu')+MCEQ.get_solution('total_antinumu')
+    nue = MCEQ.get_solution('total_nue')+MCEQ.get_solution('total_antinue')
+    conv_numu = MCEQ.get_solution('conv_numu')+MCEQ.get_solution('conv_antinumu')
+    conv_nue = MCEQ.get_solution('conv_nue')+MCEQ.get_solution('conv_antinue')
+    pr_numu = MCEQ.get_solution('pr_numu')+MCEQ.get_solution('pr_antinumu')
+    pr_nue = MCEQ.get_solution('pr_nue')+MCEQ.get_solution('pr_antinue')
     return Info(MCEQ.e_grid, MCEQ.e_widths), Yields(mu, numu, nue, conv_numu, conv_nue, pr_numu, pr_nue)
 
 
-def mceq_yield(primary_energy, cos_theta, particle, kind='mu'):
+def mceq_yield(primary_energy, cos_theta, particle, kind='mu', mods=()):
     Solution = namedtuple('Solution', 'info yields')
-    info, mcs = mcsolver(primary_energy, cos_theta, particle)
+    info, mcs = mcsolver(primary_energy, cos_theta, particle, mods=mods)
     return Solution(info, mcs._asdict()[kind])
 
 
@@ -150,33 +210,33 @@ def flux(primary_energy, particle):
     return pmod.nucleus_flux(particle, primary_energy)
 
 
-def response_function(primary_energy, cos_theta, particle, elep, kind='mu'):
+def response_function(primary_energy, cos_theta, particle, elep, kind='mu', mods=()):
     """ response function in https://arxiv.org/pdf/1405.0525.pdf
     """
-    sol = mceq_yield(primary_energy, cos_theta, particle, kind=kind)
+    sol = mceq_yield(primary_energy, cos_theta, particle, kind=kind, mods=mods)
     return flux(primary_energy, particle)*np.interp(elep, sol.info.e_grid, sol.yields)
 
 
-def prob_nomu(primary_energy, cos_theta, particle):
+def prob_nomu(primary_energy, cos_theta, particle, mods=()):
     emu_min = minimum_muon_energy(overburden(cos_theta))
-    mu = mceq_yield(primary_energy, cos_theta, particle, kind='mu')
+    mu = mceq_yield(primary_energy, cos_theta, particle, kind='mu', mods=mods)
     above = mu.info.e_grid > emu_min
     return np.exp(-np.trapz(mu.yields[above], mu.info.e_grid[above]))
 
 
-def passing_rate(enu, cos_theta, kind='numu', accuracy=10):
+def passing_rate(enu, cos_theta, kind='numu', accuracy=10, mods=()):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
     for particle in pmod.nucleus_ids:
         # A continuous input energy range is allowed between
         # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-        eprimaries = amu(particle)*np.logspace(2, 10, accuracy)    
+        eprimaries = amu(particle)*np.logspace(2, 10, accuracy) 
         numer = []
         denom = []
         for primary_energy in eprimaries:
-            res = response_function(primary_energy, cos_theta, particle, enu, kind=kind)
-            pnm = prob_nomu(primary_energy, cos_theta, particle)
+            res = response_function(primary_energy, cos_theta, particle, enu, kind=kind, mods=mods)
+            pnm = prob_nomu(primary_energy, cos_theta, particle, mods=mods)
             numer.append(res*pnm)
             denom.append(res)
 
