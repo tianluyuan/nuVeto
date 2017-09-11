@@ -164,8 +164,21 @@ def effective_costheta(costheta):
     return np.sqrt((x**2 + p[0]**2 + p[1] * x**p[2] + p[3] * x**p[4]) / (1 + p[0]**2 + p[1] + p[3]))
 
 
-@lru_cache(maxsize=512)
-def mcsolver(primary_energy, cos_theta, particle, mods=()):
+def mcsolver(primary_energy, cos_theta, particle, pmods=()):
+    """wrapper fn to protect against modifying hadron production rates
+    (Barr et. al) for non-proton primaries. Only proton yields are
+    affected. This is to speed up the caching of outputs from
+    mcsolver_wrapped.
+    """
+    if particle == 14:
+        mods = pmods
+    else:
+        mods = ()
+    return mcsolver_wrapped(primary_energy, cos_theta, particle, mods)
+
+
+@lru_cache(maxsize=1024)
+def mcsolver_wrapped(primary_energy, cos_theta, particle, pmods=()):
     Info = namedtuple('Info', 'e_grid e_widths')
     Yields = namedtuple('Yields', 'mu numu nue conv_numu conv_nue pr_numu pr_nue')
     MCEQ.set_single_primary_particle(primary_energy, particle)
@@ -173,15 +186,15 @@ def mcsolver(primary_energy, cos_theta, particle, mods=()):
 
     # In case there was something before, reset modifications
     MCEQ.unset_mod_pprod(dont_fill=True)
-    for mod in mods:
+    for mod in pmods:
         # Modify proton-air -> mod[0]
         MCEQ.set_mod_pprod(2212,mod[0],barr_unc,mod[1:], delay_init=True)
     # Populate the modifications to the matrices by re-filling the interaction matrix
     MCEQ._init_default_matrices(skip_D_matrix=True)
     # Print the changes
-    print "\n \n This is the printout from the print_mod_pprod routine"
-    MCEQ.y.print_mod_pprod()
-    print "\n \n"
+    # print "\n \n This is the printout from the print_mod_pprod routine"
+    # MCEQ.y.print_mod_pprod()
+    # print "\n \n"
     MCEQ.solve()
 
     # en = primary_energy/amu(particle)
@@ -197,9 +210,9 @@ def mcsolver(primary_energy, cos_theta, particle, mods=()):
     return Info(MCEQ.e_grid, MCEQ.e_widths), Yields(mu, numu, nue, conv_numu, conv_nue, pr_numu, pr_nue)
 
 
-def mceq_yield(primary_energy, cos_theta, particle, kind='mu', mods=()):
+def mceq_yield(primary_energy, cos_theta, particle, kind='mu', pmods=()):
     Solution = namedtuple('Solution', 'info yields')
-    info, mcs = mcsolver(primary_energy, cos_theta, particle, mods=mods)
+    info, mcs = mcsolver(primary_energy, cos_theta, particle, pmods=pmods)
     return Solution(info, mcs._asdict()[kind])
 
 
@@ -210,21 +223,21 @@ def flux(primary_energy, particle):
     return pmod.nucleus_flux(particle, primary_energy)
 
 
-def response_function(primary_energy, cos_theta, particle, elep, kind='mu', mods=()):
+def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmods=()):
     """ response function in https://arxiv.org/pdf/1405.0525.pdf
     """
-    sol = mceq_yield(primary_energy, cos_theta, particle, kind=kind, mods=mods)
+    sol = mceq_yield(primary_energy, cos_theta, particle, kind=kind, pmods=pmods)
     return flux(primary_energy, particle)*np.interp(elep, sol.info.e_grid, sol.yields)
 
 
-def prob_nomu(primary_energy, cos_theta, particle, mods=()):
+def prob_nomu(primary_energy, cos_theta, particle, pmods=()):
     emu_min = minimum_muon_energy(overburden(cos_theta))
-    mu = mceq_yield(primary_energy, cos_theta, particle, kind='mu', mods=mods)
+    mu = mceq_yield(primary_energy, cos_theta, particle, kind='mu', pmods=pmods)
     above = mu.info.e_grid > emu_min
     return np.exp(-np.trapz(mu.yields[above], mu.info.e_grid[above]))
 
 
-def passing_rate(enu, cos_theta, kind='numu', accuracy=10, mods=()):
+def passing_rate(enu, cos_theta, kind='numu', accuracy=10, pmods=()):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
@@ -235,8 +248,8 @@ def passing_rate(enu, cos_theta, kind='numu', accuracy=10, mods=()):
         numer = []
         denom = []
         for primary_energy in eprimaries:
-            res = response_function(primary_energy, cos_theta, particle, enu, kind=kind, mods=mods)
-            pnm = prob_nomu(primary_energy, cos_theta, particle, mods=mods)
+            res = response_function(primary_energy, cos_theta, particle, enu, kind=kind, pmods=pmods)
+            pnm = prob_nomu(primary_energy, cos_theta, particle, pmods=pmods)
             numer.append(res*pnm)
             denom.append(res)
 

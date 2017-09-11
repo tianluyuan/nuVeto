@@ -2,8 +2,8 @@ from mceqveto import *
 from matplotlib import pyplot as plt
 
 
-def test_pr(cos_theta=1, kind='numu', mods=()):
+def test_pr(cos_theta=1, kind='numu', pmods=()):
     ens = np.logspace(2,9, 100)
-    plt.plot(ens, [passing_rate(en, cos_theta, kind=kind, accuracy=20, mods=mods) for en in ens])
+    plt.plot(ens, [passing_rate(en, cos_theta, kind=kind, accuracy=20, pmods=pmods) for en in ens])
     plt.xlim(10**3, 10**7)
     plt.ylim(0, 1)
