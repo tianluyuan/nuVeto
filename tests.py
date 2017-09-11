@@ -21,10 +21,12 @@ def test_barr_brackets(cos_theta=1., kind='numu', params='g h1 h2 i w6 y1 y2 z c
         test_pr(cos_theta, kind, pmods, color=pr.get_color(), alpha=1-abs(pmods[0][-1]))
 
 
-def test_barr_samples(cos_theta=1, kind='numu', nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
+def test_barr_samples(cos_theta=1, kind='numu', seed=88, nsamples=10,
+                      params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
     pr = test_pr(cos_theta, kind, label='{}, cth={}'.format(kind, cos_theta))
+    np.random.seed(seed)
     for i in xrange(nsamples):
         errors = [np.random.normal(scale=BARR[param].error) for param in params]
         pmods = tuple(zip(params, errors))
-        test_pr(cos_theta, kind, pmods, color=pr.get_color(), alpha=1-abs(min(np.mean(errors), 0.1)))
+        test_pr(cos_theta, kind, pmods, color=pr.get_color(), alpha=1-min(np.mean(np.abs(errors)), 0.9))
