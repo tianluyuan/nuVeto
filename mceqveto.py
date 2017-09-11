@@ -54,34 +54,35 @@ MCEQ = MCEqRun(
 
 
 # Global Barr parameter table 
-# format (x_min, x_max, E_min, E_max) | x is x_lab= E_pi/E, E projectile-air interaction energy
+# format [(x_min, x_max, E_min, E_max)] | x is x_lab= E_pi/E, E projectile-air interaction energy
+ParamInfo = namedtuple('ParamInfo', 'regions error pdg')
 BARR = {
-    'a': [(0.0, 0.5, 0.00, 8.0)],
-    'b1': [(0.5, 1.0, 0.00, 8.0)],
-    'b2': [(0.6, 1.0, 8.00, 15.0)],
-    'c': [(0.2, 0.6, 8.00, 15.0)],
-    'd1': [(0.0, 0.2, 8.00, 15.0)],
-    'd2': [(0.0, 0.1, 15.0, 30.0)],
-    'd3': [(0.1, 0.2, 15.0, 30.0)],
-    'e': [(0.2, 0.6, 15.0, 30.0)],
-    'f': [(0.6, 1.0, 15.0, 30.0)],
-    'g': [(0.0, 0.1, 30.0, 1e11)],
-    'h1': [(0.1, 1.0, 30.0, 500.)],
-    'h2': [(0.1, 1.0, 500.0, 1e11)],
-    'i': [(0.1, 1.0, 500.0, 1e11)],
-    'w1': [(0.0, 1.0, 0.00, 8.0)],
-    'w2': [(0.0, 1.0, 8.00, 15.0)],
-    'w3': [(0.0, 0.1, 15.0, 30.0)],
-    'w4': [(0.1, 0.2, 15.0, 30.0)],
-    'w5': [(0.0, 0.1, 30.0, 500.)],
-    'w6': [(0.0, 0.1, 500., 1e11)],
-    'x': [(0.2, 1.0, 15.0, 30.0)],
-    'y1': [(0.1, 1.0, 30.0, 500.)],
-    'y2': [(0.1, 1.0, 500., 1e11)],
-    'z': [(0.1, 1.0, 500., 1e11)],
-    'ch_a': [(0.0, 0.1, 0., 1e11)],
-    'ch_b': [(0.1, 1.0, 0., 1e11)],
-    'ch_e': [(0.1, 1.0, 800., 1e11)],
+    'a': ParamInfo([(0.0, 0.5, 0.00, 8.0)], 0.1, 211),
+    'b1': ParamInfo([(0.5, 1.0, 0.00, 8.0)], 0.3, 211),
+    'b2': ParamInfo([(0.6, 1.0, 8.00, 15.0)], 0.3, 211),
+    'c': ParamInfo([(0.2, 0.6, 8.00, 15.0)], 0.1, 211),
+    'd1': ParamInfo([(0.0, 0.2, 8.00, 15.0)], 0.3, 211),
+    'd2': ParamInfo([(0.0, 0.1, 15.0, 30.0)], 0.3, 211),
+    'd3': ParamInfo([(0.1, 0.2, 15.0, 30.0)], 0.1, 211),
+    'e': ParamInfo([(0.2, 0.6, 15.0, 30.0)], 0.05, 211),
+    'f': ParamInfo([(0.6, 1.0, 15.0, 30.0)], 0.1, 211),
+    'g': ParamInfo([(0.0, 0.1, 30.0, 1e11)], 0.3, 211),
+    'h1': ParamInfo([(0.1, 1.0, 30.0, 500.)], 0.15, 211),
+    'h2': ParamInfo([(0.1, 1.0, 500.0, 1e11)], 0.15, 211),
+    'i': ParamInfo([(0.1, 1.0, 500.0, 1e11)], 0.122, 211),
+    'w1': ParamInfo([(0.0, 1.0, 0.00, 8.0)], 0.4, 321),
+    'w2': ParamInfo([(0.0, 1.0, 8.00, 15.0)], 0.4, 321),
+    'w3': ParamInfo([(0.0, 0.1, 15.0, 30.0)], 0.3, 321),
+    'w4': ParamInfo([(0.1, 0.2, 15.0, 30.0)], 0.2, 321),
+    'w5': ParamInfo([(0.0, 0.1, 30.0, 500.)], 0.4, 321),
+    'w6': ParamInfo([(0.0, 0.1, 500., 1e11)], 0.4, 321),
+    'x': ParamInfo([(0.2, 1.0, 15.0, 30.0)], 0.1, 321),
+    'y1': ParamInfo([(0.1, 1.0, 30.0, 500.)], 0.3, 321),
+    'y2': ParamInfo([(0.1, 1.0, 500., 1e11)], 0.3, 321),
+    'z': ParamInfo([(0.1, 1.0, 500., 1e11)], 0.122, 321),
+    'ch_a': ParamInfo([(0.0, 0.1, 0., 1e11)], 0.25, 411), # these uncertainties are made up for now
+    'ch_b': ParamInfo([(0.1, 1.0, 0., 1e11)], 0.25, 411), # ask anatoli?
+    'ch_e': ParamInfo([(0.1, 1.0, 800., 1e11)], 0.25, 411)
 }
 
 
@@ -99,7 +100,7 @@ def barr_unc(xmat, egrid, pname, value):
     modmat = np.ones_like(xmat)
     modmat[np.tril_indices(xmat.shape[0], -1)] = 0.
 
-    for minx, maxx, mine, maxe in BARR[pname]:
+    for minx, maxx, mine, maxe in BARR[pname].regions:
         eidcs = np.where((mine < egrid) & (egrid <= maxe))[0]
         for eidx in eidcs:
             xsel = np.where((xmat[:eidx + 1, eidx] >= minx) &
@@ -186,9 +187,9 @@ def mcsolver_wrapped(primary_energy, cos_theta, particle, pmods=()):
 
     # In case there was something before, reset modifications
     MCEQ.unset_mod_pprod(dont_fill=True)
-    for mod in pmods:
+    for pmod in pmods:
         # Modify proton-air -> mod[0]
-        MCEQ.set_mod_pprod(2212,mod[0],barr_unc,mod[1:], delay_init=True)
+        MCEQ.set_mod_pprod(2212,BARR[pmod[0]].pdg,barr_unc,pmod,delay_init=True)
     # Populate the modifications to the matrices by re-filling the interaction matrix
     MCEQ._init_default_matrices(skip_D_matrix=True)
     # Print the changes
