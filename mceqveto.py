@@ -243,14 +243,14 @@ def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     return np.exp(-simps(mu.yields[above], mu.info.e_grid[above]))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=10):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
     for particle in pmod.nucleus_ids:
         # A continuous input energy range is allowed between
         # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-        eprimaries = amu(particle)*np.logspace(2, 10, 2*accuracy) 
+        eprimaries = amu(particle)*np.logspace(2, 10, accuracy) 
         numer = []
         denom = []
         for primary_energy in eprimaries:
@@ -259,6 +259,6 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accur
             numer.append(res*pnm)
             denom.append(res)
 
-        passed += simps(numer, eprimaries)
-        total += simps(denom, eprimaries)
+        passed += np.trapz(numer, eprimaries)
+        total += np.trapz(denom, eprimaries)
     return passed/total

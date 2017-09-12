@@ -2,7 +2,7 @@ from mceqveto import *
 from matplotlib import pyplot as plt
 
 
-def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=10, **kwargs):
+def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, **kwargs):
     ens = np.logspace(2,9, 100)
     prs = plt.plot(ens, [passing_rate(en, cos_theta, kind, pmods,
                                       hadr, accuracy) for en in ens],
@@ -15,7 +15,7 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=10,
 
 def test_accuracy(cos_theta=1., kind='numu', hadr='SIBYLL2.3c'):
     plt.clf()
-    accuracies = [3, 5, 9]
+    accuracies = [3, 5, 9, 17]
     for accuracy in accuracies:
         test_pr(cos_theta, kind, hadr=hadr, accuracy=accuracy,
                 label='{}'.format(accuracy))
