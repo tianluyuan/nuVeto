@@ -10,6 +10,8 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20,
     plt.xlim(10**3, 10**7)
     plt.ylim(0, 1)
     plt.xscale('log')
+    plt.xlabel(r'$E_\nu$')
+    plt.ylabel(r'Passing rate')
     return prs[0]
 
 
@@ -20,6 +22,7 @@ def test_accuracy(cos_theta=1., kind='numu', hadr='SIBYLL2.3c'):
         test_pr(cos_theta, kind, hadr=hadr, accuracy=accuracy,
                 label='{}'.format(accuracy))
     plt.title('{} {} cth={}'.format(hadr, kind, cos_theta))
+    plt.legend()
 
 
 def test_brackets(cos_theta=1., kind='numu', hadr='SIBYLL2.3c',
