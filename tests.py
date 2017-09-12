@@ -26,7 +26,8 @@ def test_barr_samples(cos_theta=1, kind='numu', seed=88, nsamples=10,
     params = params.split(' ')
     pr = test_pr(cos_theta, kind, label='{}, cth={}'.format(kind, cos_theta))
     np.random.seed(seed)
-    for i in xrange(nsamples):
-        errors = [np.random.normal(scale=BARR[param].error) for param in params]
+    for i in xrange(nsamples-1):
+        # max(-1, throw) prevents throws that dip below -100%
+        errors = [max(-1, np.random.normal(scale=BARR[param].error)) for param in params]
         pmods = tuple(zip(params, errors))
         test_pr(cos_theta, kind, pmods, color=pr.get_color(), alpha=1-min(np.mean(np.abs(errors)), 0.9))

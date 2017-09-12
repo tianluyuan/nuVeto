@@ -82,8 +82,8 @@ BARR = {
     'y1': ParamInfo([(0.1, 1.0, 30.0, 500.)], 0.3, 321),
     'y2': ParamInfo([(0.1, 1.0, 500., 1e11)], 0.3, 321),
     'z': ParamInfo([(0.1, 1.0, 500., 1e11)], 0.122, 321),
-    'ch_a': ParamInfo([(0.0, 0.1, 0., 1e11)], 0.25, 411), # these uncertainties are made up for now
-    'ch_b': ParamInfo([(0.1, 1.0, 0., 1e11)], 0.25, 411), # ask anatoli?
+    'ch_a': ParamInfo([(0.0, 0.1, 0., 1e11)], 0.1, 411), # these uncertainties are from A. Fedynitch Vietnus
+    'ch_b': ParamInfo([(0.1, 1.0, 0., 1e11)], 0.7, 411),
     'ch_e': ParamInfo([(0.1, 1.0, 800., 1e11)], 0.25, 411)
 }
 
