@@ -19,7 +19,7 @@ def test_brackets(cos_theta=1., kind='numu', hadr='SIBYLL2.3c',
     uppers = [BARR[param].error for param in params]
     lowers = [-BARR[param].error for param in params]
     all_pmods = [tuple(zip(params, uppers)), tuple(zip(params, lowers))]
-    pr = test_pr(cos_theta, kind, hadr=hadr, label='{}, cth={}'.format(kind, cos_theta))
+    pr = test_pr(cos_theta, kind, hadr=hadr, label='{} cth={}'.format(kind, cos_theta))
     for pmods in all_pmods:
         test_pr(cos_theta, kind, pmods, hadr, color=pr.get_color(), alpha=1-abs(pmods[0][-1]))
 
@@ -27,7 +27,7 @@ def test_brackets(cos_theta=1., kind='numu', hadr='SIBYLL2.3c',
 def test_samples(cos_theta=1, kind='numu', hadr='SIBYLL2.3c',
                  seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
-    pr = test_pr(cos_theta, kind, hadr=hadr, label='{}, cth={}'.format(kind, cos_theta))
+    pr = test_pr(cos_theta, kind, hadr=hadr, label='{} cth={}'.format(kind, cos_theta))
     np.random.seed(seed)
     for i in xrange(nsamples-1):
         # max(-1, throw) prevents throws that dip below -100%
@@ -39,4 +39,4 @@ def test_samples(cos_theta=1, kind='numu', hadr='SIBYLL2.3c',
 def test_hadrs(cos_theta=1, kind='numu'):
     hadrs=['SIBYLL2.1', 'QGSJET-II-04', 'EPOS-LHC', 'SIBYLL2.3', 'SIBYLL2.3c']
     for hadr in hadrs:
-        pr = test_pr(cos_theta, kind, hadr=hadr, label='hadr={}, {}, cth={}'.format(kind, cos_theta, hadr))
+        pr = test_pr(cos_theta, kind, hadr=hadr, label='{} {} cth={}'.format(hadr, kind, cos_theta))
