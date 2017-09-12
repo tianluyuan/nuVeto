@@ -17,10 +17,10 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20,
 
 def test_accuracy(cos_theta=1., kind='numu', hadr='SIBYLL2.3c'):
     plt.clf()
-    accuracies = [5, 9, 17]
+    accuracies = [5, 9, 17, 33]
     for accuracy in accuracies:
         test_pr(cos_theta, kind, hadr=hadr, accuracy=accuracy,
-                label='{}'.format(accuracy))
+                label='accuracy {}'.format(accuracy))
     plt.title('{} {} cth={}'.format(hadr, kind, cos_theta))
     plt.legend()
 
