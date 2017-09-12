@@ -2,7 +2,7 @@ from mceqveto import *
 from matplotlib import pyplot as plt
 
 
-def test_pr(cos_theta=1., kind='numu', accuracy=20, pmods=(), **kwargs):
+def test_pr(cos_theta=1., kind='numu', pmods=(), accuracy=20, **kwargs):
     ens = np.logspace(2,9, 100)
     prs = plt.plot(ens, [passing_rate(en, cos_theta, kind=kind,
                                       accuracy=accuracy, pmods=pmods) for en in ens], **kwargs)

@@ -242,7 +242,7 @@ def prob_nomu(primary_energy, cos_theta, particle, pmods=()):
     return np.exp(-simps(mu.yields[above], mu.info.e_grid[above]))
 
 
-def passing_rate(enu, cos_theta, kind='numu', accuracy=10, pmods=()):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), accuracy=10):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
