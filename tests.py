@@ -44,16 +44,26 @@ def test_hadrs(cos_theta=1, kind='numu'):
 
 def test_yields(cos_theta=1, particle=14, kind='mu', pmods=(), hadr='SIBYLL2.3c', **kwargs):
     plt.clf()
-    eps = amu(particle)*np.logspace(2, 10, 10)
+    eps = amu(particle)*np.logspace(2, 10, 9)
     for ep in eps:
         sols = mceq_yield(ep, cos_theta, particle, kind, pmods, hadr)
+        plt.subplot(211)
+        plt.plot(sols.info.e_grid,
+                 sols.yields,
+                 label=r'{:.2g} GeV'.format(ep))
+        plt.subplot(212)
         plt.plot(amu(particle)*sols.info.e_grid/ep,
                  sols.yields*ep/amu(particle),
-                 label=r'{} {:.2g} GeV'.format(particle, ep))
+                 label=r'{:.2g} GeV'.format(ep))
 
+    plt.subplot(211)
+    plt.loglog()
+    plt.xlabel(r'$E_l$')
+    plt.ylabel(r'$dN/dE_l$')
+    plt.title('{} {} cth={}'.format(particle, kind, cos_theta))
+    plt.legend()
+    plt.subplot(212)
     plt.loglog()
     plt.xlim(xmax=2)
-    plt.xlabel('x')
-    plt.ylabel('dN/dx')
-    plt.title('{} cth={}'.format(kind, cos_theta))
-    plt.legend()
+    plt.xlabel(r'$x$')
+    plt.ylabel(r'$dN/dx$')
