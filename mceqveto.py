@@ -33,6 +33,7 @@ from collections import namedtuple
 from enum import Enum
 from functools32 import lru_cache
 import numpy as np
+from scipy.interpolate import interp1d
 from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
@@ -228,7 +229,9 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
     """ response function in https://arxiv.org/pdf/1405.0525.pdf
     """
     sol = mceq_yield(primary_energy, cos_theta, particle, kind=kind, pmods=pmods)
-    return flux(primary_energy, particle)*np.interp(elep, sol.info.e_grid, sol.yields)
+    fnsol = interp1d(sol.info.e_grid, sol.yields, kind='quadratic',
+                     assume_sorted=True) 
+    return flux(primary_energy, particle)*fnsol(elep)
 
 
 def prob_nomu(primary_energy, cos_theta, particle, pmods=()):
