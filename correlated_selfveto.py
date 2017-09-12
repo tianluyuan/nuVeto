@@ -1,11 +1,14 @@
 import numpy as np
 import scipy.interpolate as interpolate
+import scipy.integrate as integrate
 from MCEq.core import MCEqRun
 from MCEq.data import HadAirCrossSections
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 
 r_dict ={}; mass_dict = {}; lifetime_dict = {}; a = {}; b = {}; pdg_id = {}; air_xs_inter = {};
+
+meson_list = ["kaon","pion"]
 
 r_dict["kaon"]=0.046
 r_dict["pion"]=0.573
@@ -62,32 +65,53 @@ def MinimumMesonParentEnergy(neutrino_energy,meson):
     Returns the minimum parent meson energy.
     Eq. (5) from 0812.4308
     """
-    if not(meson in r_dict):
+    if not (meson in r_dict):
         raise Exception("Meson not found in mass dictionary.")
     r = r_dict[meson]
     return neutrino_energy/(1.-r)
 
 def DecayProbability(primary_energy, distance, meson):
-    if not(meson in r_dict):
+    if not (meson in r_dict):
         raise Exception("Meson not found lifetime dictionary.")
     boost_factor=primary_energy/mass_dict[meson]
     return np.exp(-distance/(boost_factor*lifetime_dict[meson]))
 
-def InteractionProbability(primary_energy, column_density, meson):
-    if not(meson in r_dict):
+def NoInteractionProbability(primary_energy, column_density, meson):
+    if not (meson in r_dict):
         raise Exception("Meson not found cross section dictionary.")
     return np.exp(-column_density/air_xs_inter[meson]/mass_dict[meson])
 
 def MuonDistance(muon_energy, medium = "ice"):
-    if not(medium in a) or not (medium in b):
+    if not (medium in a) or not (medium in b):
         raise Exception("Medium energy losses for muons not found.")
     a_ = a[medium]
     b_ = b[medium]
 
     return np.log(1.+ muon_energy*b_/a_)/b_
 
-def CorrelatedProbability(neutrino_energy,costh):
+def MuonReachProbability(muon_energy,distance, column_density):
     return 1.
+
+def NeutrinoFromParentProbability(Enu,costh,h,meson):
+    return 1.
+
+def ParentProductionProbability(primary_energy,costh,h,meson):
+    return 1.
+
+def CorrelatedProbability(Enu,costh):
+    # here we implement the master formulae
+    cprob = 0;
+    for meson in meson_list:
+        kernel = lambda x,Emu,h: NeutrinoFromParentProbability(Enu,costh,h,meson)*\
+                                 NoInteractionProbability(Emu+Enu,GetColumnDensity(x+h),meson)*\
+                                 DecayProbability(Emu+Enu,x+h,meson)*\
+                                 ParentProductionProbability(Emu+Enu,costh,meson,h+x,meson)*\
+                                 MuonReachProbability(Emu,h)
+        cprob += integrate.tplquad(kernel,
+                                    hmin,hmax,
+                                    lambda h: Emu_min, lambda h: Emu_max,
+                                    lambda h,Emu: x_min, lambda h, Emu: x_max)
+    return cprob
 
 if __name__ == "__main__":
     mierda = GetRunMCLayeredMode(30.)
