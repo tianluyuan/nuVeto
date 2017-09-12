@@ -8,6 +8,15 @@ from mceq_config import config, mceq_config_without
 
 r_dict ={}; mass_dict = {}; lifetime_dict = {}; a = {}; b = {}; pdg_id = {}; air_xs_inter = {};
 
+
+# units
+km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
+gr = 5.62e+23 # gr to GeV value from SQuIDS
+sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
+
+x_max = 100*km
+x_min = 0*km
+
 meson_list = ["kaon","pion"]
 
 r_dict["kaon"]=0.046
@@ -16,8 +25,8 @@ r_dict["pion"]=0.573
 mass_dict["kaon"]=0.493677 # GeV
 mass_dict["pion"]=0.139570 # GeV
 
-lifetime_dict["kaon"]=1.2389e-8 # s
-lifetime_dict["pion"]=2.6033e-8 # s
+lifetime_dict["kaon"]=1.2389e-8*sec # s
+lifetime_dict["pion"]=2.6033e-8*sec # s
 
 a["ice"]=0.249 # GeV/mwe
 a["rock"]=0.221 # GeV/mwe
@@ -107,6 +116,10 @@ def CorrelatedProbability(Enu,costh):
                                  DecayProbability(Emu+Enu,x+h,meson)*\
                                  ParentProductionProbability(Emu+Enu,costh,meson,h+x,meson)*\
                                  MuonReachProbability(Emu,h)
+
+        r = r_dict[meson]
+        Emu_min = Enu*r/(1.-r)
+        Emu_max = 1.e10 # GeV
         cprob += integrate.tplquad(kernel,
                                     hmin,hmax,
                                     lambda h: Emu_min, lambda h: Emu_max,
