@@ -8,11 +8,14 @@ from mceq_config import config, mceq_config_without
 
 r_dict ={}; mass_dict = {}; lifetime_dict = {}; a = {}; b = {}; pdg_id = {}; air_xs_inter = {};
 
+# Carlos comment: all the units in the notebook should be converted to either
+# GeV or inverse GeV by means of the following unit conversion factors.
 
 # units
 km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
 gr = 5.62e+23 # gr to GeV value from SQuIDS
 sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
+cm = km*1.e-5
 
 x_max = 100*km
 x_min = 0*km
@@ -88,7 +91,7 @@ def DecayProbability(primary_energy, distance, meson):
 def NoInteractionProbability(primary_energy, column_density, meson):
     if not (meson in r_dict):
         raise Exception("Meson not found cross section dictionary.")
-    return np.exp(-column_density/air_xs_inter[meson]/mass_dict[meson])
+    return np.exp(-column_density/(air_xs_inter[meson]*cm**2)/mass_dict[meson])
 
 def MuonDistance(muon_energy, medium = "ice"):
     if not (medium in a) or not (medium in b):
