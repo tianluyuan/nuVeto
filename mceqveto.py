@@ -167,7 +167,7 @@ def effective_costheta(costheta):
     return np.sqrt((x**2 + p[0]**2 + p[1] * x**p[2] + p[3] * x**p[4]) / (1 + p[0]**2 + p[1] + p[3]))
 
 
-def mcsolver(primary_energy, cos_theta, particle, pmods=()):
+def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     """wrapper fn to protect against modifying hadron production rates
     (Barr et. al) for non-proton primaries. Only proton yields are
     affected. This is to speed up the caching of outputs from
@@ -177,15 +177,16 @@ def mcsolver(primary_energy, cos_theta, particle, pmods=()):
         mods = pmods
     else:
         mods = ()
-    return mcsolver_wrapped(primary_energy, cos_theta, particle, mods)
+    return mcsolver_wrapped(primary_energy, cos_theta, particle, mods, hadr)
 
 
 @lru_cache(maxsize=1024)
-def mcsolver_wrapped(primary_energy, cos_theta, particle, pmods=()):
+def mcsolver_wrapped(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     Info = namedtuple('Info', 'e_grid e_widths')
     Yields = namedtuple('Yields', 'mu numu nue conv_numu conv_nue pr_numu pr_nue')
     MCEQ.set_single_primary_particle(primary_energy, particle)
     MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
+    MCEQ.set_interaction_model(hadr)
 
     # In case there was something before, reset modifications
     MCEQ.unset_mod_pprod(dont_fill=True)
@@ -213,9 +214,9 @@ def mcsolver_wrapped(primary_energy, cos_theta, particle, pmods=()):
     return Info(MCEQ.e_grid, MCEQ.e_widths), Yields(mu, numu, nue, conv_numu, conv_nue, pr_numu, pr_nue)
 
 
-def mceq_yield(primary_energy, cos_theta, particle, kind='mu', pmods=()):
+def mceq_yield(primary_energy, cos_theta, particle, kind='mu', pmods=(), hadr='SIBYLL2.3c'):
     Solution = namedtuple('Solution', 'info yields')
-    info, mcs = mcsolver(primary_energy, cos_theta, particle, pmods=pmods)
+    info, mcs = mcsolver(primary_energy, cos_theta, particle, pmods, hadr)
     return Solution(info, mcs._asdict()[kind])
 
 
@@ -226,23 +227,23 @@ def flux(primary_energy, particle):
     return pmod.nucleus_flux(particle, primary_energy)
 
 
-def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmods=()):
+def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmods=(), hadr='SIBYLL2.3c'):
     """ response function in https://arxiv.org/pdf/1405.0525.pdf
     """
-    sol = mceq_yield(primary_energy, cos_theta, particle, kind=kind, pmods=pmods)
+    sol = mceq_yield(primary_energy, cos_theta, particle, kind, pmods, hadr)
     fnsol = interp1d(sol.info.e_grid, sol.yields, kind='quadratic',
                      assume_sorted=True) 
     return flux(primary_energy, particle)*fnsol(elep)
 
 
-def prob_nomu(primary_energy, cos_theta, particle, pmods=()):
+def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     emu_min = minimum_muon_energy(overburden(cos_theta))
-    mu = mceq_yield(primary_energy, cos_theta, particle, kind='mu', pmods=pmods)
+    mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
     above = mu.info.e_grid > emu_min
     return np.exp(-simps(mu.yields[above], mu.info.e_grid[above]))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), accuracy=10):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=10):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
@@ -253,8 +254,8 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), accuracy=10):
         numer = []
         denom = []
         for primary_energy in eprimaries:
-            res = response_function(primary_energy, cos_theta, particle, enu, kind=kind, pmods=pmods)
-            pnm = prob_nomu(primary_energy, cos_theta, particle, pmods=pmods)
+            res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, hadr)
+            pnm = prob_nomu(primary_energy, cos_theta, particle, pmods, hadr)
             numer.append(res*pnm)
             denom.append(res)
 
