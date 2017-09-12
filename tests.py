@@ -40,3 +40,20 @@ def test_hadrs(cos_theta=1, kind='numu'):
     hadrs=['SIBYLL2.1', 'QGSJET-II-04', 'EPOS-LHC', 'SIBYLL2.3', 'SIBYLL2.3c']
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, hadr=hadr, label='{} {} cth={}'.format(hadr, kind, cos_theta))
+
+
+def test_yields(cos_theta=1, particle=14, kind='mu', pmods=(), hadr='SIBYLL2.3c', **kwargs):
+    plt.clf()
+    eps = amu(particle)*np.logspace(2, 10, 10)
+    for ep in eps:
+        sols = mceq_yield(ep, cos_theta, particle, kind, pmods, hadr)
+        plt.plot(amu(particle)*sols.info.e_grid/ep,
+                 sols.yields*ep/amu(particle),
+                 label=r'{} {:.2g} GeV'.format(particle, ep))
+
+    plt.loglog()
+    plt.xlim(xmax=2)
+    plt.xlabel('x')
+    plt.ylabel('dN/dx')
+    plt.title('{} cth={}'.format(kind, cos_theta))
+    plt.legend()
