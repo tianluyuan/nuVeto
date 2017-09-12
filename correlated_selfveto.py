@@ -101,7 +101,7 @@ def MuonDistance(muon_energy, medium = "ice"):
 
     return np.log(1.+ muon_energy*b_/a_)/b_
 
-def GetColumnDensity(distance):
+def GetColumnDensity(distance,costh):
     return 1.
 
 def MuonReachProbability(muon_energy,distance, column_density):
@@ -118,7 +118,7 @@ def CorrelatedProbability(Enu,costh):
     cprob = 0;
     for meson in meson_list:
         kernel = lambda x,Emu,h: NeutrinoFromParentProbability(Enu,costh,h,meson)*\
-                                 NoInteractionProbability(Emu+Enu,GetColumnDensity(x+h),meson)*\
+                                 NoInteractionProbability(Emu+Enu,GetColumnDensity(x+h,costh),meson)*\
                                  DecayProbability(Emu+Enu,x+h,meson)*\
                                  ParentProductionProbability(Emu+Enu,costh,meson,h+x,meson)*\
                                  MuonReachProbability(Emu,h)
