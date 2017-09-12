@@ -34,6 +34,7 @@ from enum import Enum
 from functools32 import lru_cache
 import numpy as np
 from scipy.interpolate import interp1d
+from scipy.integrate import simps
 from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
@@ -238,7 +239,7 @@ def prob_nomu(primary_energy, cos_theta, particle, pmods=()):
     emu_min = minimum_muon_energy(overburden(cos_theta))
     mu = mceq_yield(primary_energy, cos_theta, particle, kind='mu', pmods=pmods)
     above = mu.info.e_grid > emu_min
-    return np.exp(-np.trapz(mu.yields[above], mu.info.e_grid[above]))
+    return np.exp(-simps(mu.yields[above], mu.info.e_grid[above]))
 
 
 def passing_rate(enu, cos_theta, kind='numu', accuracy=10, pmods=()):
@@ -257,6 +258,6 @@ def passing_rate(enu, cos_theta, kind='numu', accuracy=10, pmods=()):
             numer.append(res*pnm)
             denom.append(res)
 
-        passed += np.trapz(numer, eprimaries)
-        total += np.trapz(denom, eprimaries)
+        passed += simps(numer, eprimaries)
+        total += simps(denom, eprimaries)
     return passed/total
