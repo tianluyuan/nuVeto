@@ -250,7 +250,7 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accur
     for particle in pmod.nucleus_ids:
         # A continuous input energy range is allowed between
         # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-        eprimaries = amu(particle)*np.logspace(2, 10, accuracy) 
+        eprimaries = amu(particle)*np.logspace(2, 10, 2*accuracy) 
         numer = []
         denom = []
         for primary_energy in eprimaries:
