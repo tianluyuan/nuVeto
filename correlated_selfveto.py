@@ -25,8 +25,8 @@ r_dict["pion"]=0.573
 mass_dict["kaon"]=0.493677 # GeV
 mass_dict["pion"]=0.139570 # GeV
 
-lifetime_dict["kaon"]=1.2389e-8*sec # s
-lifetime_dict["pion"]=2.6033e-8*sec # s
+lifetime_dict["kaon"]=1.2389e-8*sec # s converted to GeV^-1
+lifetime_dict["pion"]=2.6033e-8*sec # s converted to GeV^-1
 
 a["ice"]=0.249 # GeV/mwe
 a["rock"]=0.221 # GeV/mwe
@@ -97,6 +97,9 @@ def MuonDistance(muon_energy, medium = "ice"):
     b_ = b[medium]
 
     return np.log(1.+ muon_energy*b_/a_)/b_
+
+def GetColumnDensity(distance):
+    return 1.
 
 def MuonReachProbability(muon_energy,distance, column_density):
     return 1.
