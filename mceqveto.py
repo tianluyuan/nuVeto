@@ -211,7 +211,7 @@ def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     return np.exp(-simps(mu.yields[above], mu.info.e_grid[above]))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
@@ -229,4 +229,4 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accur
 
         passed += np.trapz(numer, eprimaries)
         total += np.trapz(denom, eprimaries)
-    return passed/total
+    return passed/total if fraction else passed
