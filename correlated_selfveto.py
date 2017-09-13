@@ -39,6 +39,8 @@ b["rock"]=0.531e-3 # 1/mwe
 pdg_id["kaon"] = 321 # k+
 pdg_id["pion"] = 211 # pi+
 
+density["ice"] = 0.9167 # g/cm^3
+
 cs_db = HadAirCrossSections('SIBYLL2.1')
 
 air_xs_inter["kaon"] = interpolate.interp1d(cs_db.egrid,cs_db.get_cs(pdg_id['kaon'])) # input GeV return cm^2
@@ -61,6 +63,13 @@ def GetRelativeContributions(mceq_run):
     pion_prob = mceq_run.get_solution('pi_numu', 0, grid_idx=0)/total
     kaon_prob = mceq_run.get_solution('kaon_numu', 0, grid_idx=0)/total
     return pion_prob,kaon_prob
+
+def FindNearest(array,value):
+    idx = np.searchsorted(array, value, side="left")
+    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) < math.fabs(value - array[idx])):
+        return array[idx-1]
+    else:
+        return array[idx]
 
 def MinimumMuonBrotherEnergy(neutrino_energy,meson):
     """
@@ -93,7 +102,7 @@ def NoInteractionProbability(primary_energy, column_density, meson):
         raise Exception("Meson not found cross section dictionary.")
     return np.exp(-column_density/(air_xs_inter[meson]*cm**2)/mass_dict[meson])
 
-def MuonDistance(muon_energy, medium = "ice"):
+def MeanMuonDistance(muon_energy, medium = "ice"):
     if not (medium in a) or not (medium in b):
         raise Exception("Medium energy losses for muons not found.")
     a_ = a[medium]
@@ -101,16 +110,26 @@ def MuonDistance(muon_energy, medium = "ice"):
 
     return np.log(1.+ muon_energy*b_/a_)/b_
 
-def GetColumnDensity(distance,costh):
-    return 1.
+def GetColumnDensity(height,distance,costh):
+    return (mceq_run.density_model.s_h2X(height) - mceq_run.density_model.s_h2X(height+distance))
 
-def MuonReachProbability(muon_energy,distance, column_density):
-    return 1.
+def MuonReachProbability(muon_energy, height, ice_column_density):
+    # simplifying assumption that the muon reach distribution is a gaussian
+    return sp.stats.norm.sf(ice_column_density/density["ice"],
+            loc=MeanMuonDistance(muon_energy),scale=sqrt(MeanMuonDistance(muon_energy)))
 
-def NeutrinoFromParentProbability(Enu,costh,h,meson):
-    return 1.
+def NeutrinoFromParentProbability(neutrino_energy,costh,h,meson):
+    ie = FindNearest(mceq_run.egrid,neutrino_energy/GeV)
+    if meson == "pion":
+        return pion_prob[ie]
+    elif meson == "kaon":
+        return pion_prob[ie]
+    else:
+        raise Exception("Invalid meson parent")
 
 def ParentProductionProbability(primary_energy,costh,h,meson):
+    ie = FindNearest(mceq_run.egrid,primary_energy/GeV)
+    pion_prob = mceq_run.get_solution('pi_numu', 0, grid_idx=0)/total
     return 1.
 
 def CorrelatedProbability(Enu,costh):
@@ -118,10 +137,10 @@ def CorrelatedProbability(Enu,costh):
     cprob = 0;
     for meson in meson_list:
         kernel = lambda x,Emu,h: NeutrinoFromParentProbability(Enu,costh,h,meson)*\
-                                 NoInteractionProbability(Emu+Enu,GetColumnDensity(x+h,costh),meson)*\
                                  DecayProbability(Emu+Enu,x+h,meson)*\
+                                 NoInteractionProbability(Emu+Enu,GetColumnDensity(x+h,costh),meson)*\
                                  ParentProductionProbability(Emu+Enu,costh,meson,h+x,meson)*\
-                                 MuonReachProbability(Emu,h)
+                                 MuonReachProbability(Emu,h,GetIceColumnDensity(d))
 
         r = r_dict[meson]
         Emu_min = Enu*r/(1.-r)
@@ -129,7 +148,7 @@ def CorrelatedProbability(Enu,costh):
         cprob += integrate.tplquad(kernel,
                                     hmin,hmax,
                                     lambda h: Emu_min, lambda h: Emu_max,
-                                    lambda h,Emu: x_min, lambda h, Emu: x_max)
+                                    lambda h,Emu: x_min, lambda h, Emu: x_max)[0]
     return cprob
 
 if __name__ == "__main__":
