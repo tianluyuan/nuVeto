@@ -4,31 +4,6 @@
 Calculate the rate at which atmospheric neutrinos arrive at an underground
 detector with no accompanying muons.
 """
-
-# Copyright (c) 2014, Jakob van Santen <jvansanten@icecube.wisc.edu>
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#
-# 1. Redistributions of source code must retain the above copyright notice,
-# this list of conditions and the following disclaimer.
-#
-# 2. Redistributions in binary form must reproduce the above copyright notice,
-# this list of conditions and the following disclaimer in the documentation
-# and/or other materials provided with the distribution.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-# POSSIBILITY OF SUCH DAMAGE.
 from collections import namedtuple
 from enum import Enum
 from functools32 import lru_cache
@@ -127,21 +102,20 @@ def amu(particle):
     """
     return 1 if particle==14 else particle/100
 
-    
-def overburden(cos_theta, depth=1950, elevation=2400):
-    """
-    Overburden for a detector buried underneath a flat surface.
+
+def ice(cos_theta, depth=1950, elevation=2400):
+    """ Returns the in-ice distance for a detector at depth.
 
     :param cos_theta: cosine of zenith angle (in detector-centered coordinates)
     :param depth:     depth of detector (in meters below the surface)
-    :param elevation: elevation of the surface above sea level
-
-    :returns: an overburden [meters]
+    :param elevation: elevation of the ice surface above sea level (meters)
     """
-    # curvature radius of the surface (meters)
-    r = 6371315 + elevation
-    # this is secrety a translation in polar coordinates
-    return (np.sqrt(2 * r * depth + (cos_theta * (r - depth))**2 - depth**2) - (r - depth) * cos_theta)
+    r = 6356752. + elevation
+    x = r-depth
+    cos2th = 2*cos_theta**2 - 1
+    a = r**2+x**2*cos2th
+
+    return np.sqrt(a-np.sqrt(2)*np.sqrt(x**2*cos_theta**2*(2*depth*r-depth**2+a)))
 
 
 def minimum_muon_energy(distance):
@@ -154,17 +128,6 @@ def minimum_muon_energy(distance):
     # require that the muon have median energy 1 TeV
     b, c = 2.52151, 7.13834
     return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
-
-
-def effective_costheta(costheta):
-    """
-    Effective local atmospheric density correction from [Chirkin]_.
-
-    .. [Chirkin] D. Chirkin. Fluxes of atmospheric leptons at 600-GeV - 60-TeV. 2004. http://arxiv.org/abs/hep-ph/0407078
-    """
-    x = costheta
-    p = [0.102573, -0.068287, 0.958633, 0.0407253, 0.817285]
-    return np.sqrt((x**2 + p[0]**2 + p[1] * x**p[2] + p[3] * x**p[4]) / (1 + p[0]**2 + p[1] + p[3]))
 
 
 def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
@@ -237,7 +200,7 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
 
 
 def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
-    emu_min = minimum_muon_energy(overburden(cos_theta))
+    emu_min = minimum_muon_energy(ice(cos_theta))
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
     above = mu.info.e_grid > emu_min
     return np.exp(-simps(mu.yields[above], mu.info.e_grid[above]))
