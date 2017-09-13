@@ -30,8 +30,9 @@ MCEQ = MCEqRun(
     **config)
 
 
-# Global Barr parameter table 
-# format [(x_min, x_max, E_min, E_max)] | x is x_lab= E_pi/E, E projectile-air interaction energy
+# Global Barr parameter table format
+# ParamInfo([(x_min, x_max, E_min, E_max), ...], relative error, pdg) | x is x_lab= E_pi/E, E
+# projectile-air interaction energy
 ParamInfo = namedtuple('ParamInfo', 'regions error pdg')
 BARR = {
     'a': ParamInfo([(0.0, 0.5, 0.00, 8.0)], 0.1, 211),
@@ -57,7 +58,7 @@ BARR = {
     'y1': ParamInfo([(0.1, 1.0, 30.0, 500.)], 0.3, 321),
     'y2': ParamInfo([(0.1, 1.0, 500., 1e11)], 0.3, 321),
     'z': ParamInfo([(0.1, 1.0, 500., 1e11)], 0.122, 321),
-    'ch_a': ParamInfo([(0.0, 0.1, 0., 1e11)], 0.1, 411), # these uncertainties are from A. Fedynitch Vietnus
+    'ch_a': ParamInfo([(0.0, 0.1, 0., 1e11)], 0.1, 411),
     'ch_b': ParamInfo([(0.1, 1.0, 0., 1e11)], 0.7, 411),
     'ch_e': ParamInfo([(0.1, 1.0, 800., 1e11)], 0.25, 411)
 }
