@@ -10,10 +10,12 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20,
                                       hadr, accuracy) for en in ens],
                    **kwargs)
     plt.xlim(10**3, 10**7)
-    plt.ylim(0, 1)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
-    plt.ylabel(r'Passing rate')
+    if fraction:
+        plt.ylabel(r'Passing fraction')
+    else:
+        plt.ylabel(r'Passing flux')
     return prs[0]
 
 
