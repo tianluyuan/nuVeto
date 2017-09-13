@@ -219,15 +219,16 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accur
     for particle in pmod.nucleus_ids:
         # A continuous input energy range is allowed between
         # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-        eprimaries = amu(particle)*np.logspace(2, 10, accuracy) 
+        eprimaries = amu(particle)*np.logspace(2, 10, accuracy)
         numer = []
         denom = []
-        for primary_energy in eprimaries:
+        istart = max(0, np.argmax(eprimaries > enu) - 1)
+        for primary_energy in eprimaries[istart:]:
             res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, hadr)
             pnm = prob_nomu(primary_energy, cos_theta, particle, pmods, hadr)
             numer.append(res*pnm)
             denom.append(res)
 
-        passed += np.trapz(numer, eprimaries)
-        total += np.trapz(denom, eprimaries)
+        passed += np.trapz(numer, eprimaries[istart:])
+        total += np.trapz(denom, eprimaries[istart:])
     return passed/total if fraction else passed
