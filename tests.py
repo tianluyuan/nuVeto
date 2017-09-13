@@ -7,7 +7,7 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20,
     """
     ens = np.logspace(2,9, 100)
     prs = plt.plot(ens, [passing_rate(en, cos_theta, kind, pmods,
-                                      hadr, accuracy) for en in ens],
+                                      hadr, accuracy, fraction) for en in ens],
                    **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
@@ -15,6 +15,7 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20,
     if fraction:
         plt.ylabel(r'Passing fraction')
     else:
+        plt.yscale('log')
         plt.ylabel(r'Passing flux')
     return prs[0]
 
