@@ -104,18 +104,23 @@ def amu(particle):
 
 
 def ice(cos_theta, depth=1950, elevation=2400):
-    """ Returns the in-ice distance for a detector at depth.
+    """Returns the in-ice distance for a detector at *depth* below ice of
+    thickness *elevation*.
 
-    :param cos_theta: cosine of zenith angle (in detector-centered coordinates)
+    From law of cosines,
+    x^2 == r^2+(r-d)-2r(r-d)cos(gamma)
+    where
+    r*cos(gamma) = r-d+x*cos(theta), solve and return x.
+
+    :param cos_theta: cosine of zenith angle 
     :param depth:     depth of detector (in meters below the surface)
     :param elevation: elevation of the ice surface above sea level (meters)
     """
+    d = depth
     r = 6356752. + elevation
-    x = r-depth
-    cos2th = 2*cos_theta**2 - 1
-    a = r**2+x**2*cos2th
+    z = r-d
 
-    return np.sqrt(a-np.sqrt(2)*np.sqrt(x**2*cos_theta**2*(2*depth*r-depth**2+a)))
+    return np.sqrt(z**2*cos_theta**2+d*(2*r-d))-z*cos_theta
 
 
 def minimum_muon_energy(distance):
