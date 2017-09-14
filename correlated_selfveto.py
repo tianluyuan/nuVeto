@@ -29,8 +29,6 @@
 # Please cite:
 # arXiv:XXXX.XXXX
 
-#!/usr/bin/env python
-
 import numpy as np
 import scipy as sp
 import scipy.stats as stats
