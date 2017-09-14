@@ -104,9 +104,9 @@ def amu(particle):
     return 1 if particle==14 else particle/100
 
 
-def ice(cos_theta, depth=1950, elevation=2400):
-    """Returns the in-ice distance for a detector at *depth* below ice of
-    thickness *elevation*.
+def overburden(cos_theta, depth=1950, elevation=2400):
+    """Returns the overburden for a detector at *depth* below some surface
+    at *elevation*.
 
     From law of cosines,
     x^2 == r^2+(r-d)-2r(r-d)cos(gamma)
@@ -115,7 +115,7 @@ def ice(cos_theta, depth=1950, elevation=2400):
 
     :param cos_theta: cosine of zenith angle 
     :param depth:     depth of detector (in meters below the surface)
-    :param elevation: elevation of the ice surface above sea level (meters)
+    :param elevation: elevation of the surface above sea level (meters)
     """
     d = depth
     r = 6356752. + elevation
@@ -206,7 +206,7 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
 
 
 def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
-    emu_min = minimum_muon_energy(ice(cos_theta))
+    emu_min = minimum_muon_energy(overburden(cos_theta))
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
     above = mu.info.e_grid > emu_min
     return np.exp(-simps(mu.yields[above], mu.info.e_grid[above]))
