@@ -41,18 +41,47 @@ import CRFluxModels as pm
 import geometry as geo
 from mceq_config import config, mceq_config_without
 
-r_dict ={}; mass_dict = {}; lifetime_dict = {}; a = {}; b = {}; pdg_id = {}; air_xs_inter = {};
-density = {};
+class SelfVetoProbabilityCalculator(object):
+    class Units(object):
+        def __init__(self):
+            # units
+            self.km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
+            self.gr = 5.62e+23 # gr to GeV value from SQuIDS
+            self.sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
+            self.cm = km*1.e-5
+            self.GeV = 1
+    class ParticleProperties(object):
+        def __init__(self):
+            self.r_dict ={}; self.mass_dict = {}; self.lifetime_dict = {}; self.pdg_id = {}; self.air_xs_inter = {};
 
-# Carlos comment: all the units in the notebook should be converted to either
-# GeV or inverse GeV by means of the following unit conversion factors.
+            selfr_dict["kaon"]=0.046
+            self.r_dict["pion"]=0.573
 
-# units
-km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
-gr = 5.62e+23 # gr to GeV value from SQuIDS
-sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
-cm = km*1.e-5
-GeV = 1
+            self.mass_dict["kaon"]=0.493677 # GeV
+            self.mass_dict["pion"]=0.139570 # GeV
+
+            self.lifetime_dict["kaon"]=1.2389e-8*sec # s converted to GeV^-1
+            self.lifetime_dict["pion"]=2.6033e-8*sec # s converted to GeV^-1
+
+            self.pdg_id["kaon"] = 321 # k+
+            self.pdg_id["pion"] = 211 # pi+
+
+    class MaterialProperties(object):
+        def __init__(self):
+            self.a = {}; self.b = {}; self.density = {};
+            self.a["ice"]=0.249 # GeV/mwe
+            self.a["rock"]=0.221 # GeV/mwe
+            self.b["ice"]=0.422e-3 # 1/mwe
+            self.b["rock"]=0.531e-3 # 1/mwe
+            self.density["ice"] = 0.9167 # g/cm^3
+
+    def  __init__(self,):
+        pass
+
+class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
+    def  __init__(self,):
+        pass
+
 
 x_max = 100*km
 x_min = 0*km
@@ -60,25 +89,6 @@ x_min = 0*km
 d = 10*km
 
 meson_list = ["kaon","pion"]
-
-r_dict["kaon"]=0.046
-r_dict["pion"]=0.573
-
-mass_dict["kaon"]=0.493677 # GeV
-mass_dict["pion"]=0.139570 # GeV
-
-lifetime_dict["kaon"]=1.2389e-8*sec # s converted to GeV^-1
-lifetime_dict["pion"]=2.6033e-8*sec # s converted to GeV^-1
-
-a["ice"]=0.249 # GeV/mwe
-a["rock"]=0.221 # GeV/mwe
-b["ice"]=0.422e-3 # 1/mwe
-b["rock"]=0.531e-3 # 1/mwe
-
-pdg_id["kaon"] = 321 # k+
-pdg_id["pion"] = 211 # pi+
-
-density["ice"] = 0.9167 # g/cm^3
 
 cs_db = HadAirCrossSections('SIBYLL2.1')
 
