@@ -38,6 +38,7 @@ import scipy.integrate as integrate
 from MCEq.core import MCEqRun
 from MCEq.data import HadAirCrossSections
 import CRFluxModels as pm
+import geometry as geo
 from mceq_config import config, mceq_config_without
 
 r_dict ={}; mass_dict = {}; lifetime_dict = {}; a = {}; b = {}; pdg_id = {}; air_xs_inter = {};
@@ -151,8 +152,8 @@ def MeanMuonDistance(muon_energy, medium = "ice"):
 def GetAirColumnDensity(height,distance):
     return (mceq_run.density_model.s_h2X(height) - mceq_run.density_model.s_h2X(height+distance))
 
-def GetIceColumnDensity(depth):
-    return 1.
+def GetIceColumnDensity(costh, depth):
+    return geo.overburden(costh, depth, elevation=2400)
 
 def MuonReachProbability(muon_energy, height, ice_column_density):
     # simplifying assumption that the muon reach distribution is a gaussian
@@ -185,7 +186,7 @@ def CorrelatedProbability(Enu,costh):
                                  DecayProbability(Emu+Enu,x+h,meson)*\
                                  NoInteractionProbability(Emu+Enu,GetAirColumnDensity(h,x),meson)*\
                                  ParentProductionProbability(Emu+Enu,costh,h+x,meson)*\
-                                 MuonReachProbability(Emu,h,GetIceColumnDensity(d))
+                                 MuonReachProbability(Emu,h,GetIceColumnDensity(costh,d))
 
         r = r_dict[meson]
         h_min = 0; h_max = 40;
