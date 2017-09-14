@@ -109,7 +109,7 @@ def overburden(cos_theta, depth=1950, elevation=2400):
     at *elevation*.
 
     From law of cosines,
-    x^2 == r^2+(r-d)-2r(r-d)cos(gamma)
+    x^2 == r^2+(r-d)^2-2r(r-d)cos(gamma)
     where
     r*cos(gamma) = r-d+x*cos(theta), solve and return x.
 
