@@ -39,6 +39,7 @@ def amu(particle):
     """
     return 1 if particle==14 else particle/100
 
+
 def minimum_muon_energy(distance):
     """
     Minimum muon energy required to survive the given thickness of ice with at
