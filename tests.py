@@ -1,4 +1,4 @@
-from mceqveto import *
+from uncorrelated_selfveto import *
 from matplotlib import pyplot as plt
 
 
