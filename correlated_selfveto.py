@@ -1,4 +1,4 @@
-# Copyright © 2017 C. Arguelles, S. Palomares-Ruiz, A. Schneider, T. Yuan, and L. Wille
+# Copyright © 2017 C. Arguelles, S. Palomares-Ruiz, A. Schneider, L. Wille, and T. Yuan
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the “Software”), to deal in
@@ -23,8 +23,8 @@
 # C. Arguelles (caad@mit.edu)
 # S. Palomres-Ruiz (sergio.palomares.ruiz@ific.uv.es)
 # A. Schneider (aschneider@icecube.wisc.edu)
-# T. Yuan (tianlu.yuan@icecube.wisc.edu)
 # L. Wille (lwille@icecube.wisc.edu)
+# T. Yuan (tyuan@icecube.wisc.edu)
 #
 # Please cite:
 # arXiv:XXXX.XXXX
