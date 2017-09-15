@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def overburden(cos_theta, depth=1950, elevation=2400):
     """Returns the overburden for a detector at *depth* below some surface
     at *elevation*.
@@ -16,4 +19,3 @@ def overburden(cos_theta, depth=1950, elevation=2400):
     z = r-d
 
     return np.sqrt(z**2*cos_theta**2+d*(2*r-d))-z*cos_theta
-
