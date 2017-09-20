@@ -72,7 +72,7 @@ def test_elbert(cos_theta=1, kind='pr_nue'):
         pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} {:.2f}'.format(hadr, kind, cos_theta))
 
 
-def test_corsika(cos_theta_bin=0, kind='pr_nue', hadr='SIBYLL2.3'):
+def test_corsika(cos_theta_bin=-1, kind='pr_nue', hadr='SIBYLL2.3'):
     translate = {'pr_numu':'numu_prompt',
                  'pr_nue':'nue_prompt',
                  'conv_numu':'numu_conv',
@@ -84,7 +84,7 @@ def test_corsika(cos_theta_bin=0, kind='pr_nue', hadr='SIBYLL2.3'):
     plt.errorbar(centers(xedges), eff[:,cos_theta_bin],
                  xerr=xedges[1:]-centers(xedges),
                  yerr=np.asarray(zip(elow[:,cos_theta_bin], eup[:,cos_theta_bin])).T,
-                 label='corsika {} {:.2f}'.format(kind, cos_theta), color='k')
+                 label='corsika {} {:.2f}'.format(kind, cos_theta), fmt='.', color='k')
     pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} {:.2f}'.format(hadr, kind, cos_theta))
 
 
