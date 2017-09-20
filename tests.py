@@ -1,3 +1,4 @@
+from external import elbert, selfveto
 from uncorrelated_selfveto import *
 from matplotlib import pyplot as plt
 
@@ -55,9 +56,18 @@ def test_samples(cos_theta=1, kind='numu', hadr='SIBYLL2.3c', fraction=True,
 
 
 def test_hadrs(cos_theta=1, kind='numu', fraction=True):
-    hadrs=['SIBYLL2.1', 'QGSJET-II-04', 'EPOS-LHC', 'SIBYLL2.3', 'SIBYLL2.3c']
+    hadrs=['DPMJET-III', 'QGSJET-II-04', 'EPOS-LHC', 'SIBYLL2.3', 'SIBYLL2.3c']
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, hadr=hadr, fraction=fraction, label='{} {} cth={}'.format(hadr, kind, cos_theta))
+
+
+def test_elbert(cos_theta=1, kind='pr_nue'):
+    hadrs=['DPMJET-III', 'SIBYLL2.3']
+    ens = np.logspace(2,9, 100)
+    emu = selfveto.overburden(cos_theta)
+    plt.plot(ens, elbert.uncorr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} cth={}'.format(kind, cos_theta))
+    for hadr in hadrs:
+        pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} cth={}'.format(hadr, kind, cos_theta))
 
 
 def test_yields(cos_theta=1, particle=14, kind='mu', pmods=(), hadr='SIBYLL2.3c', **kwargs):
