@@ -62,12 +62,17 @@ def test_hadrs(cos_theta=1, kind='numu', fraction=True):
 
 
 def test_elbert(cos_theta=1, kind='pr_nue'):
-    hadrs=['DPMJET-III', 'SIBYLL2.3']
+    hadrs=['DPMJET-III', 'SIBYLL2.1']
     ens = np.logspace(2,9, 100)
     emu = selfveto.overburden(cos_theta)
     plt.plot(ens, elbert.uncorr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} cth={}'.format(kind, cos_theta))
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} cth={}'.format(hadr, kind, cos_theta))
+
+
+def test_corsika(cos_theta=1, kind='pr_nue', hadr='SIBYLL2.3'):
+    plt.plot(ens, elbert.uncorr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} cth={}'.format(kind, cos_theta))
+    pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} cth={}'.format(hadr, kind, cos_theta))
 
 
 def test_yields(cos_theta=1, particle=14, kind='mu', pmods=(), hadr='SIBYLL2.3c', **kwargs):

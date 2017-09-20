@@ -7,7 +7,7 @@ def joint_passing_rate(enu, emu, cth, kind='numu'):
     return selfveto.correlated_passing_rate(enu, emu, cth)*selfveto.uncorrelated_passing_rate(enu, emu, cth, kind=kind)
 
 
-def passrates(cos_theta=1., kind='conv_numu'):
+def passrates(kind='conv_numu'):
     find_pf = {'conv_numu':partial(joint_passing_rate, kind='numu'),
                'pr_numu':partial(joint_passing_rate, kind='charm'),
                'conv_nue':partial(selfveto.uncorrelated_passing_rate, kind='nue'),
