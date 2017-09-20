@@ -14,7 +14,8 @@ from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 from barr_uncertainties import *
-from geometry import overburden
+from utils import overburden, amu, minimum_muon_energy
+
 
 SETUP = {'flux':pm.HillasGaisser2012,
          'gen':'H3a',
@@ -29,27 +30,6 @@ MCEQ = MCEqRun(
     theta_deg = 0.,
     # expand the rest of the options from mceq_config.py
     **config)
-
-
-def amu(particle):
-    """
-    :param particle: primary particle's corsika id
-
-    :returns: the atomic mass of particle
-    """
-    return 1 if particle==14 else particle/100
-
-
-def minimum_muon_energy(distance):
-    """
-    Minimum muon energy required to survive the given thickness of ice with at
-    least 1 TeV 50% of the time.
-
-    :returns: minimum muon energy [GeV]
-    """
-    # require that the muon have median energy 1 TeV
-    b, c = 2.52151, 7.13834
-    return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
 
 
 def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):

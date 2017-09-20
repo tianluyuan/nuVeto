@@ -38,7 +38,7 @@ import scipy.integrate as integrate
 from MCEq.core import MCEqRun
 from MCEq.data import HadAirCrossSections
 import CRFluxModels as pm
-import geometry as geo
+import utils
 from mceq_config import config, mceq_config_without
 
 class SelfVetoProbabilityCalculator(object):
@@ -158,7 +158,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         return (mceq_run.density_model.s_h2X(height) - mceq_run.density_model.s_h2X(height+distance))
 
     def GetIceColumnDensity(costh, depth):
-        return geo.overburden(costh, depth, elevation=2400)
+        return utils.overburden(costh, depth, elevation=2400)
 
     def MuonReachProbability(muon_energy, height, ice_column_density):
         # simplifying assumption that the muon reach distribution is a gaussian

@@ -21,3 +21,4 @@ def uncorr(kind='conv_numu'):
                'conv_nue':partial(selfveto.uncorrelated_passing_rate, kind='nue'),
                'pr_nue':partial(selfveto.uncorrelated_passing_rate, kind='charm')}
     return find_pf[kind]
+    
