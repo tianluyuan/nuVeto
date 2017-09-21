@@ -107,6 +107,10 @@ def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     fnmu = interp1d(mu.info.e_grid, mu.yields, kind='quadratic',
                     assume_sorted=True)
     above = mu.info.e_grid > emu_min
+    if not above.any():
+        # probability of no muons that make it will be 1 if emu_min > highest yield
+        return 1
+
     # idx = max(0,np.argmax(mu.info.e_grid > emu_min)-1)
     # return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
     return np.exp(-np.trapz(np.concatenate(([fnmu(emu_min)],mu.yields[above])),

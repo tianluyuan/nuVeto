@@ -23,6 +23,23 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20,
     return prs[0]
 
 
+def test_pr_cth(enu=1e5, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, **kwargs):
+    """ plot the passing rate (flux or fraction)
+    """
+    cths = np.linspace(0,1,11)
+    prs = plt.plot(cths, [passing_rate(enu, cos_theta, kind, pmods,
+                                       hadr, accuracy, fraction) for cos_theta in cths],
+                   **kwargs)
+    plt.xlim(0, 1)
+    plt.xlabel(r'$\cos \theta$')
+    if fraction:
+        plt.ylabel(r'Passing fraction')
+    else:
+        plt.yscale('log')
+        plt.ylabel(r'Passing flux')
+    return prs[0]
+
+
 def test_accuracy(cos_theta=1., kind='numu', hadr='SIBYLL2.3c', fraction=True):
     plt.clf()
     accuracies = [5, 9, 17, 33]
