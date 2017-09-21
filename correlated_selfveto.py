@@ -1,4 +1,4 @@
-# Copyright 2017 C. Arguelles, S. Palomares-Ruiz, A. Schneider, T. Yuan, and L. Wille
+# Copyright 2017 C. Arguelles, S. Palomares-Ruiz, A. Schneider, L. Wille, and T. Yuan
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -23,8 +23,8 @@
 # C. Arguelles (caad@mit.edu)
 # S. Palomres-Ruiz (sergio.palomares.ruiz@ific.uv.es)
 # A. Schneider (aschneider@icecube.wisc.edu)
-# T. Yuan (tianlu.yuan@icecube.wisc.edu)
 # L. Wille (lwille@icecube.wisc.edu)
+# T. Yuan (tyuan@icecube.wisc.edu)
 #
 # Please cite:
 # arXiv:XXXX.XXXX
@@ -38,7 +38,7 @@ import scipy.integrate as integrate
 from MCEq.core import MCEqRun
 from MCEq.data import HadAirCrossSections
 import CRFluxModels as pm
-import geometry as geo
+import utils
 from mceq_config import config, mceq_config_without
 
 class Units(object):
@@ -81,14 +81,12 @@ class SelfVetoProbabilityCalculator(object):
 class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
     meson_list = ["kaon","pion"]
     def  __init__(self,hadronic_model = 'SIBYLL-2.3c', primary_cr_model=(pm.HillasGaisser2012, 'H3a')):
-        self.hadronic_model = hadronic_model
-        self.primary_cr_model = primary_cr_model
-
+        super(CorrelatedSelfVetoProbabilityCalculator, self).__init__(hadronic_model,primary_cr_model)
 
         self.x_max = 100*Units.km
         self.x_min = 0*Units.km
 
-        self.d = 10*Units.km
+        self.detector_depth = 10*Units.km
         self.cfg = dict(config)
 
         self.cs_db = HadAirCrossSections(hadronic_model)
@@ -96,21 +94,22 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         self.air_xs_inter["kaon"] = interpolate.interp1d(self.cs_db.egrid,self.cs_db.get_cs(self.ParticleProperties.pdg_id['kaon'])) # input GeV return cm^2
         self.air_xs_inter["pion"] = interpolate.interp1d(self.cs_db.egrid,self.cs_db.get_cs(self.ParticleProperties.pdg_id['pion'])) # input GeV return cm^2
 
-    def UpdateRunMCLayeredMode(self, costh,number_of_layers=100):
+    def RunMCLayeredMode(self, costh,number_of_layers=100):
         self.mceq_run = MCEqRun(
                         self.hadronic_model,
-                        primary_model=self.primary_model,
-                        theta_deg=np.degrees(np.acos(theta)),
+                        primary_model=self.primary_cr_model,
+                        theta_deg=np.degrees(np.arccos(costh)),
                         **self.cfg
                     )
 
-        self.Xvec = np.arange(1, mceq_run.density_model.max_X, mceq_run.density_model.max_X/number_of_layers)
+        self.Xvec = np.arange(1, self.mceq_run.density_model.max_X, self.mceq_run.density_model.max_X/number_of_layers)
         self.mceq_run.solve(int_grid=self.Xvec, grid_var="X")
 
-    def UpdateRelativeContributions(self, mceq_run):
-        total_numu = mceq_run.get_solution('total_numu', 0, grid_idx=0)
-        self.pion_prob = mceq_run.get_solution('pi_numu', 0, grid_idx=0)/total_numu
-        self.kaon_prob = mceq_run.get_solution('k_numu', 0, grid_idx=0)/total_numu
+    def UpdateRelativeContributions(self, height):
+        idx=self.FindNearest(self.Xvec,self.mceq_run.density_model.s_h2X(height))
+        total_numu = self.mceq_run.get_solution('total_numu', 0, grid_idx=0)
+        self.pion_prob = self.mceq_run.get_solution('pi_numu', 0, grid_idx=idx)/total_numu
+        self.kaon_prob = self.mceq_run.get_solution('k_numu', 0, grid_idx=idx)/total_numu
 
     def FindNearest(self, array,value):
         return np.searchsorted(array, value, side="left")
@@ -120,9 +119,9 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         Returns the minimum muon energy of the brother muon.
         Eq. (5) from 0812.4308
         """
-        if not(meson in r_dict):
+        if not(meson in self.ParticleProperties.r_dict):
             raise Exception("Meson not found in mass dictionary.")
-        r = r_dict[meson]
+        r = self.ParticleProperties.r_dict[meson]
         return neutrino_energy*r/(1.-r)
 
     def MinimumMesonParentEnergy(self, neutrino_energy,meson):
@@ -132,69 +131,75 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         """
         if not (meson in r_dict):
             raise Exception("Meson not found in mass dictionary.")
-        r = r_dict[meson]
+        r = self.ParticleProperties.r_dict[meson]
         return neutrino_energy/(1.-r)
 
     def DecayProbability(self, primary_energy, distance, meson):
-        if not (meson in r_dict):
+        if not (meson in self.ParticleProperties.r_dict):
             raise Exception("Meson not found lifetime dictionary.")
-        boost_factor=primary_energy/mass_dict[meson]
-        return np.exp(-distance/(boost_factor*lifetime_dict[meson]))
+        boost_factor=primary_energy/self.ParticleProperties.mass_dict[meson]
+        return np.exp(-distance/(boost_factor*self.ParticleProperties.lifetime_dict[meson]))
 
     def NoInteractionProbability(self, primary_energy, column_density, meson):
-        if not (meson in r_dict):
+        if not (meson in self.ParticleProperties.r_dict):
             raise Exception("Meson not found cross section dictionary.")
-        return np.exp(-column_density/(air_xs_inter[meson](primary_energy)*cm**2)/mass_dict[meson])
+        return np.exp(-column_density/(self.air_xs_inter[meson](primary_energy)*Units.cm**2)/self.ParticleProperties.mass_dict[meson])
 
     def MeanMuonDistance(self, muon_energy, medium = "ice"):
-        if not (medium in a) or not (medium in b):
+        if not (medium in self.MaterialProperties.a) or not (medium in self.MaterialProperties.b):
             raise Exception("Medium energy losses for muons not found.")
-        a_ = a[medium]
-        b_ = b[medium]
+        a_ = self.MaterialProperties.a[medium]
+        b_ = self.MaterialProperties.b[medium]
 
         return np.log(1.+ muon_energy*b_/a_)/b_
 
     def GetAirColumnDensity(self, height, distance):
-        return (mceq_run.density_model.s_h2X(height) - mceq_run.density_model.s_h2X(height+distance))
+        return (self.mceq_run.density_model.s_h2X(height) - self.mceq_run.density_model.s_h2X(height+distance))
 
     def GetIceColumnDensity(self, costh, depth):
-        return geo.overburden(costh, depth, elevation=2400)
+        return utils.overburden(costh, depth, elevation=2400)
 
-    def MuonReachProbability(self. muon_energy, height, ice_column_density):
+    def MuonReachProbability(self, muon_energy, height, ice_column_density):
         # simplifying assumption that the muon reach distribution is a gaussian
-        return stats.norm.sf(ice_column_density/density["ice"],
-                loc=MeanMuonDistance(muon_energy),scale=np.sqrt(MeanMuonDistance(muon_energy)))
+        return stats.norm.sf(ice_column_density/self.MaterialProperties.density["ice"],
+                loc=self.MeanMuonDistance(muon_energy),scale=np.sqrt(self.MeanMuonDistance(muon_energy)))
 
-    def NeutrinoFromParentProbability(self.neutrino_energy,costh,h,meson):
-        ie = FindNearest(mceq_run.cs.egrid,neutrino_energy/GeV)
+    def NeutrinoFromParentProbability(self,neutrino_energy,costh,h,meson):
+        self.UpdateRelativeContributions(h)
+        ie = self.FindNearest(self.mceq_run.cs.egrid,neutrino_energy/Units.GeV)
         if meson == "pion":
-            return pion_prob[ie]
+            return self.pion_prob[ie]
         elif meson == "kaon":
-            return pion_prob[ie]
+            return self.kaon_prob[ie]
         else:
             raise Exception("Invalid meson parent")
 
-    def ParentProductionProbability(self.primary_energy,costh,h,meson):
-        ie = FindNearest(mceq_run.cs.egrid,primary_energy/GeV)
+    def ParentProductionProbability(self,primary_energy,costh,h,meson):
+        ie = self.FindNearest(self.mceq_run.cs.egrid,primary_energy/Units.GeV)
         if meson == "pion":
-            return mceq_run.get_solution('pi-', 0, grid_idx=0)[ie]
+            return self.mceq_run.get_solution('pi-', 0, grid_idx=0)[ie]
         elif meson == "kaon":
-            return mceq_run.get_solution('K-', 0, grid_idx=0)[ie]
+            return self.mceq_run.get_solution('K-', 0, grid_idx=0)[ie]
         else:
             raise Exception("Invalid meson. ")
 
     def CorrelatedProbability(self,Enu,costh):
+        #if self.mceq_run == None:
+        self.RunMCLayeredMode(costh)
+        # calculate ice column density
+        ice_column_density=self.GetIceColumnDensity(costh,self.detector_depth)
         # here we implement the master formulae
         cprob = 0;
         for meson in self.meson_list:
-            kernel = lambda x,Emu,h: NeutrinoFromParentProbability(Enu,costh,h,meson)*\
-                                     DecayProbability(Emu+Enu,x+h,meson)*\
-                                     NoInteractionProbability(Emu+Enu,GetAirColumnDensity(h,x),meson)*\
-                                     ParentProductionProbability(Emu+Enu,costh,h+x,meson)*\
-                                     MuonReachProbability(Emu,h,GetIceColumnDensity(costh,d))
+            kernel = lambda x,Emu,h: self.NeutrinoFromParentProbability(Enu,costh,h,meson)*\
+                                     self.DecayProbability(Emu+Enu,x+h,meson)*\
+                                     self.NoInteractionProbability(Emu+Enu,self.GetAirColumnDensity(h,x),meson)*\
+                                     self.ParentProductionProbability(Emu+Enu,costh,h+x,meson)*\
+                                     self.MuonReachProbability(Emu,h,ice_column_density)
 
-            r = r_dict[meson]
+            r = self.ParticleProperties.r_dict[meson]
             h_min = 0; h_max = 40;
+            x_min = 0; x_max = 40;
             Emu_min = Enu*r/(1.-r)
             Emu_max = 1.e10 # GeV
             cprob += integrate.tplquad(kernel,

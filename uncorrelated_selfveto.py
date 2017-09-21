@@ -13,8 +13,9 @@ from scipy.integrate import simps
 from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
-from barr_uncertainties import ParamInfo, BARR
-from geometry import overburden
+from barr_uncertainties import *
+from utils import overburden, amu, minimum_muon_energy
+
 
 SETUP = {'flux':pm.HillasGaisser2012,
          'gen':'H3a',
@@ -29,56 +30,6 @@ MCEQ = MCEqRun(
     theta_deg = 0.,
     # expand the rest of the options from mceq_config.py
     **config)
-
-def barr_unc(xmat, egrid, pname, value):
-    """Implementation of hadronic uncertainties as in Barr et al. PRD 74 094009 (2006)
-
-    The names of parameters are explained in Fig. 2 and Fig. 3 in the paper."""
-
-
-    # Energy dependence
-    u = lambda E, val, ethr, maxerr, expected_err: val*min(
-        maxerr/expected_err,
-        0.122/expected_err*np.log10(E / ethr)) if E > ethr else 0.
-
-    modmat = np.ones_like(xmat)
-    modmat[np.tril_indices(xmat.shape[0], -1)] = 0.
-
-    for minx, maxx, mine, maxe in BARR[pname].regions:
-        eidcs = np.where((mine < egrid) & (egrid <= maxe))[0]
-        for eidx in eidcs:
-            xsel = np.where((xmat[:eidx + 1, eidx] >= minx) &
-                            (xmat[:eidx + 1, eidx] <= maxx))[0]
-            if not np.any(xsel):
-                continue
-            if pname in ['i', 'z']:
-                modmat[xsel, eidx] += u(egrid[eidx], value, 500., 0.5, 0.122)
-            elif pname in ['ch_e']:
-                modmat[xsel, eidx] += u(egrid[eidx], value, 800., 0.3, 0.25)
-            else:
-                modmat[xsel, eidx] += value
-
-    return modmat
-
-
-def amu(particle):
-    """
-    :param particle: primary particle's corsika id
-
-    :returns: the atomic mass of particle
-    """
-    return 1 if particle==14 else particle/100
-
-def minimum_muon_energy(distance):
-    """
-    Minimum muon energy required to survive the given thickness of ice with at
-    least 1 TeV 50% of the time.
-
-    :returns: minimum muon energy [GeV]
-    """
-    # require that the muon have median energy 1 TeV
-    b, c = 2.52151, 7.13834
-    return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
 
 
 def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
@@ -146,15 +97,20 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
     """
     sol = mceq_yield(primary_energy, cos_theta, particle, kind, pmods, hadr)
     fnsol = interp1d(sol.info.e_grid, sol.yields, kind='quadratic',
-                     assume_sorted=True) 
+                     assume_sorted=True)
     return flux(primary_energy, particle)*fnsol(elep)
 
 
 def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     emu_min = minimum_muon_energy(overburden(cos_theta))
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
+    fnmu = interp1d(mu.info.e_grid, mu.yields, kind='quadratic',
+                    assume_sorted=True)
     above = mu.info.e_grid > emu_min
-    return np.exp(-simps(mu.yields[above], mu.info.e_grid[above]))
+    # idx = max(0,np.argmax(mu.info.e_grid > emu_min)-1)
+    # return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
+    return np.exp(-np.trapz(np.concatenate(([fnmu(emu_min)],mu.yields[above])),
+                            np.concatenate(([emu_min],mu.info.e_grid[above]))))
 
 
 def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True):

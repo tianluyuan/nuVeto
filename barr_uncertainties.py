@@ -1,3 +1,7 @@
+from collections import namedtuple
+import numpy as np
+
+
 # Global Barr parameter table format
 # ParamInfo([(x_min, x_max, E_min, E_max), ...], relative error, pdg) | x is x_lab= E_pi/E, E
 # projectile-air interaction energy
@@ -30,3 +34,32 @@ BARR = {
     'ch_b': ParamInfo([(0.1, 1.0, 0., 1e11)], 0.7, 411),
     'ch_e': ParamInfo([(0.1, 1.0, 800., 1e11)], 0.25, 411)
 }
+
+
+def barr_unc(xmat, egrid, pname, value):
+    """Implementation of hadronic uncertainties as in Barr et al. PRD 74 094009 (2006)
+
+    The names of parameters are explained in Fig. 2 and Fig. 3 in the paper."""
+    # Energy dependence
+    u = lambda E, val, ethr, maxerr, expected_err: val*min(
+        maxerr/expected_err,
+        0.122/expected_err*np.log10(E / ethr)) if E > ethr else 0.
+
+    modmat = np.ones_like(xmat)
+    modmat[np.tril_indices(xmat.shape[0], -1)] = 0.
+
+    for minx, maxx, mine, maxe in BARR[pname].regions:
+        eidcs = np.where((mine < egrid) & (egrid <= maxe))[0]
+        for eidx in eidcs:
+            xsel = np.where((xmat[:eidx + 1, eidx] >= minx) &
+                            (xmat[:eidx + 1, eidx] <= maxx))[0]
+            if not np.any(xsel):
+                continue
+            if pname in ['i', 'z']:
+                modmat[xsel, eidx] += u(egrid[eidx], value, 500., 0.5, 0.122)
+            elif pname in ['ch_e']:
+                modmat[xsel, eidx] += u(egrid[eidx], value, 800., 0.3, 0.25)
+            else:
+                modmat[xsel, eidx] += value
+
+    return modmat
