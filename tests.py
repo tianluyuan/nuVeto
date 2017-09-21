@@ -37,6 +37,7 @@ def test_pr_cth(enu=1e5, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, 
                                        hadr, accuracy, fraction) for cos_theta in cths],
                    **kwargs)
     plt.xlim(0, 1)
+    plt.xscale('linear')
     plt.xlabel(r'$\cos \theta$')
     if fraction:
         plt.ylabel(r'Passing fraction')
