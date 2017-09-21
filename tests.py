@@ -64,7 +64,7 @@ def test_hadrs(cos_theta=1, kind='numu', fraction=True):
 
 
 def test_elbert(cos_theta=1, kind='pr_nue'):
-    hadrs=['DPMJET-III', 'SIBYLL2.1']
+    hadrs=['DPMJET-III', 'SIBYLL2.3c']
     ens = np.logspace(2,9, 100)
     emu = selfveto.overburden(cos_theta)
     plt.plot(ens, elbert.uncorr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2f}'.format(kind, cos_theta))
