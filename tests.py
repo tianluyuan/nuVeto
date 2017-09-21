@@ -81,10 +81,13 @@ def test_corsika(cos_theta_bin=-1, kind='pr_nue', hadr='SIBYLL2.3'):
     eff, elow, eup, xedges, yedges = corsika[translate[kind]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
-    plt.errorbar(centers(xedges), eff[:,cos_theta_bin],
-                 xerr=xedges[1:]-centers(xedges),
-                 yerr=np.asarray(zip(elow[:,cos_theta_bin], eup[:,cos_theta_bin])).T,
-                 label='corsika {} {:.2f}'.format(kind, cos_theta), fmt='.', color='k')
+    plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
+                 xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
+                                     10**xedges[1:]-10**centers(xedges))).T,
+                 yerr=np.asarray(zip(elow[:,cos_theta_bin],
+                                     eup[:,cos_theta_bin])).T,
+                 label='corsika {} {:.2f}'.format(kind, cos_theta),
+                 fmt='.', color='k')
     pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} {:.2f}'.format(hadr, kind, cos_theta))
 
 
