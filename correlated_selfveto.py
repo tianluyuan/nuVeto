@@ -1,7 +1,7 @@
-# Copyright © 2017 C. Arguelles, S. Palomares-Ruiz, A. Schneider, T. Yuan, and L. Wille
+# Copyright 2017 C. Arguelles, S. Palomares-Ruiz, A. Schneider, T. Yuan, and L. Wille
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
-# this software and associated documentation files (the “Software”), to deal in
+# this software and associated documentation files (the "Software"), to deal in
 # the Software without restriction, including without limitation the rights to
 # use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
 # of the Software, and to permit persons to whom the Software is furnished to do
@@ -10,7 +10,7 @@
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 #
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
@@ -41,24 +41,27 @@ import CRFluxModels as pm
 import geometry as geo
 from mceq_config import config, mceq_config_without
 
+class Units(object):
+    # units
+    km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
+    gr = 5.62e+23 # gr to GeV value from SQuIDS
+    sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
+    cm = km*1.e-5
+    GeV = 1
+    TeV = 1.e3*GeV
+    PeV = 1.e3*TeV
+
 class SelfVetoProbabilityCalculator(object):
-    class Units(object):
-        # units
-        km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
-        gr = 5.62e+23 # gr to GeV value from SQuIDS
-        sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
-        cm = km*1.e-5
-        GeV = 1
     class ParticleProperties(object):
-        r_dict ={}; mass_dict = {}; lifetime_dict = {}; pdg_id = {}; 
+        r_dict ={}; mass_dict = {}; lifetime_dict = {}; pdg_id = {};
         r_dict["kaon"]=0.046
         r_dict["pion"]=0.573
 
         mass_dict["kaon"]=0.493677 # GeV
         mass_dict["pion"]=0.139570 # GeV
 
-        lifetime_dict["kaon"]=1.2389e-8*sec # s converted to GeV^-1
-        lifetime_dict["pion"]=2.6033e-8*sec # s converted to GeV^-1
+        lifetime_dict["kaon"]=1.2389e-8*Units.sec # s converted to GeV^-1
+        lifetime_dict["pion"]=2.6033e-8*Units.sec # s converted to GeV^-1
 
         pdg_id["kaon"] = 321 # k+
         pdg_id["pion"] = 211 # pi+
@@ -90,10 +93,10 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
 
         self.cs_db = HadAirCrossSections(hadronic_model)
         self.air_xs_inter = {};
-        self.air_xs_inter["kaon"] = interpolate.interp1d(cs_db.egrid,cs_db.get_cs(pdg_id['kaon'])) # input GeV return cm^2
-        self.air_xs_inter["pion"] = interpolate.interp1d(cs_db.egrid,cs_db.get_cs(pdg_id['pion'])) # input GeV return cm^2
+        self.air_xs_inter["kaon"] = interpolate.interp1d(self.cs_db.egrid,self.cs_db.get_cs(self.ParticleProperties.pdg_id['kaon'])) # input GeV return cm^2
+        self.air_xs_inter["pion"] = interpolate.interp1d(self.cs_db.egrid,self.cs_db.get_cs(self.ParticleProperties.pdg_id['pion'])) # input GeV return cm^2
 
-    def UpdateRunMCLayeredMode(costh):
+    def UpdateRunMCLayeredMode(self, costh,number_of_layers=100):
         self.mceq_run = MCEqRun(
                         self.hadronic_model,
                         primary_model=self.primary_model,
@@ -101,21 +104,18 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
                         **self.cfg
                     )
 
-        self.Xvec = np.arange(1, mceq_run.density_model.max_X, 5)
+        self.Xvec = np.arange(1, mceq_run.density_model.max_X, mceq_run.density_model.max_X/number_of_layers)
         self.mceq_run.solve(int_grid=self.Xvec, grid_var="X")
 
-    def GetRelativeContributions(mceq_run):
+    def UpdateRelativeContributions(self, mceq_run):
         total_numu = mceq_run.get_solution('total_numu', 0, grid_idx=0)
-        pion_prob = mceq_run.get_solution('pi_numu', 0, grid_idx=0)/total_numu
-        kaon_prob = mceq_run.get_solution('k_numu', 0, grid_idx=0)/total_numu
-        return pion_prob,kaon_prob
+        self.pion_prob = mceq_run.get_solution('pi_numu', 0, grid_idx=0)/total_numu
+        self.kaon_prob = mceq_run.get_solution('k_numu', 0, grid_idx=0)/total_numu
 
-    pion_prob,kaon_prob = GetRelativeContributions(mceq_run)
-
-    def FindNearest(array,value):
+    def FindNearest(self, array,value):
         return np.searchsorted(array, value, side="left")
 
-    def MinimumMuonBrotherEnergy(neutrino_energy,meson):
+    def MinimumMuonBrotherEnergy(self, neutrino_energy,meson):
         """
         Returns the minimum muon energy of the brother muon.
         Eq. (5) from 0812.4308
@@ -125,7 +125,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         r = r_dict[meson]
         return neutrino_energy*r/(1.-r)
 
-    def MinimumMesonParentEnergy(neutrino_energy,meson):
+    def MinimumMesonParentEnergy(self, neutrino_energy,meson):
         """
         Returns the minimum parent meson energy.
         Eq. (5) from 0812.4308
@@ -135,18 +135,18 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         r = r_dict[meson]
         return neutrino_energy/(1.-r)
 
-    def DecayProbability(primary_energy, distance, meson):
+    def DecayProbability(self, primary_energy, distance, meson):
         if not (meson in r_dict):
             raise Exception("Meson not found lifetime dictionary.")
         boost_factor=primary_energy/mass_dict[meson]
         return np.exp(-distance/(boost_factor*lifetime_dict[meson]))
 
-    def NoInteractionProbability(primary_energy, column_density, meson):
+    def NoInteractionProbability(self, primary_energy, column_density, meson):
         if not (meson in r_dict):
             raise Exception("Meson not found cross section dictionary.")
         return np.exp(-column_density/(air_xs_inter[meson](primary_energy)*cm**2)/mass_dict[meson])
 
-    def MeanMuonDistance(muon_energy, medium = "ice"):
+    def MeanMuonDistance(self, muon_energy, medium = "ice"):
         if not (medium in a) or not (medium in b):
             raise Exception("Medium energy losses for muons not found.")
         a_ = a[medium]
@@ -154,18 +154,18 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
 
         return np.log(1.+ muon_energy*b_/a_)/b_
 
-    def GetAirColumnDensity(height,distance):
+    def GetAirColumnDensity(self, height, distance):
         return (mceq_run.density_model.s_h2X(height) - mceq_run.density_model.s_h2X(height+distance))
 
-    def GetIceColumnDensity(costh, depth):
+    def GetIceColumnDensity(self, costh, depth):
         return geo.overburden(costh, depth, elevation=2400)
 
-    def MuonReachProbability(muon_energy, height, ice_column_density):
+    def MuonReachProbability(self. muon_energy, height, ice_column_density):
         # simplifying assumption that the muon reach distribution is a gaussian
         return stats.norm.sf(ice_column_density/density["ice"],
                 loc=MeanMuonDistance(muon_energy),scale=np.sqrt(MeanMuonDistance(muon_energy)))
 
-    def NeutrinoFromParentProbability(neutrino_energy,costh,h,meson):
+    def NeutrinoFromParentProbability(self.neutrino_energy,costh,h,meson):
         ie = FindNearest(mceq_run.cs.egrid,neutrino_energy/GeV)
         if meson == "pion":
             return pion_prob[ie]
@@ -174,7 +174,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         else:
             raise Exception("Invalid meson parent")
 
-    def ParentProductionProbability(primary_energy,costh,h,meson):
+    def ParentProductionProbability(self.primary_energy,costh,h,meson):
         ie = FindNearest(mceq_run.cs.egrid,primary_energy/GeV)
         if meson == "pion":
             return mceq_run.get_solution('pi-', 0, grid_idx=0)[ie]
@@ -183,10 +183,10 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         else:
             raise Exception("Invalid meson. ")
 
-    def CorrelatedProbability(Enu,costh):
+    def CorrelatedProbability(self,Enu,costh):
         # here we implement the master formulae
         cprob = 0;
-        for meson in meson_list:
+        for meson in self.meson_list:
             kernel = lambda x,Emu,h: NeutrinoFromParentProbability(Enu,costh,h,meson)*\
                                      DecayProbability(Emu+Enu,x+h,meson)*\
                                      NoInteractionProbability(Emu+Enu,GetAirColumnDensity(h,x),meson)*\
@@ -204,8 +204,5 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         return cprob
 
 if __name__ == "__main__":
-    mierda = GetRunMCLayeredMode(30.)
-    seccion_de_choque = cs_db.get_cs(pdg_id['pion'])
-    print seccion_de_choque
-    seccion_de_choque = cs_db.get_cs(pdg_id['kaon'])
-    print seccion_de_choque
+    caca = CorrelatedSelfVetoProbabilityCalculator()
+    caca.CorrelatedProbability(1.*Units.TeV,1.)
