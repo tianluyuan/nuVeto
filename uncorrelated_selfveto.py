@@ -8,8 +8,8 @@ from collections import namedtuple
 from enum import Enum
 from functools32 import lru_cache
 import numpy as np
-from scipy.interpolate import interp1d, UnivariateSpline
-from scipy.integrate import simps
+from scipy.interpolate import interp1d
+from scipy.integrate import simps, quad
 from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
@@ -97,17 +97,20 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
     """
     sol = mceq_yield(primary_energy, cos_theta, particle, kind, pmods, hadr)
     fnsol = interp1d(sol.info.e_grid, sol.yields, kind='quadratic',
-                     assume_sorted=True) 
+                     assume_sorted=True)
     return flux(primary_energy, particle)*fnsol(elep)
 
 
 def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     emu_min = minimum_muon_energy(overburden(cos_theta))
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
-    spl = UnivariateSpline(mu.info.e_grid, mu.yields)
-    
-    idx = max(0,np.argmax(mu.info.e_grid > emu_min)-1)
-    return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
+    fnmu = interp1d(mu.info.e_grid, mu.yields, kind='quadratic',
+                    assume_sorted=True)
+    above = mu.info.e_grid > emu_min
+    # idx = max(0,np.argmax(mu.info.e_grid > emu_min)-1)
+    # return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
+    return np.exp(-simps(np.concatenate(([fnmu(emu_min)],mu.yields[above])),
+                         np.concatenate(([emu_min],mu.info.e_grid[above]))))
 
 
 def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True):
