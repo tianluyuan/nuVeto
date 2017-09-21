@@ -9,7 +9,7 @@ from enum import Enum
 from functools32 import lru_cache
 import numpy as np
 from scipy.interpolate import interp1d
-from scipy.integrate import simps, quad
+from scipy.integrate import simps
 from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
@@ -109,8 +109,8 @@ def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     above = mu.info.e_grid > emu_min
     # idx = max(0,np.argmax(mu.info.e_grid > emu_min)-1)
     # return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
-    return np.exp(-simps(np.concatenate(([fnmu(emu_min)],mu.yields[above])),
-                         np.concatenate(([emu_min],mu.info.e_grid[above]))))
+    return np.exp(-np.trapz(np.concatenate(([fnmu(emu_min)],mu.yields[above])),
+                            np.concatenate(([emu_min],mu.info.e_grid[above]))))
 
 
 def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True):
