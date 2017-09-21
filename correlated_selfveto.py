@@ -44,9 +44,10 @@ from mceq_config import config, mceq_config_without
 class Units(object):
     # units
     km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
+    cm = km*1.e-5
+    m = km*1.e-3
     gr = 5.62e+23 # gr to GeV value from SQuIDS
     sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
-    cm = km*1.e-5
     GeV = 1
     TeV = 1.e3*GeV
     PeV = 1.e3*TeV
@@ -57,8 +58,8 @@ class SelfVetoProbabilityCalculator(object):
         r_dict["kaon"]=0.046
         r_dict["pion"]=0.573
 
-        mass_dict["kaon"]=0.493677 # GeV
-        mass_dict["pion"]=0.139570 # GeV
+        mass_dict["kaon"]=0.493677*Units.GeV # GeV
+        mass_dict["pion"]=0.139570*Units.GeV # GeV
 
         lifetime_dict["kaon"]=1.2389e-8*Units.sec # s converted to GeV^-1
         lifetime_dict["pion"]=2.6033e-8*Units.sec # s converted to GeV^-1
@@ -68,11 +69,11 @@ class SelfVetoProbabilityCalculator(object):
 
     class MaterialProperties(object):
         a = {}; b = {}; density = {};
-        a["ice"]=0.249 # GeV/mwe
-        a["rock"]=0.221 # GeV/mwe
-        b["ice"]=0.422e-3 # 1/mwe
-        b["rock"]=0.531e-3 # 1/mwe
-        density["ice"] = 0.9167 # g/cm^3
+        a["ice"]=0.249*Units.GeV/Units.m # GeV/mwe
+        a["rock"]=0.221*Units.GeV/Units.m # GeV/mwe
+        b["ice"]=0.422e-3/Units.m # 1/mwe
+        b["rock"]=0.531e-3/Units.m # 1/mwe
+        density["ice"] = 0.9167*Units.gr/Units.cm**3 # g/cm^3
 
     def  __init__(self,hadronic_model = 'SIBYLL-2.3c', primary_cr_model=(pm.HillasGaisser2012, 'H3a')):
         self.hadronic_model = hadronic_model
@@ -86,7 +87,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         self.x_max = 100*Units.km
         self.x_min = 0*Units.km
 
-        self.detector_depth = 10*Units.km
+        self.detector_depth = 1950.*Units.m
         self.cfg = dict(config)
 
         self.cs_db = HadAirCrossSections(hadronic_model)
@@ -145,19 +146,20 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             raise Exception("Meson not found cross section dictionary.")
         return np.exp(-column_density/(self.air_xs_inter[meson](primary_energy)*Units.cm**2)/self.ParticleProperties.mass_dict[meson])
 
-    def MeanMuonDistance(self, muon_energy, medium = "ice"):
+    def MeanMuonDistance(self, muon_energy, medium = "ice", min_muon_energy=Units.TeV):
+        if (muon_energy<min_muon_energy): return 0.
         if not (medium in self.MaterialProperties.a) or not (medium in self.MaterialProperties.b):
             raise Exception("Medium energy losses for muons not found.")
         a_ = self.MaterialProperties.a[medium]
         b_ = self.MaterialProperties.b[medium]
 
-        return np.log(1.+ muon_energy*b_/a_)/b_
+        return np.log((a_ + muon_energy*b_)/(a_ + min_muon_energy*b_))/b_
 
     def GetAirColumnDensity(self, height, distance):
-        return (self.mceq_run.density_model.s_h2X(height) - self.mceq_run.density_model.s_h2X(height+distance))
+        return (self.mceq_run.density_model.s_h2X(height) - self.mceq_run.density_model.s_h2X(height+distance))*Units.gr/Units.cm**2
 
-    def GetIceColumnDensity(self, costh, depth):
-        return utils.overburden(costh, depth, elevation=2400)
+    def GetIceColumnDensity(self, costh, depth = 1950.*Units.m):
+        return (utils.overburden(costh, depth/Units.m, elevation=2400)*Units.m)*self.MaterialProperties.density["ice"]
 
     def MuonReachProbability(self, muon_energy, height, ice_column_density):
         # simplifying assumption that the muon reach distribution is a gaussian
@@ -210,4 +212,4 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
 
 if __name__ == "__main__":
     caca = CorrelatedSelfVetoProbabilityCalculator()
-    caca.CorrelatedProbability(1.*Units.TeV,1.)
+    print caca.CorrelatedProbability(1.*Units.TeV,1.)
