@@ -73,6 +73,9 @@ def test_elbert(cos_theta=1, kind='pr_nue'):
 
 
 def test_corsika(cos_theta_bin=-1, kind='pr_nue', hadr='SIBYLL2.3'):
+    if isinstance(cos_theta_bin, list):
+        [test_corsika(cth, kind) for cth in cos_theta_bin]
+
     translate = {'pr_numu':'numu_prompt',
                  'pr_nue':'nue_prompt',
                  'conv_numu':'numu_conv',
