@@ -104,12 +104,12 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
 def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     emu_min = minimum_muon_energy(overburden(cos_theta))
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
+    if emu_min > mu.info.e_grid[-1]:
+        # probability of no muons that make it will be 1 if emu_min > highest yield
+        return 1
     fnmu = interp1d(mu.info.e_grid, mu.yields, kind='quadratic',
                     assume_sorted=True)
     above = mu.info.e_grid > emu_min
-    if not above.any():
-        # probability of no muons that make it will be 1 if emu_min > highest yield
-        return 1
 
     # idx = max(0,np.argmax(mu.info.e_grid > emu_min)-1)
     # return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
