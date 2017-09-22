@@ -96,6 +96,15 @@ def test_elbert(cos_theta=1, kind='pr_nue'):
         pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
 
 
+def test_elbert_cth(enu=1e5, kind='pr_nue'):
+    hadrs=['DPMJET-III', 'SIBYLL2.3c']
+    cths = np.linspace(0,1, 100)
+    emu = selfveto.overburden(cths)
+    plt.plot(cths, elbert.uncorr(kind)(enu, emu, cths), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, enu))
+    for hadr in hadrs:
+        pr = test_pr_cth(enu, kind, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, enu))
+
+
 def test_corsika(cos_theta_bin=-1, kind='pr_nue', hadr='SIBYLL2.3'):
     if isinstance(cos_theta_bin, list):
         [test_corsika(cth, kind) for cth in cos_theta_bin]
