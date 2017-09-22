@@ -60,9 +60,10 @@ class SelfVetoProbabilityCalculator(object):
 
         mass_dict["kaon"]=0.493677*Units.GeV # GeV
         mass_dict["pion"]=0.139570*Units.GeV # GeV
+        mass_dict["air"]=(14.0067/0.7552670)*Units.GeV # GeV
 
-        lifetime_dict["kaon"]=1.2389e-8*Units.sec # s converted to GeV^-1
-        lifetime_dict["pion"]=2.6033e-8*Units.sec # s converted to GeV^-1
+        lifetime_dict["kaon"]=1.2389e-8*Units.sec # s
+        lifetime_dict["pion"]=2.6033e-8*Units.sec # 
 
         pdg_id["kaon"] = 321 # k+
         pdg_id["pion"] = 211 # pi+
@@ -137,16 +138,22 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         r = self.ParticleProperties.r_dict[meson]
         return neutrino_energy/(1.-r)
 
+    def GetAirColumnDensity(self, height, distance):
+        return (self.mceq_run.density_model.s_h2X(height/Units.cm) - self.mceq_run.density_model.s_h2X((height+distance)/Units.cm))*Units.gr/Units.cm**2
+
+    def GetIceColumnDensity(self, costh, depth = 1950.*Units.m):
+        return (utils.overburden(costh, depth/Units.m, elevation=2400)*Units.m)*self.MaterialProperties.density["ice"]
+
     def DecayProbability(self, primary_energy, distance, meson):
         if not (meson in self.ParticleProperties.r_dict):
             raise Exception("Meson not found lifetime dictionary.")
         boost_factor=primary_energy/self.ParticleProperties.mass_dict[meson]
-        return np.exp(-distance/(boost_factor*self.ParticleProperties.lifetime_dict[meson]))
+        return 1.-np.exp(-distance/(boost_factor*self.ParticleProperties.lifetime_dict[meson]))
 
     def NoInteractionProbability(self, primary_energy, column_density, meson):
         if not (meson in self.ParticleProperties.r_dict):
             raise Exception("Meson not found cross section dictionary.")
-        return np.exp(-column_density/(self.air_xs_inter[meson](primary_energy)*Units.cm**2)/self.ParticleProperties.mass_dict[meson])
+        return np.exp(-(column_density/self.ParticleProperties.mass_dict["air"])*(self.air_xs_inter[meson](primary_energy/Units.GeV)*Units.cm**2))
 
     def MeanMuonDistance(self, muon_energy, medium = "ice", min_muon_energy=Units.TeV):
         if (muon_energy<min_muon_energy): return 0.
@@ -156,12 +163,6 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         b_ = self.MaterialProperties.b[medium]
 
         return np.log((a_ + muon_energy*b_)/(a_ + min_muon_energy*b_))/b_
-
-    def GetAirColumnDensity(self, height, distance):
-        return (self.mceq_run.density_model.s_h2X(height) - self.mceq_run.density_model.s_h2X(height+distance))*Units.gr/Units.cm**2
-
-    def GetIceColumnDensity(self, costh, depth = 1950.*Units.m):
-        return (utils.overburden(costh, depth/Units.m, elevation=2400)*Units.m)*self.MaterialProperties.density["ice"]
 
     def MuonReachProbability(self, muon_energy, height, ice_column_density):
         # simplifying assumption that the muon reach distribution is a gaussian
@@ -198,7 +199,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         # here we implement the master formulae
         cprob = 0;
         for meson in self.meson_list:
-            kernel = lambda x,Emu,h: self.DecayProbability(Emu+Enu,x+h,meson)
+            kernel = lambda x,Emu,h: self.NoInteractionProbability(Emu+Enu,self.GetAirColumnDensity(h,x),meson)
             #kernel = lambda x,Emu,h: self.NeutrinoFromParentProbability(Enu,costh,h,meson)*\
             #                         self.DecayProbability(Emu+Enu,x+h,meson)*\
             #                         self.NoInteractionProbability(Emu+Enu,self.GetAirColumnDensity(h,x),meson)*\
@@ -207,7 +208,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
 
             r = self.ParticleProperties.r_dict[meson]
             h_min = 0; h_max = 40*Units.km;
-            x_min = 0; x_max = 40*Units.km;
+            x_min = 0; x_max = 100*Units.m;
             Emu_min = Enu*r/(1.-r)
             Emu_max = 1.e10*Units.GeV
             cprob += np.array(integrate.tplquad(kernel,
