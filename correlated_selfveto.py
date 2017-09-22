@@ -81,7 +81,7 @@ class SelfVetoProbabilityCalculator(object):
 
 class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
     meson_list = ["kaon","pion"]
-    def  __init__(self,hadronic_model = 'SIBYLL-2.3c', primary_cr_model=(pm.HillasGaisser2012, 'H3a')):
+    def  __init__(self,hadronic_model = 'SIBYLL-2.3c', primary_cr_model=(pm.HillasGaisser2012, 'H3a'), life_dangerously = True):
         super(CorrelatedSelfVetoProbabilityCalculator, self).__init__(hadronic_model,primary_cr_model)
 
         self.x_max = 100*Units.km
@@ -89,6 +89,8 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
 
         self.detector_depth = 1950.*Units.m
         self.cfg = dict(config)
+        if life_dangerously:
+            self.cfg["debug_level"] = 0
 
         self.cs_db = HadAirCrossSections(hadronic_model)
         self.air_xs_inter = {};
@@ -163,7 +165,10 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
 
     def MuonReachProbability(self, muon_energy, height, ice_column_density):
         # simplifying assumption that the muon reach distribution is a gaussian
-        return stats.norm.sf(ice_column_density/self.MaterialProperties.density["ice"],
+        # the probability that it does not reach is given by the cumnulative distribution function
+        # on the other hand the reaching probability is given by the survival distribution function
+        # the former is associated with the passing rate.
+        return stats.norm.cdf(ice_column_density/self.MaterialProperties.density["ice"],
                 loc=self.MeanMuonDistance(muon_energy),scale=np.sqrt(self.MeanMuonDistance(muon_energy)))
 
     def NeutrinoFromParentProbability(self,neutrino_energy,costh,h,meson):
@@ -193,21 +198,22 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         # here we implement the master formulae
         cprob = 0;
         for meson in self.meson_list:
-            kernel = lambda x,Emu,h: self.NeutrinoFromParentProbability(Enu,costh,h,meson)*\
-                                     self.DecayProbability(Emu+Enu,x+h,meson)*\
-                                     self.NoInteractionProbability(Emu+Enu,self.GetAirColumnDensity(h,x),meson)*\
-                                     self.ParentProductionProbability(Emu+Enu,costh,h+x,meson)*\
-                                     self.MuonReachProbability(Emu,h,ice_column_density)
+            kernel = lambda x,Emu,h: self.DecayProbability(Emu+Enu,x+h,meson)
+            #kernel = lambda x,Emu,h: self.NeutrinoFromParentProbability(Enu,costh,h,meson)*\
+            #                         self.DecayProbability(Emu+Enu,x+h,meson)*\
+            #                         self.NoInteractionProbability(Emu+Enu,self.GetAirColumnDensity(h,x),meson)*\
+            #                         self.ParentProductionProbability(Emu+Enu,costh,h+x,meson)*\
+            #                         self.MuonReachProbability(Emu,h,ice_column_density)
 
             r = self.ParticleProperties.r_dict[meson]
-            h_min = 0; h_max = 40;
-            x_min = 0; x_max = 40;
+            h_min = 0; h_max = 40*Units.km;
+            x_min = 0; x_max = 40*Units.km;
             Emu_min = Enu*r/(1.-r)
-            Emu_max = 1.e10 # GeV
-            cprob += integrate.tplquad(kernel,
+            Emu_max = 1.e10*Units.GeV
+            cprob += np.array(integrate.tplquad(kernel,
                                         h_min,h_max,
                                         lambda h: Emu_min, lambda h: Emu_max,
-                                        lambda h,Emu: x_min, lambda h, Emu: x_max)[0]
+                                        lambda h,Emu: x_min, lambda h, Emu: x_max))
         return cprob
 
 if __name__ == "__main__":
