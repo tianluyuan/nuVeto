@@ -45,7 +45,7 @@ def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     return mcsolver_wrapped(primary_energy, cos_theta, particle, mods, hadr)
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=2048)
 def mcsolver_wrapped(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     Info = namedtuple('Info', 'e_grid e_widths')
     Yields = namedtuple('Yields', 'mu numu nue conv_numu conv_nue pr_numu pr_nue')
