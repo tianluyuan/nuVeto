@@ -104,7 +104,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         self.total_pion = self.mceq_run.get_solution('pi-', 0, grid_idx=0)
         self.total_kaon = self.mceq_run.get_solution('K-', 0, grid_idx=0)
 
-    def RunMCLayeredMode(self, costh,number_of_layers=100):
+    def RunMCLayeredMode(self, costh,number_of_layers=500):
         self.mceq_run = MCEqRun(
                         self.hadronic_model,
                         primary_model=self.primary_cr_model,
@@ -116,24 +116,24 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         self.mceq_run.solve(int_grid=self.Xvec, grid_var="X")
 
     def UpdateDaughterRelativeContributions(self, height):
-        idx=self.FindNearest(self.Xvec,self.mceq_run.density_model.h2X(height/Units.m), side = "right")
+        idx=self.FindNearest(self.Xvec,self.mceq_run.density_model.h2X(height/Units.cm), side = "right")
         if(idx >= len(self.Xvec) -1 ):
             self.numu_from_pion_prob = np.zeros(len(self.cs_db.egrid));
             self.numu_from_kaon_prob = np.zeros(len(self.cs_db.egrid));
             return
-        deltah = (self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.m
+        deltah = -(self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.cm
 
         self.numu_from_pion_prob= (self.mceq_run.get_solution('pi_numu', 0, grid_idx=idx) - self.mceq_run.get_solution('pi_numu', 0, grid_idx=idx+1))/deltah/self.total_numu
-        self.numu_from_pion_prob= (self.mceq_run.get_solution('k_numu', 0, grid_idx=idx) - self.mceq_run.get_solution('k_numu', 0, grid_idx=idx+1))/deltah/self.total_numu
+        self.numu_from_kaon_prob= (self.mceq_run.get_solution('k_numu', 0, grid_idx=idx) - self.mceq_run.get_solution('k_numu', 0, grid_idx=idx+1))/deltah/self.total_numu
 
     def UpdateParentRelativeContribution(self, height):
-        idx=self.FindNearest(self.Xvec,self.mceq_run.density_model.h2X(height/Units.m), side = "right")
-        print idx
+        idx=self.FindNearest(self.Xvec,self.mceq_run.density_model.h2X(height/Units.cm), side = "right")
+        #print idx, self.mceq_run.density_model.h2X(height/Units.cm)
         if(idx >= len(self.Xvec) -1 ):
             self.pion_prob = np.zeros(len(self.cs_db.egrid));
             self.kaon_prob = np.zeros(len(self.cs_db.egrid));
             return
-        deltah = (self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.m
+        deltah = -(self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.cm
 
         self.pion_prob = (self.mceq_run.get_solution('pi-', 0, grid_idx=idx) - self.mceq_run.get_solution('pi-', 0, grid_idx=idx+1))/deltah/self.total_pion
         self.kaon_prob = (self.mceq_run.get_solution('K-', 0, grid_idx=idx) - self.mceq_run.get_solution('K-', 0, grid_idx=idx+1))/deltah/self.total_kaon
@@ -199,9 +199,9 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         self.UpdateDaughterRelativeContributions(h)
         ie = self.FindNearest(self.mceq_run.cs.egrid,neutrino_energy/Units.GeV, side = "left")
         if meson == "pion":
-            return self.numu_from_pion_prob[ie]
+            return max(self.numu_from_pion_prob[ie],0.)
         elif meson == "kaon":
-            return self.numu_from_kaon_prob[ie]
+            return max(self.numu_from_kaon_prob[ie])
         else:
             raise Exception("Invalid meson parent.")
 
@@ -209,9 +209,9 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         self.UpdateParentRelativeContribution(h)
         ie = self.FindNearest(self.mceq_run.cs.egrid,primary_energy/Units.GeV, side = "left")
         if meson == "pion":
-            return self.pion_prob[ie]
+            return max(self.pion_prob[ie],0.)
         elif meson == "kaon":
-            return self.kaon_prob[ie]
+            return max(self.kaon_prob[ie],0.)
         else:
             raise Exception("Invalid meson.")
 
@@ -231,7 +231,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             #                         self.MuonReachProbability(Emu,h,ice_column_density)
 
             r = self.ParticleProperties.r_dict[meson]
-            h_min = 0; h_max = 40*Units.km;
+            h_min = 0; h_max = 60*Units.km;
             x_min = 0; x_max = 100*Units.m;
             Emu_min = Enu*r/(1.-r)
             Emu_max = 1.e10*Units.GeV
