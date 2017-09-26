@@ -242,8 +242,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             raise Exception("Invalid meson.")
 
 
-    def CorrelatedProbabilityKernel(self,Enu,x,Emu,h,meson):
-        return self.ParentProductionProbability(Emu+Enu,h+x,meson)
+    def CorrelatedProbabilityKernel(self,Enu,x,Emu,h,meson,ice_column_density):
         return self.NeutrinoFromParentProbability(Enu,h,meson)*\
                self.DecayProbability(Emu+Enu,x+h,meson)*\
                self.NoInteractionProbability(Emu+Enu,self.GetAirColumnDensity(h,x),meson)*\
@@ -270,7 +269,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
                                             lambda h,Emu: x_min, lambda h, Emu: x_max))
             else:
                 integ = vegas.Integrator([[x_min,x_max],[Emu_min,Emu_max],[h_min,h_max]])
-                cprob += integ(lambda metax: self.CorrelatedProbabilityKernel(Enu,metax[0],metax[1],metax[2],meson),
+                cprob += integ(lambda metax: self.CorrelatedProbabilityKernel(Enu,metax[0],metax[1],metax[2],meson,ice_column_density),
                                 nitn = 10, neval = 1000).mean
         return cprob
 
