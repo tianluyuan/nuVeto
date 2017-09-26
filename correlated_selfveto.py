@@ -31,6 +31,7 @@
 
 import numpy as np
 import scipy as sp
+import vegas
 import scipy.stats as stats
 import math
 import scipy.interpolate as interpolate
@@ -100,11 +101,18 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         self.air_xs_inter["pion"] = interpolate.interp1d(self.cs_db.egrid,self.cs_db.get_cs(self.ParticleProperties.pdg_id['pion'])) # input GeV return cm^2
         self.costh = costh
         self.RunMCLayeredMode(costh)
-        self.total_numu = self.mceq_run.get_solution('total_numu', 0, grid_idx=0)
-        self.total_pion = self.mceq_run.get_solution('pi-', 0, grid_idx=0)
-        self.total_kaon = self.mceq_run.get_solution('K-', 0, grid_idx=0)
+        self.total_numu = np.zeros(len(self.cs_db.egrid));
+        self.total_pion = np.zeros(len(self.cs_db.egrid));
+        self.total_kaon = np.zeros(len(self.cs_db.egrid));
 
-    def RunMCLayeredMode(self, costh,number_of_layers=500):
+        for idx,xx in enumerate(self.Xvec):
+            if(idx >= len(self.Xvec) - 2 ): continue
+            deltah = (self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.cm
+            self.total_numu += self.mceq_run.get_solution('total_numu', 0, grid_idx=idx)*deltah
+            self.total_pion += self.mceq_run.get_solution('pi-', 0, grid_idx=idx)*deltah
+            self.total_kaon += self.mceq_run.get_solution('K-', 0, grid_idx=idx)*deltah
+
+    def RunMCLayeredMode(self, costh,number_of_layers=10000):
         self.mceq_run = MCEqRun(
                         self.hadronic_model,
                         primary_model=self.primary_cr_model,
@@ -121,10 +129,9 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             self.numu_from_pion_prob = np.zeros(len(self.cs_db.egrid));
             self.numu_from_kaon_prob = np.zeros(len(self.cs_db.egrid));
             return
-        deltah = -(self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.cm
 
-        self.numu_from_pion_prob= (self.mceq_run.get_solution('pi_numu', 0, grid_idx=idx) - self.mceq_run.get_solution('pi_numu', 0, grid_idx=idx+1))/deltah/self.total_numu
-        self.numu_from_kaon_prob= (self.mceq_run.get_solution('k_numu', 0, grid_idx=idx) - self.mceq_run.get_solution('k_numu', 0, grid_idx=idx+1))/deltah/self.total_numu
+        self.numu_from_pion_prob = self.mceq_run.get_solution('pi_numu', 0, grid_idx=idx)/self.total_numu
+        self.numu_from_kaon_prob = self.mceq_run.get_solution('k_numu', 0, grid_idx=idx)/self.total_numu
 
     def UpdateParentRelativeContribution(self, height):
         idx=self.FindNearest(self.Xvec,self.mceq_run.density_model.h2X(height/Units.cm), side = "right")
@@ -133,10 +140,29 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             self.pion_prob = np.zeros(len(self.cs_db.egrid));
             self.kaon_prob = np.zeros(len(self.cs_db.egrid));
             return
-        deltah = -(self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.cm
 
-        self.pion_prob = (self.mceq_run.get_solution('pi-', 0, grid_idx=idx) - self.mceq_run.get_solution('pi-', 0, grid_idx=idx+1))/deltah/self.total_pion
-        self.kaon_prob = (self.mceq_run.get_solution('K-', 0, grid_idx=idx) - self.mceq_run.get_solution('K-', 0, grid_idx=idx+1))/deltah/self.total_kaon
+        self.pion_prob = self.mceq_run.get_solution('pi-', 0, grid_idx=idx)/self.total_pion
+        self.kaon_prob = self.mceq_run.get_solution('K-', 0, grid_idx=idx)/self.total_kaon
+
+    def GetDaughterFluxHeightDerivative(self, height, meson):
+        idx=self.FindNearest(self.Xvec,self.mceq_run.density_model.h2X(height/Units.cm), side = "right")
+        deltah = (self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.cm
+        if meson == "pion":
+            return (self.mceq_run.get_solution('pi_numu', 0, grid_idx=idx) - self.mceq_run.get_solution('pi_numu', 0, grid_idx=idx+1))/deltah
+        elif meson == "kaon":
+            return (self.mceq_run.get_solution('k_numu', 0, grid_idx=idx) - self.mceq_run.get_solution('k_numu', 0, grid_idx=idx+1))/deltah
+        else:
+            raise Exception("Invalid meson.")
+
+    def GetParentFluxHeightDerivative(self, height, meson):
+        idx=self.FindNearest(self.Xvec,self.mceq_run.density_model.h2X(height/Units.cm), side = "right")
+        deltah = (self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx])) - self.mceq_run.density_model.s_lX2h(np.log(self.Xvec[idx+1])))*Units.cm
+        if meson == "pion":
+            return (self.mceq_run.get_solution('pi-', 0, grid_idx=idx) - self.mceq_run.get_solution('pi-', 0, grid_idx=idx+1))/deltah
+        elif meson == "kaon":
+            return (self.mceq_run.get_solution('K-', 0, grid_idx=idx) - self.mceq_run.get_solution('K-', 0, grid_idx=idx+1))/deltah
+        else:
+            raise Exception("Invalid meson.")
 
     def FindNearest(self, array,value, side = "left"):
         return np.searchsorted(array, value, side=side)
@@ -201,7 +227,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         if meson == "pion":
             return max(self.numu_from_pion_prob[ie],0.)
         elif meson == "kaon":
-            return max(self.numu_from_kaon_prob[ie])
+            return max(self.numu_from_kaon_prob[ie],0.)
         else:
             raise Exception("Invalid meson parent.")
 
@@ -215,7 +241,16 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         else:
             raise Exception("Invalid meson.")
 
-    def CorrelatedProbability(self,Enu,costh):
+
+    def CorrelatedProbabilityKernel(self,Enu,x,Emu,h,meson):
+        return self.ParentProductionProbability(Emu+Enu,h+x,meson)
+        return self.NeutrinoFromParentProbability(Enu,h,meson)*\
+               self.DecayProbability(Emu+Enu,x+h,meson)*\
+               self.NoInteractionProbability(Emu+Enu,self.GetAirColumnDensity(h,x),meson)*\
+               self.ParentProductionProbability(Emu+Enu,h+x,meson)*\
+               self.MuonReachProbability(Emu,h,ice_column_density)
+
+    def CorrelatedProbability(self,Enu,costh,use_quad = True):
         if self.mceq_run == None:
             self.RunMCLayeredMode(costh)
         # calculate ice column density
@@ -223,22 +258,20 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         # here we implement the master formulae
         cprob = 0;
         for meson in self.meson_list:
-            kernel = lambda x,Emu,h: self.ParentProductionProbability(Emu+Enu,h+x,meson)
-            #kernel = lambda x,Emu,h: self.NeutrinoFromParentProbability(Enu,h,meson)*\
-            #                         self.DecayProbability(Emu+Enu,x+h,meson)*\
-            #                         self.NoInteractionProbability(Emu+Enu,self.GetAirColumnDensity(h,x),meson)*\
-            #                         self.ParentProductionProbability(Emu+Enu,h+x,meson)*\
-            #                         self.MuonReachProbability(Emu,h,ice_column_density)
-
             r = self.ParticleProperties.r_dict[meson]
             h_min = 0; h_max = 60*Units.km;
             x_min = 0; x_max = 100*Units.m;
             Emu_min = Enu*r/(1.-r)
-            Emu_max = 1.e10*Units.GeV
-            cprob += np.array(integrate.tplquad(kernel,
-                                        h_min,h_max,
-                                        lambda h: Emu_min, lambda h: Emu_max,
-                                        lambda h,Emu: x_min, lambda h, Emu: x_max))
+            Emu_max = 1.e7*Units.GeV
+            if use_quad:
+                cprob += np.array(integrate.tplquad(lambda x,Emu,h : self.CorrelatedProbabilityKernel(Enu,x,Emu,h,meson),
+                                            h_min,h_max,
+                                            lambda h: Emu_min, lambda h: Emu_max,
+                                            lambda h,Emu: x_min, lambda h, Emu: x_max))
+            else:
+                integ = vegas.Integrator([[x_min,x_max],[Emu_min,Emu_max],[h_min,h_max]])
+                cprob += integ(lambda metax: self.CorrelatedProbabilityKernel(Enu,metax[0],metax[1],metax[2],meson),
+                                nitn = 10, neval = 1000).mean
         return cprob
 
     def SimpleCorrelatedProbaility(self,Enu,costh):
