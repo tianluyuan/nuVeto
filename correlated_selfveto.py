@@ -270,7 +270,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             else:
                 integ = vegas.Integrator([[x_min,x_max],[Emu_min,Emu_max],[h_min,h_max]])
                 cprob += integ(lambda metax: self.CorrelatedProbabilityKernel(Enu,metax[0],metax[1],metax[2],meson,ice_column_density),
-                                nitn = 10, neval = 1000).mean
+                                nitn = 20, neval = 10000).mean
         return cprob
 
     def SimpleCorrelatedProbaility(self,Enu,costh):
