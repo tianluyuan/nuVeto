@@ -101,10 +101,14 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
     return flux(primary_energy, particle)*fnsol(elep)
 
 
-def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
+def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
     emu_min = minimum_muon_energy(overburden(cos_theta))
+    if nenu*enu > 0.01*primary_energy:
+        primary_energy -= nenu*enu
+    if primary_energy < emu_min:
+        return 1
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
-    if emu_min > mu.info.e_grid[-1]:
+    if mu.info.e_grid[-1] < emu_min:
         # probability of no muons that make it will be 1 if emu_min > highest yield
         return 1
     fnmu = interp1d(mu.info.e_grid, mu.yields, kind='quadratic',
@@ -117,7 +121,7 @@ def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
                             np.concatenate(([emu_min],mu.info.e_grid[above]))))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
@@ -130,7 +134,7 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accur
         istart = max(0, np.argmax(eprimaries > enu) - 1)
         for primary_energy in eprimaries[istart:]:
             res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, hadr)
-            pnm = prob_nomu(primary_energy, cos_theta, particle, pmods, hadr)
+            pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, hadr, nenu)
             numer.append(res*pnm)
             denom.append(res)
 

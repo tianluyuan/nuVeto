@@ -11,17 +11,18 @@ def test_fn(slice_val):
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, **kwargs):
+def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
-    ens = np.logspace(2,9, 100)
+    ens = np.logspace(3,7, 10)
     prs = plt.plot(ens, [passing_rate(en, cos_theta, kind, pmods,
-                                      hadr, accuracy, fraction) for en in ens],
+                                      hadr, accuracy, fraction, nenu) for en in ens],
                    **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
     if fraction:
+        plt.ylim(-0.05, 1.05)
         plt.ylabel(r'Passing fraction')
     else:
         plt.yscale('log')
@@ -29,12 +30,12 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20,
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, **kwargs):
+def test_pr_cth(enu=1e5, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,11)
     prs = plt.plot(cths, [passing_rate(enu, cos_theta, kind, pmods,
-                                       hadr, accuracy, fraction) for cos_theta in cths],
+                                       hadr, accuracy, fraction, nenu) for cos_theta in cths],
                    **kwargs)
     plt.xlim(0, 1)
     plt.xscale('linear')
@@ -47,12 +48,24 @@ def test_pr_cth(enu=1e5, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, 
     return prs[0]
 
 
+def test_nenu(slice_val=1., kind='numu', hadr='SIBYLL2.3c', fraction=True):
+    plt.clf()
+    nenus = [0, 2, 4]
+    for nenu in nenus:
+        test_fn(slice_val)(slice_val, kind, hadr=hadr,
+                           fraction=fraction, nenu=nenu,
+                           label='nenu {}'.format(nenu))
+    plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
+    plt.legend()
+        
+
 def test_accuracy(slice_val=1., kind='numu', hadr='SIBYLL2.3c', fraction=True):
     plt.clf()
     accuracies = [5, 9, 17, 33]
     for accuracy in accuracies:
-        test_fn(slice_val)(slice_val, kind, hadr=hadr, accuracy=accuracy, fraction=fraction,
-                label='accuracy {}'.format(accuracy))
+        test_fn(slice_val)(slice_val, kind, hadr=hadr,
+                           accuracy=accuracy, fraction=fraction,
+                           label='accuracy {}'.format(accuracy))
     plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
     plt.legend()
 
