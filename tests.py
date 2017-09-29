@@ -48,12 +48,24 @@ def test_pr_cth(enu=1e5, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, 
     return prs[0]
 
 
+def test_nenu(slice_val=1., kind='numu', hadr='SIBYLL2.3c', fraction=True):
+    plt.clf()
+    nenus = [0, 2, 4]
+    for nenu in nenus:
+        test_fn(slice_val)(slice_val, kind, hadr=hadr,
+                           fraction=fraction, nenu=nenu,
+                           label='nenu {}'.format(nenu))
+    plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
+    plt.legend()
+        
+
 def test_accuracy(slice_val=1., kind='numu', hadr='SIBYLL2.3c', fraction=True):
     plt.clf()
     accuracies = [5, 9, 17, 33]
     for accuracy in accuracies:
-        test_fn(slice_val)(slice_val, kind, hadr=hadr, accuracy=accuracy, fraction=fraction,
-                label='accuracy {}'.format(accuracy))
+        test_fn(slice_val)(slice_val, kind, hadr=hadr,
+                           accuracy=accuracy, fraction=fraction,
+                           label='accuracy {}'.format(accuracy))
     plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
     plt.legend()
 
