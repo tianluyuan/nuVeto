@@ -11,17 +11,18 @@ def test_fn(slice_val):
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, **kwargs):
+def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(2,9, 100)
     prs = plt.plot(ens, [passing_rate(en, cos_theta, kind, pmods,
-                                      hadr, accuracy, fraction) for en in ens],
+                                      hadr, accuracy, fraction, nenu) for en in ens],
                    **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
     if fraction:
+        plt.ylim(-0.05, 1.05)
         plt.ylabel(r'Passing fraction')
     else:
         plt.yscale('log')
@@ -29,33 +30,12 @@ def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20,
     return prs[0]
 
 
-def test_2enu(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, **kwargs):
-    ens = np.logspace(3,7, 10)
-    prs = plt.plot(ens, [passing_rate(en, cos_theta, kind, pmods,
-                                      hadr, accuracy, fraction) for en in ens],
-                   label='{} {} no 2enu'.format(kind, cos_theta),
-                   **kwargs)
-    prs = plt.plot(ens, [passing_rate_2enu(en, cos_theta, kind, pmods,
-                                           hadr, accuracy, fraction) for en in ens],
-                   label='{} {} 2enu'.format(kind, cos_theta),
-                   **kwargs)
-    plt.xlim(10**3, 10**7)
-    plt.xscale('log')
-    plt.xlabel(r'$E_\nu$')
-    if fraction:
-        plt.ylabel(r'Passing fraction')
-    else:
-        plt.yscale('log')
-        plt.ylabel(r'Passing flux')
-    return prs[0]
-
-
-def test_pr_cth(enu=1e5, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, **kwargs):
+def test_pr_cth(enu=1e5, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,11)
     prs = plt.plot(cths, [passing_rate(enu, cos_theta, kind, pmods,
-                                       hadr, accuracy, fraction) for cos_theta in cths],
+                                       hadr, accuracy, fraction, nenu) for cos_theta in cths],
                    **kwargs)
     plt.xlim(0, 1)
     plt.xscale('linear')

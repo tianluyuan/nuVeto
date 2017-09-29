@@ -101,26 +101,10 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
     return flux(primary_energy, particle)*fnsol(elep)
 
 
-def prob_nomu(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
-    emu_min = minimum_muon_energy(overburden(cos_theta))
-    mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
-    if emu_min > mu.info.e_grid[-1]:
-        # probability of no muons that make it will be 1 if emu_min > highest yield
-        return 1
-    fnmu = interp1d(mu.info.e_grid, mu.yields, kind='quadratic',
-                    assume_sorted=True)
-    above = mu.info.e_grid > emu_min
-
-    # idx = max(0,np.argmax(mu.info.e_grid > emu_min)-1)
-    # return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
-    return np.exp(-np.trapz(np.concatenate(([fnmu(emu_min)],mu.yields[above])),
-                            np.concatenate(([emu_min],mu.info.e_grid[above]))))
-
-
-def prob_nomu_2enu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c'):
+def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
     emu_min = minimum_muon_energy(overburden(cos_theta))
     if enu > 0.01*primary_energy:
-        primary_energy -= 2*enu
+        primary_energy -= nenu*enu
     if primary_energy < emu_min:
         return 1
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
@@ -137,7 +121,7 @@ def prob_nomu_2enu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIB
                             np.concatenate(([emu_min],mu.info.e_grid[above]))))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
@@ -150,29 +134,7 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accur
         istart = max(0, np.argmax(eprimaries > enu) - 1)
         for primary_energy in eprimaries[istart:]:
             res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, hadr)
-            pnm = prob_nomu(primary_energy, cos_theta, particle, pmods, hadr)
-            numer.append(res*pnm)
-            denom.append(res)
-
-        passed += np.trapz(numer, eprimaries[istart:])
-        total += np.trapz(denom, eprimaries[istart:])
-    return passed/total if fraction else passed
-
-
-def passing_rate_2enu(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True):
-    pmod = SETUP['flux'](SETUP['gen'])
-    passed = 0
-    total = 0
-    for particle in pmod.nucleus_ids:
-        # A continuous input energy range is allowed between
-        # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-        eprimaries = amu(particle)*np.logspace(2, 10, accuracy)
-        numer = []
-        denom = []
-        istart = max(0, np.argmax(eprimaries > enu) - 1)
-        for primary_energy in eprimaries[istart:]:
-            res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, hadr)
-            pnm = prob_nomu_2enu(primary_energy, cos_theta, particle, enu, pmods, hadr)
+            pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, hadr, nenu)
             numer.append(res*pnm)
             denom.append(res)
 
