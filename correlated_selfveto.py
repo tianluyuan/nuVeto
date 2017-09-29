@@ -112,7 +112,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             self.total_pion += self.mceq_run.get_solution('pi-', 0, grid_idx=idx)*deltah
             self.total_kaon += self.mceq_run.get_solution('K-', 0, grid_idx=idx)*deltah
 
-    def RunMCLayeredMode(self, costh,number_of_layers=1000):
+    def RunMCLayeredMode(self, costh,number_of_layers=100000):
         self.mceq_run = MCEqRun(
                         self.hadronic_model,
                         primary_model=self.primary_cr_model,
@@ -213,7 +213,11 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
 
         return np.log((a_ + muon_energy*b_)/(a_ + min_muon_energy*b_))/b_
 
-    def MuonReachProbability(self, muon_energy, height, ice_column_density):
+    def MuonReachProbability(self, muon_energy, ice_distance):
+        if(muon_energy > utils.minimum_muon_energy(ice_distance)*Units.GeV):
+            return 1.
+        else:
+            return 0.
         # simplifying assumption that the muon reach distribution is a gaussian
         # the probability that it does not reach is given by the cumnulative distribution function
         # on the other hand the reaching probability is given by the survival distribution function
