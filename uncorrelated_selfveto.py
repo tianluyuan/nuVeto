@@ -103,7 +103,7 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
 
 def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
     emu_min = minimum_muon_energy(overburden(cos_theta))
-    if enu > 0.01*primary_energy:
+    if nenu*enu > 0.01*primary_energy:
         primary_energy -= nenu*enu
     if primary_energy < emu_min:
         return 1

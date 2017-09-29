@@ -14,7 +14,7 @@ def test_fn(slice_val):
 def test_pr(cos_theta=1., kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
-    ens = np.logspace(2,9, 100)
+    ens = np.logspace(3,7, 10)
     prs = plt.plot(ens, [passing_rate(en, cos_theta, kind, pmods,
                                       hadr, accuracy, fraction, nenu) for en in ens],
                    **kwargs)
