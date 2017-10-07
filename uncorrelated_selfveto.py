@@ -32,21 +32,21 @@ MCEQ = MCEqRun(
     **config)
 
 
-def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
-    """wrapper fn to protect against modifying hadron production rates
-    (Barr et. al) for non-proton primaries. Only proton yields are
-    affected. This is to speed up the caching of outputs from
-    mcsolver_wrapped.
-    """
-    if particle == 14:
-        mods = pmods
-    else:
-        mods = ()
-    return mcsolver_wrapped(primary_energy, cos_theta, particle, mods, hadr)
+# def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
+#     """wrapper fn to protect against modifying hadron production rates
+#     (Barr et. al) for non-proton primaries. Only proton yields are
+#     affected. This is to speed up the caching of outputs from
+#     mcsolver_wrapped.
+#     """
+#     if particle == 14:
+#         mods = pmods
+#     else:
+#         mods = ()
+#     return mcsolver_wrapped(primary_energy, cos_theta, particle, mods, hadr)
 
 
 @lru_cache(maxsize=2**12)
-def mcsolver_wrapped(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
+def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     Info = namedtuple('Info', 'e_grid e_widths')
     Yields = namedtuple('Yields', 'mu numu nue conv_numu conv_nue pr_numu pr_nue')
     MCEQ.set_single_primary_particle(primary_energy, particle)
