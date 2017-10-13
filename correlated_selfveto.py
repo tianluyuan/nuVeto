@@ -40,7 +40,9 @@ from MCEq.core import MCEqRun
 from MCEq.data import HadAirCrossSections
 import CRFluxModels as pm
 import utils
-from mceq_config import config, mceq_config_without
+from mceq_config import dbg, config, mceq_config_without
+
+dbg=0
 
 class Units(object):
     # units
@@ -112,7 +114,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             self.total_pion += self.mceq_run.get_solution('pi-', 0, grid_idx=idx)*deltah
             self.total_kaon += self.mceq_run.get_solution('K-', 0, grid_idx=idx)*deltah
 
-    def RunMCLayeredMode(self, costh,number_of_layers=100000):
+    def RunMCLayeredMode(self, costh,number_of_layers=1000):
         self.mceq_run = MCEqRun(
                         self.hadronic_model,
                         primary_model=self.primary_cr_model,
@@ -120,7 +122,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
                         **self.cfg
                     )
 
-        self.Xvec = np.linspace(1,self.mceq_run.density_model.max_X,number_of_layers,endpoint = True)
+        self.Xvec = np.logspace(np.log(1),np.log(self.mceq_run.density_model.max_X),number_of_layers,endpoint = True)
         self.mceq_run.solve(int_grid=self.Xvec, grid_var="X")
 
     def UpdateDaughterRelativeContributions(self, height):
