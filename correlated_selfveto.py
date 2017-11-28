@@ -31,7 +31,6 @@
 
 import numpy as np
 import scipy as sp
-import vegas
 import scipy.stats as stats
 import math
 import scipy.interpolate as interpolate
@@ -246,7 +245,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
                self.ParentProductionProbability(Emu+Enu,h+x,meson)*\
                self.MuonReachProbability(Emu,h,ice_column_density)
 
-    def CorrelatedProbability(self,Enu,costh,use_quad = True):
+    def CorrelatedProbability(self,Enu,costh):
         if self.mceq_run == None:
             self.RunMCLayeredMode(costh)
         # calculate ice column density
@@ -259,15 +258,11 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             x_min = 0; x_max = 100*Units.m;
             Emu_min = Enu*r/(1.-r)
             Emu_max = 1.e7*Units.GeV
-            if use_quad:
-                cprob += np.array(integrate.tplquad(lambda x,Emu,h : self.CorrelatedProbabilityKernel(Enu,x,Emu,h,meson),
-                                            h_min,h_max,
-                                            lambda h: Emu_min, lambda h: Emu_max,
-                                            lambda h,Emu: x_min, lambda h, Emu: x_max))
-            else:
-                integ = vegas.Integrator([[x_min,x_max],[Emu_min,Emu_max],[h_min,h_max]])
-                cprob += integ(lambda metax: self.CorrelatedProbabilityKernel(Enu,metax[0],metax[1],metax[2],meson,ice_column_density),
-                                nitn = 20, neval = 10000).mean
+
+            cprob += np.array(integrate.tplquad(lambda x,Emu,h : self.CorrelatedProbabilityKernel(Enu,x,Emu,h,meson),
+                                        h_min,h_max,
+                                        lambda h: Emu_min, lambda h: Emu_max,
+                                        lambda h,Emu: x_min, lambda h, Emu: x_max))
         return cprob
 
     def SimpleCorrelatedProbaility(self,Enu,costh):
