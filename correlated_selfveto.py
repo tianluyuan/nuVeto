@@ -40,21 +40,10 @@ from MCEq.core import MCEqRun
 from MCEq.data import HadAirCrossSections
 import CRFluxModels as pm
 import utils
+from utils import Units
 from mceq_config import dbg, config, mceq_config_without
 
 dbg=0
-
-class Units(object):
-    # units
-    Na = 6.0221415e+23 # mol/cm^3
-    km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
-    cm = km*1.e-5
-    m = km*1.e-3
-    gr = 5.62e23 # gr to GeV value from SQuIDS
-    sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
-    GeV = 1
-    TeV = 1.e3*GeV
-    PeV = 1.e3*TeV
 
 class SelfVetoProbabilityCalculator(object):
     class ParticleProperties(object):
@@ -64,10 +53,12 @@ class SelfVetoProbabilityCalculator(object):
 
         mass_dict["kaon"]=0.493677*Units.GeV # GeV
         mass_dict["pion"]=0.139570*Units.GeV # GeV
+        mass_dict["D"]=1.86962*Units.GeV # GeV
         mass_dict["air"]=(14.5)*Units.GeV # GeV
 
         lifetime_dict["kaon"]=1.2389e-8*Units.sec # s
         lifetime_dict["pion"]=2.6033e-8*Units.sec # 
+        lifetime_dict["D"]=1.040e-12*Units.sec # seconds to usual Units
 
         pdg_id["kaon"] = 321 # k+
         pdg_id["pion"] = 211 # pi+

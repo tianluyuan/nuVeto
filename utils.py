@@ -44,3 +44,16 @@ def minimum_muon_energy(distance):
     # require that the muon have median energy 1 TeV
     b, c = 2.52151, 7.13834
     return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
+
+
+class Units(object):
+    # units
+    Na = 6.0221415e+23 # mol/cm^3
+    km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
+    cm = km*1.e-5
+    m = km*1.e-3
+    gr = 5.62e23 # gr to GeV value from SQuIDS
+    sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
+    GeV = 1
+    TeV = 1.e3*GeV
+    PeV = 1.e3*TeV
