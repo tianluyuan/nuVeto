@@ -6,8 +6,6 @@ import matplotlib.pyplot as plt
 from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
-import correlated_selfveto as cs
-from external import elbert, selfveto
 from utils import *
 
 
@@ -41,6 +39,7 @@ def get_dNdEE(mother, daughter):
 
 
 def get_reaching(costh, dNdEE_Interpolator):
+    e_bins = MCEQ.y.e_bins
     e_grid = MCEQ.e_grid
     ice_distance = overburden(costh)
     RY_matrix = np.zeros((len(e_grid), len(e_grid)))
@@ -51,14 +50,10 @@ def get_reaching(costh, dNdEE_Interpolator):
                 RY_matrix[ihijo][ipadre] = 0
                 continue
 
-            if ihijo == 0 and ipadre == 0:
-                RY_matrix[ihijo][ipadre] = 0
-                continue
-
-            EnuMin = e_grid[ihijo - 1]
-            EnuMax = e_grid[ihijo]
-            EpMin = e_grid[ipadre - 1]
-            EpMax = e_grid[ipadre]
+            EnuMin = e_bins[ihijo]
+            EnuMax = e_bins[ihijo+1]
+            EpMin = e_bins[ipadre]
+            EpMax = e_bins[ipadre+1]
 
             if ihijo == 0:
                 EnuMin = 10.  # GeV
@@ -116,7 +111,7 @@ def passing_rate(costh, kind='numu'):
 
         passing_numerator += (np.dot(dN_pion_reach, rescale_phi))
         passing_denominator += (np.dot(dN_pion, rescale_phi))
-    return passing_denominator, rescale_phi
+    return passing_numerator/passing_denominator
 
 
 def GetPassingFractionPrompt(costh):
