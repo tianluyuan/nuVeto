@@ -31,13 +31,19 @@ def get_dNdEE(mother, daughter):
     e_grid = MCEQ.e_grid
     delta = MCEQ.e_widths
     x_range = (e_grid / e_grid[ihijo])**-1
-    dN_mat = MCEQ.ds.get_d_matrix(mother, daughter)
+    dN_mat = MCEQ.ds.get_d_matrix(ParticleProperties.pdg_id[mother],
+                                  ParticleProperties.pdg_id[daughter])
     dNdEE = dN_mat[ihijo]*e_grid/delta
     end_value = dNdEE[(x_range <= 1.) & (x_range >= 1.0e-3)][-1]
-    return interpolate.interp1d(
-        x_range[(x_range <= 1.) & (x_range >= 1.e-3)],
-        dNdEE[(x_range <= 1.) & (x_range >= 1.e-3)],
-        bounds_error=False, fill_value=(end_value, 0.0))
+    if mother[:2] == 'pi':
+        rpi = ParticleProperties.r_dict[mother]
+        dNdEE_interp = lambda x: 1/(1-rpi)*(1-np.heaviside(x-1+rpi, 0))
+    else:
+        dNdEE_interp = interpolate.interp1d(
+            x_range[(x_range <= 1.) & (x_range >= 1.e-3)],
+            dNdEE[(x_range <= 1.) & (x_range >= 1.e-3)],
+            bounds_error=False, fill_value=(end_value, 0.0))
+    return x_range, dNdEE, dNdEE_interp
 
 
 def get_dN(integrand):
@@ -95,10 +101,8 @@ def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', fraction=T
         return interpolate.interp1d(MCEQ.e_grid, rescale_phi, fill_value='extrapolate')
 
     lepton = kind.split('_')[1]
-    dNdEE_kaon = get_dNdEE(ParticleProperties.pdg_id['K+'],
-                           ParticleProperties.pdg_id[lepton])
-    dNdEE_pion = get_dNdEE(ParticleProperties.pdg_id['pi+'],
-                           ParticleProperties.pdg_id[lepton])
+    dNdEE_kaon = get_dNdEE('K+', lepton)[-1]
+    dNdEE_pion = get_dNdEE('pi+', lepton)[-1]
     
     ice_distance = overburden(cos_theta)
     dN_kaon = lambda Ep: dNdEE_kaon(enu/Ep)/Ep
@@ -119,9 +123,9 @@ def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', fraction=T
         # print passing_numerator, passing_denominator
 
         # do for pion
-        # rescale_phi = get_rescale_phi("pi+", deltah, idx)
-        # passing_numerator += integrate.trapz(dN_pion_reach(esamp)*rescale_phi(esamp), esamp)
-        # passing_denominator += integrate.trapz(dN_pion(esamp)*rescale_phi(esamp), esamp)
+        rescale_phi = get_rescale_phi("pi+", deltah, idx)
+        passing_numerator += integrate.trapz(dN_pion_reach(esamp)*rescale_phi(esamp), esamp)
+        passing_denominator += integrate.trapz(dN_pion(esamp)*rescale_phi(esamp), esamp)
     return passing_numerator/passing_denominator if fraction else passing_numerator
 
 

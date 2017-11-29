@@ -1,7 +1,7 @@
 import pickle
 from external import elbert, selfveto
 from selfveto import *
-from utils import centers
+from utils import centers, ParticleProperties
 from matplotlib import pyplot as plt
 
 
@@ -11,7 +11,7 @@ def test_fn(slice_val):
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='numu', hadr='SIBYLL2.3c', fraction=True, **kwargs):
+def test_pr(cos_theta=1., kind='conv_numu', hadr='SIBYLL2.3c', fraction=True, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,50)
@@ -29,7 +29,7 @@ def test_pr(cos_theta=1., kind='numu', hadr='SIBYLL2.3c', fraction=True, **kwarg
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='numu', hadr='SIBYLL2.3c', fraction=True, **kwargs):
+def test_pr_cth(enu=1e5, kind='conv_numu', hadr='SIBYLL2.3c', fraction=True, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,11)
@@ -59,6 +59,41 @@ def test_elbert_cth(enu=1e5, kind='conv_numu'):
     hadrs=['DPMJET-III', 'SIBYLL2.3c']
     cths = np.linspace(0,1, 100)
     emu = selfveto.minimum_muon_energy(selfveto.overburden(cths))
-    plt.plot(cths, elbert.uncorr(kind)(enu, emu, cths), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, enu))
+    plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
         pr = test_pr_cth(enu, kind, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, enu))
+
+
+def test_corsika(cos_theta_bin=-1, kind='conv_numu', hadr='SIBYLL2.3'):
+    if isinstance(cos_theta_bin, list):
+        [test_corsika(cth, kind) for cth in cos_theta_bin]
+        return
+
+    translate = {'pr_numu':'numu_prompt',
+                 'pr_nue':'nue_prompt',
+                 'conv_numu':'numu_conv',
+                 'conv_nue':'nue_conv'}
+    corsika = pickle.load(open('external/corsika/sibyll23.pkl'))
+    eff, elow, eup, xedges, yedges = corsika[translate[kind]]
+    cos_theta = centers(yedges)[cos_theta_bin]
+
+    pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
+                 xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
+                                     10**xedges[1:]-10**centers(xedges))).T,
+                 yerr=np.asarray(zip(elow[:,cos_theta_bin],
+                                     eup[:,cos_theta_bin])).T,
+                 label='CORSIKA {} {:.2g}'.format(kind, cos_theta),
+                 fmt='.', color=pr.get_color())
+
+
+def test_dndee(mother, daughter):
+    x_range, dNdEE, dNdEE_interp = get_dNdEE(ParticleProperties.pdg_id[mother],
+                                             ParticleProperties.pdg_id[daughter])
+    
+    c = plt.plot(x_range,dNdEE_interp(x_range), label = "Interpolated {}".format(mother))
+    plt.plot(x_range,dNdEE, '.', color=c[0].get_color(), label = "From Anatoli {}".format(mother))
+    plt.semilogx()
+    plt.xlabel(r"$x=E_\nu/E_p$")
+    plt.ylabel(r"$ \frac{dN}{dE_\nu} E_p$")
+    plt.legend()
