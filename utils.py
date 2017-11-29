@@ -94,10 +94,7 @@ def ice_column_density(costh, depth = 1950.*Units.m):
 
 
 def muon_reach_prob(muon_energy, ice_distance):
-    if(muon_energy > minimum_muon_energy(ice_distance)*Units.GeV):
-        return 1.
-    else:
-        return 0.
+    return muon_energy > minimum_muon_energy(ice_distance)*Units.GeV
     # simplifying assumption that the muon reach distribution is a gaussian
     # the probability that it does not reach is given by the cumnulative distribution function
     # on the other hand the reaching probability is given by the survival distribution function

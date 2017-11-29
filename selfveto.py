@@ -55,12 +55,21 @@ def get_reaching(costh, dNdEE_Interpolator):
             EpMin = e_bins[ipadre]
             EpMax = e_bins[ipadre+1]
 
+            # integrand = lambda Ep, Enu: (dNdEE_Interpolator(
+            #     Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance))
+            # xen = np.linspace(EnuMin, EnuMax, 100*np.log10(EnuMax))
+            # xep = np.linspace(EpMin, EpMax, 100*np.log10(EpMax))
+            # dep = xep[1]-xep[0]
+            # for ep in xep:
+            #     RY_matrix[ihijo][ipadre]+=integrate.trapz(
+            #         integrand(ep, xen), xen)/(EnuMax-EnuMin)*dep
             RY_matrix[ihijo][ipadre] = integrate.dblquad(
                 lambda Ep, Enu: (dNdEE_Interpolator(
                     Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance)),
                 EnuMin, EnuMax,
-                lambda Enu: np.max([Enu, EpMin]), lambda Enu: EpMax, epsabs=0, epsrel=1.e-2
-            )[0] / ((EnuMax - EnuMin))
+                lambda Enu: np.max([Enu, EpMin]),
+                lambda Enu: EpMax,
+                epsabs=0, epsrel=1.e-2)[0] / (EnuMax - EnuMin)
     return RY_matrix
 
 
