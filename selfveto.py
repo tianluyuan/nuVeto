@@ -55,12 +55,6 @@ def get_reaching(costh, dNdEE_Interpolator):
             EpMin = e_bins[ipadre]
             EpMax = e_bins[ipadre+1]
 
-            if ihijo == 0:
-                EnuMin = 10.  # GeV
-
-            if ipadre == 0:
-                EpMin = 10.  # GeV
-
             RY_matrix[ihijo][ipadre] = integrate.dblquad(
                 lambda Ep, Enu: (dNdEE_Interpolator(
                     Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance)),
