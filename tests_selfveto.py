@@ -46,6 +46,17 @@ def test_pr_cth(enu=1e5, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fracti
     return prs[0]
 
 
+def test_accuracy(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', fraction=True):
+    plt.clf()
+    accuracies = [2, 5, 6]
+    for accuracy in accuracies:
+        test_fn(slice_val)(slice_val, kind, hadr=hadr,
+                           accuracy=accuracy, fraction=fraction,
+                           label='accuracy {}'.format(accuracy))
+    plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
+    plt.legend()
+
+
 def test_elbert(cos_theta=1, kind='conv_numu', accuracy=5):
     hadrs=['DPMJET-III', 'SIBYLL2.3c']
     ens = np.logspace(2,9, 100)
