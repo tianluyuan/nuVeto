@@ -31,10 +31,10 @@ def get_dNdEE(mother, daughter):
     e_grid = MCEQ.e_grid
     delta = MCEQ.e_widths
     x_range = (e_grid / e_grid[ihijo])**-1
-    dN = MCEQ.ds.get_d_matrix(mother, daughter)[ihijo]
-    dNdEE = dN*e_grid/delta
+    dN_mat = MCEQ.ds.get_d_matrix(mother, daughter)
+    dNdEE = dN_mat[ihijo]*e_grid/delta
     end_value = dNdEE[(x_range <= 1.) & (x_range >= 1.0e-3)][-1]
-    return dN, interpolate.interp1d(
+    return dN_mat, interpolate.interp1d(
         x_range[(x_range <= 1.) & (x_range >= 1.e-3)],
         dNdEE[(x_range <= 1.) & (x_range >= 1.e-3)],
         bounds_error=False, fill_value=(end_value, 0.0))
@@ -94,7 +94,7 @@ def passing_rate(costh, kind='numu'):
     Xvec = np.logspace(np.log10(1),
                        np.log10(MCEQ.density_model.max_X), 1000)
     heights = MCEQ.density_model.s_lX2h(np.log(Xvec)) * Units.cm
-    deltahs = np.diff(heights)
+    deltahs = heights[:-1] - heights[1:]
     MCEQ.solve(int_grid=Xvec, grid_var="X")
     for idx, deltah in enumerate(deltahs):
         # do for kaon
@@ -116,7 +116,7 @@ def passing_rate(costh, kind='numu'):
 
         passing_numerator += (np.dot(dN_pion_reach, rescale_phi))
         passing_denominator += (np.dot(dN_pion, rescale_phi))
-    return passing_numerator / passing_denominator
+    return passing_denominator, rescale_phi
 
 
 def GetPassingFractionPrompt(costh):
