@@ -18,6 +18,7 @@ class ParticleProperties(object):
     r_dict ={}; mass_dict = {}; lifetime_dict = {}; pdg_id = {};
     r_dict["K+"]=0.046
     r_dict["pi+"]=0.573
+    r_dict["D+"]=(105.6583745/1869.62)**2
 
     mass_dict["K+"]=0.493677*Units.GeV # GeV
     mass_dict["pi+"]=0.139570*Units.GeV # GeV
