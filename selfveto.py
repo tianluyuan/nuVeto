@@ -117,6 +117,8 @@ def passing_rate(costh, kind='numu'):
         passing_numerator += (np.dot(dN_pion_reach, rescale_phi))
         passing_denominator += (np.dot(dN_pion, rescale_phi))
     return passing_numerator / passing_denominator
+
+
 def GetPassingFractionPrompt(costh):
     caca = cs.CorrelatedSelfVetoProbabilityCalculator(costh)
     e_grid = caca.mceq_run.e_grid
