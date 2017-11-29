@@ -1,3 +1,4 @@
+from functools32 import lru_cache
 import numpy as np
 import tqdm
 import scipy.integrate as integrate
@@ -24,6 +25,7 @@ MCEQ = MCEqRun(
     **config)
 
 
+@lru_cache(maxsize=2**12)
 def get_dNdEE(mother, daughter):
     ihijo = 20
     e_grid = MCEQ.e_grid
@@ -71,54 +73,56 @@ def get_dN(integrand):
     return RY_matrix
 
 
-def passing_rate(enu, cos_theta, kind='numu'):
-    dNdEE_kaon = get_dNdEE(ParticleProperties.pdg_id['kaon'],
-                           ParticleProperties.pdg_id[kind])
-    dNdEE_pion = get_dNdEE(ParticleProperties.pdg_id['pion'],
-                           ParticleProperties.pdg_id[kind])
-
-    ice_distance = overburden(cos_theta)
-    print "Calculating rescaled kaon yield"
-    dN_kaon = get_dN(lambda Ep, Enu: (dNdEE_kaon(Enu / Ep) / Ep))
-    dN_kaon_reach = get_dN(lambda Ep, Enu: (dNdEE_kaon(Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance)))
-    print "Calculating rescaled pion yield"
-    dN_pion = get_dN(lambda Ep, Enu: (dNdEE_pion(Enu / Ep) / Ep))
-    dN_pion_reach = get_dN(lambda Ep, Enu: (dNdEE_pion(Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance)))
-
+@lru_cache(maxsize=2**12)
+def get_deltahs(cos_theta, hadr='SIBYLL2.3c'):
+    MCEQ.set_interaction_model(hadr)
     MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
 
-    passing_numerator = np.zeros(len(MCEQ.e_grid))
-    passing_denominator = np.zeros(len(MCEQ.e_grid))
-
     Xvec = np.logspace(np.log10(1),
-                       np.log10(MCEQ.density_model.max_X), 1000)
+                       np.log10(MCEQ.density_model.max_X), 2)
     heights = MCEQ.density_model.s_lX2h(np.log(Xvec)) * Units.cm
     deltahs = heights[:-1] - heights[1:]
     MCEQ.solve(int_grid=Xvec, grid_var="X")
-    
+    return deltahs
+
+
+def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', fraction=True):
     def get_rescale_phi(mother, deltah, idx):
         inv_decay_length_array = (
             ParticleProperties.mass_dict[mother] / MCEQ.e_grid * Units.GeV) *(
             deltah / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * MCEQ.get_solution(mother, grid_idx=idx)
-        return interpolate.interp1d(MCEQ.e_grid, rescale_phi)
+        return interpolate.interp1d(MCEQ.e_grid, rescale_phi, fill_value='extrapolate')
 
+    lepton = kind.split('_')[1]
+    dNdEE_kaon = get_dNdEE(ParticleProperties.pdg_id['K+'],
+                           ParticleProperties.pdg_id[lepton])
+    dNdEE_pion = get_dNdEE(ParticleProperties.pdg_id['pi+'],
+                           ParticleProperties.pdg_id[lepton])
+    
+    ice_distance = overburden(cos_theta)
+    dN_kaon = lambda Ep: dNdEE_kaon(enu/Ep)/Ep
+    dN_kaon_reach = lambda Ep: dNdEE_kaon(enu / Ep)/Ep * (1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance))
+    dN_pion = lambda Ep: dNdEE_pion(enu/Ep)/Ep
+    dN_pion_reach = lambda Ep: dNdEE_pion(enu / Ep)/Ep * (1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance))
+
+    deltahs = get_deltahs(cos_theta, hadr)
+    
+    passing_numerator = 0
+    passing_denominator = 0
+    esamp = np.logspace(np.log10(enu), np.log10(MCEQ.e_grid[-1]), 100000)
     for idx, deltah in enumerate(deltahs):
         # do for kaon
-        rescale_phi = get_rescale_phi("kaon", deltah, idx)
-        passing_numerator += (np.dot(dN_kaon_reach, rescale_phi))
-        passing_denominator += (np.dot(dN_kaon, rescale_phi))
+        rescale_phi = get_rescale_phi("K+", deltah, idx)
+        passing_numerator += integrate.trapz(dN_kaon_reach(esamp)*rescale_phi(esamp), esamp)
+        passing_denominator += integrate.trapz(dN_kaon(esamp)*rescale_phi(esamp), esamp)
+        # print passing_numerator, passing_denominator
 
         # do for pion
-        inv_decay_length_array = (
-            ParticleProperties.mass_dict["pion"] / MCEQ.e_grid * Units.GeV) *(
-            deltah / ParticleProperties.lifetime_dict["pion"])
-        rescale_phi = inv_decay_length_array * \
-            MCEQ.get_solution("pi+", 0, idx)
-
-        passing_numerator += (np.dot(dN_pion_reach, rescale_phi))
-        passing_denominator += (np.dot(dN_pion, rescale_phi))
-    return passing_numerator/passing_denominator
+        # rescale_phi = get_rescale_phi("pi+", deltah, idx)
+        # passing_numerator += integrate.trapz(dN_pion_reach(esamp)*rescale_phi(esamp), esamp)
+        # passing_denominator += integrate.trapz(dN_pion(esamp)*rescale_phi(esamp), esamp)
+    return passing_numerator/passing_denominator if fraction else passing_numerator
 
 
 def GetPassingFractionPrompt(cos_theta):

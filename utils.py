@@ -16,21 +16,25 @@ class Units(object):
 
 class ParticleProperties(object):
     r_dict ={}; mass_dict = {}; lifetime_dict = {}; pdg_id = {};
-    r_dict["kaon"]=0.046
-    r_dict["pion"]=0.573
+    r_dict["K+"]=0.046
+    r_dict["pi+"]=0.573
 
-    mass_dict["kaon"]=0.493677*Units.GeV # GeV
-    mass_dict["pion"]=0.139570*Units.GeV # GeV
-    mass_dict["D"]=1.86962*Units.GeV # GeV
+    mass_dict["K+"]=0.493677*Units.GeV # GeV
+    mass_dict["pi+"]=0.139570*Units.GeV # GeV
+    mass_dict["K-"]=0.493677*Units.GeV # GeV
+    mass_dict["pi-"]=0.139570*Units.GeV # GeV
+    mass_dict["D+"]=1.86962*Units.GeV # GeV
     mass_dict["air"]=(14.5)*Units.GeV # GeV
 
-    lifetime_dict["kaon"]=1.2389e-8*Units.sec # s
-    lifetime_dict["pion"]=2.6033e-8*Units.sec # 
-    lifetime_dict["D"]=1.040e-12*Units.sec # seconds to usual Units
+    lifetime_dict["K+"]=1.2389e-8*Units.sec # s
+    lifetime_dict["pi+"]=2.6033e-8*Units.sec # 
+    lifetime_dict["K-"]=1.2389e-8*Units.sec # s
+    lifetime_dict["pi-"]=2.6033e-8*Units.sec # 
+    lifetime_dict["D+"]=1.040e-12*Units.sec # seconds to usual Units
 
-    pdg_id["D"] = 411 # D+
-    pdg_id["kaon"] = 321 # k+
-    pdg_id["pion"] = 211 # pi+
+    pdg_id["D+"] = 411 # D+
+    pdg_id["K+"] = 321 # k+
+    pdg_id["pi+"] = 211 # pi+
     pdg_id["numu"] = 14
     pdg_id["nue"] = 12
 
