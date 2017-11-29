@@ -92,7 +92,7 @@ def get_deltahs(cos_theta, hadr='SIBYLL2.3c'):
     return deltahs
 
 
-def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', fraction=True):
+def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fraction=True):
     def get_rescale_phi(mother, deltah, idx):
         inv_decay_length_array = (
             ParticleProperties.mass_dict[mother] / MCEQ.e_grid * Units.GeV) *(
@@ -114,7 +114,7 @@ def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', fraction=T
     
     passing_numerator = 0
     passing_denominator = 0
-    esamp = np.logspace(np.log10(enu), np.log10(MCEQ.e_grid[-1]), 100000)
+    esamp = np.logspace(np.log10(enu), np.log10(MCEQ.e_grid[-1]), int(10**accuracy))
     for idx, deltah in enumerate(deltahs):
         # do for kaon
         rescale_phi = get_rescale_phi("K+", deltah, idx)
