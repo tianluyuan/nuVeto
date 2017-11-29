@@ -32,16 +32,15 @@ def get_dNdEE(mother, daughter):
     dN_mat = MCEQ.ds.get_d_matrix(mother, daughter)
     dNdEE = dN_mat[ihijo]*e_grid/delta
     end_value = dNdEE[(x_range <= 1.) & (x_range >= 1.0e-3)][-1]
-    return dN_mat, interpolate.interp1d(
+    return interpolate.interp1d(
         x_range[(x_range <= 1.) & (x_range >= 1.e-3)],
         dNdEE[(x_range <= 1.) & (x_range >= 1.e-3)],
         bounds_error=False, fill_value=(end_value, 0.0))
 
 
-def get_reaching(costh, dNdEE_Interpolator):
+def get_dN(integrand):
     e_bins = MCEQ.y.e_bins
     e_grid = MCEQ.e_grid
-    ice_distance = overburden(costh)
     RY_matrix = np.zeros((len(e_grid), len(e_grid)))
     for ipadre in tqdm.tqdm(range(len(e_grid))):
         for ihijo in range(len(e_grid)):
@@ -64,8 +63,7 @@ def get_reaching(costh, dNdEE_Interpolator):
             #     RY_matrix[ihijo][ipadre]+=integrate.trapz(
             #         integrand(ep, xen), xen)/(EnuMax-EnuMin)*dep
             RY_matrix[ihijo][ipadre] = integrate.dblquad(
-                lambda Ep, Enu: (dNdEE_Interpolator(
-                    Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance)),
+                integrand,
                 EnuMin, EnuMax,
                 lambda Enu: np.max([Enu, EpMin]),
                 lambda Enu: EpMax,
@@ -73,18 +71,21 @@ def get_reaching(costh, dNdEE_Interpolator):
     return RY_matrix
 
 
-def passing_rate(costh, kind='numu'):
-    dN_kaon, dNdEE_kaon = get_dNdEE(ParticleProperties.pdg_id['kaon'],
-                                    ParticleProperties.pdg_id[kind])
-    dN_pion, dNdEE_pion = get_dNdEE(ParticleProperties.pdg_id['pion'],
-                                    ParticleProperties.pdg_id[kind])
+def passing_rate(enu, cos_theta, kind='numu'):
+    dNdEE_kaon = get_dNdEE(ParticleProperties.pdg_id['kaon'],
+                           ParticleProperties.pdg_id[kind])
+    dNdEE_pion = get_dNdEE(ParticleProperties.pdg_id['pion'],
+                           ParticleProperties.pdg_id[kind])
 
+    ice_distance = overburden(cos_theta)
     print "Calculating rescaled kaon yield"
-    dN_kaon_reach = get_reaching(costh, dNdEE_kaon)
+    dN_kaon = get_dN(lambda Ep, Enu: (dNdEE_kaon(Enu / Ep) / Ep))
+    dN_kaon_reach = get_dN(lambda Ep, Enu: (dNdEE_kaon(Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance)))
     print "Calculating rescaled pion yield"
-    dN_pion_reach = get_reaching(costh, dNdEE_pion)
+    dN_pion = get_dN(lambda Ep, Enu: (dNdEE_pion(Enu / Ep) / Ep))
+    dN_pion_reach = get_dN(lambda Ep, Enu: (dNdEE_pion(Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance)))
 
-    MCEQ.set_theta_deg(np.degrees(np.arccos(costh)))
+    MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
 
     passing_numerator = np.zeros(len(MCEQ.e_grid))
     passing_denominator = np.zeros(len(MCEQ.e_grid))
@@ -94,14 +95,17 @@ def passing_rate(costh, kind='numu'):
     heights = MCEQ.density_model.s_lX2h(np.log(Xvec)) * Units.cm
     deltahs = heights[:-1] - heights[1:]
     MCEQ.solve(int_grid=Xvec, grid_var="X")
+    
+    def get_rescale_phi(mother, deltah, idx):
+        inv_decay_length_array = (
+            ParticleProperties.mass_dict[mother] / MCEQ.e_grid * Units.GeV) *(
+            deltah / ParticleProperties.lifetime_dict[mother])
+        rescale_phi = inv_decay_length_array * MCEQ.get_solution(mother, grid_idx=idx)
+        return interpolate.interp1d(MCEQ.e_grid, rescale_phi)
+
     for idx, deltah in enumerate(deltahs):
         # do for kaon
-        inv_decay_length_array = (
-            ParticleProperties.mass_dict["kaon"] / MCEQ.e_grid * Units.GeV) *(
-            deltah / ParticleProperties.lifetime_dict["kaon"])
-        rescale_phi = inv_decay_length_array * \
-            MCEQ.get_solution("K-", 0, idx)
-
+        rescale_phi = get_rescale_phi("kaon", deltah, idx)
         passing_numerator += (np.dot(dN_kaon_reach, rescale_phi))
         passing_denominator += (np.dot(dN_kaon, rescale_phi))
 
@@ -110,15 +114,15 @@ def passing_rate(costh, kind='numu'):
             ParticleProperties.mass_dict["pion"] / MCEQ.e_grid * Units.GeV) *(
             deltah / ParticleProperties.lifetime_dict["pion"])
         rescale_phi = inv_decay_length_array * \
-            MCEQ.get_solution("K-", 0, idx)
+            MCEQ.get_solution("pi+", 0, idx)
 
         passing_numerator += (np.dot(dN_pion_reach, rescale_phi))
         passing_denominator += (np.dot(dN_pion, rescale_phi))
     return passing_numerator/passing_denominator
 
 
-def GetPassingFractionPrompt(costh):
-    caca = cs.CorrelatedSelfVetoProbabilityCalculator(costh)
+def GetPassingFractionPrompt(cos_theta):
+    caca = cs.CorrelatedSelfVetoProbabilityCalculator(cos_theta)
     e_grid = caca.mceq_run.e_grid
     delta = caca.mceq_run.e_widths
     ihijo = 20
@@ -131,9 +135,9 @@ def GetPassingFractionPrompt(costh):
                                                bounds_error=False, fill_value=(end_value, 0.0))
 
     print "Calculating rescaled prompt yield"
-    DToNeutrinoYield = GetRescaledYields(costh, dNdEE_DInterpolator)
+    DToNeutrinoYield = GetRescaledYields(cos_theta, dNdEE_DInterpolator)
     rescale_prompt_decay_matrix = GetReachingRescaledYields(
-        costh, dNdEE_DInterpolator)
+        cos_theta, dNdEE_DInterpolator)
 
     passing_numerator = np.zeros(len(caca.mceq_run.e_grid))
     passing_denominator = np.zeros(len(caca.mceq_run.e_grid))
