@@ -25,19 +25,25 @@ MCEQ = MCEqRun(
     **config)
 
 
-@lru_cache(maxsize=2**12)
+# @lru_cache(maxsize=2**12)
 def get_dNdEE(mother, daughter):
     ihijo = 20
     e_grid = MCEQ.e_grid
     delta = MCEQ.e_widths
-    x_range = (e_grid / e_grid[ihijo])**-1
+    x_range = e_grid[ihijo]/e_grid
     dN_mat = MCEQ.ds.get_d_matrix(ParticleProperties.pdg_id[mother],
                                   ParticleProperties.pdg_id[daughter])
     dNdEE = dN_mat[ihijo]*e_grid/delta
     end_value = dNdEE[(x_range <= 1.) & (x_range >= 1.0e-3)][-1]
-    if mother[:2] == 'pi':
-        rpi = ParticleProperties.r_dict[mother]
-        dNdEE_interp = lambda x: 1/(1-rpi)*(1-np.heaviside(x-1+rpi, 0))
+    rr = ParticleProperties.rr(mother, daughter)
+    if (mother == 'pi+' and daughter == 'numu') or (mother == 'pi-' and daughter == 'numubar'):
+        # Lipari 93, eq 85
+        dNdEE_interp = lambda x: 1/(1-rr)*(1-np.heaviside(x-1+rr, 0))
+    # elif mother == 'K+' or mother == 'K-':
+    #     # Lipari 93, eq 91
+    #     eps = ParticleProperties.mass_dict['pi+']/ParticleProperties.mass_dict['K+']
+    #     g = 1-8*eps**2-24*eps**4*np.log(eps)+8*eps**6-eps**8
+    #     dNdEE_interp = lambda x: 1/g*((12-24*eps**2)*(1-eps**2)/2-4*(1-eps**2)**3-12*eps**4*(1-eps**2)+12*eps**4*x-(12-24*eps**2)/2*x**2+4*x**3+12*eps**4*np.log((1-x)/eps**2))*(0.05)+1/(1-rr)*(1-np.heaviside(x-1+rr, 0))*0 
     else:
         dNdEE_interp = interpolate.interp1d(
             x_range[(x_range <= 1.) & (x_range >= 1.e-3)],
@@ -85,7 +91,7 @@ def get_deltahs(cos_theta, hadr='SIBYLL2.3c'):
     MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
 
     Xvec = np.logspace(np.log10(1),
-                       np.log10(MCEQ.density_model.max_X), 2)
+                       np.log10(MCEQ.density_model.max_X), 10)
     heights = MCEQ.density_model.s_lX2h(np.log(Xvec)) * Units.cm
     deltahs = heights[:-1] - heights[1:]
     MCEQ.solve(int_grid=Xvec, grid_var="X")

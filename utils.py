@@ -10,43 +10,61 @@ class Units(object):
     gr = 5.62e23 # gr to GeV value from SQuIDS
     sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
     GeV = 1
+    MeV = 1e-3*GeV
     TeV = 1.e3*GeV
     PeV = 1.e3*TeV
 
 
 class ParticleProperties(object):
-    r_dict ={}; mass_dict = {}; lifetime_dict = {}; pdg_id = {};
-    r_dict["K+"]=(105.6583745/493.677)**2
-    r_dict["pi+"]=0.573
-    r_dict["D+"]=(105.6583745/1869.62)**2
+    mass_dict = {}; lifetime_dict = {}; pdg_id = {}; sibling = {};
 
-    mass_dict["K+"]=0.493677*Units.GeV # GeV
-    mass_dict["pi+"]=0.139570*Units.GeV # GeV
-    mass_dict["K-"]=0.493677*Units.GeV # GeV
-    mass_dict["pi-"]=0.139570*Units.GeV # GeV
-    mass_dict["D+"]=1.86962*Units.GeV # GeV
-    mass_dict["air"]=(14.5)*Units.GeV # GeV
+    mass_dict['e+']=0.510998*Units.MeV
+    mass_dict['mu+']=0.1056583745*Units.GeV
+    mass_dict['e-']=0.510998*Units.MeV
+    mass_dict['mu-']=0.1056583745*Units.GeV
+    mass_dict['K+']=0.493677*Units.GeV # GeV
+    mass_dict['pi+']=0.139570*Units.GeV # GeV
+    mass_dict['K-']=0.493677*Units.GeV # GeV
+    mass_dict['pi-']=0.139570*Units.GeV # GeV
+    mass_dict['D+']=1.86962*Units.GeV # GeV
+    mass_dict['air']=(14.5)*Units.GeV # GeV
 
-    lifetime_dict["K+"]=1.2389e-8*Units.sec # s
-    lifetime_dict["pi+"]=2.6033e-8*Units.sec # 
-    lifetime_dict["K-"]=1.2389e-8*Units.sec # s
-    lifetime_dict["pi-"]=2.6033e-8*Units.sec # 
-    lifetime_dict["D+"]=1.040e-12*Units.sec # seconds to usual Units
+    lifetime_dict['K+']=1.2389e-8*Units.sec # s
+    lifetime_dict['pi+']=2.6033e-8*Units.sec # 
+    lifetime_dict['K-']=1.2389e-8*Units.sec # s
+    lifetime_dict['pi-']=2.6033e-8*Units.sec # 
+    lifetime_dict['D+']=1.040e-12*Units.sec # seconds to usual Units
 
-    pdg_id["D+"] = 411 # D+
-    pdg_id["K+"] = 321 # k+
-    pdg_id["pi+"] = 211 # pi+
-    pdg_id["numu"] = 14
-    pdg_id["nue"] = 12
+    pdg_id['D+'] = 411 # D+
+    pdg_id['K+'] = 321 # k+
+    pdg_id['pi+'] = 211 # pi+
+    pdg_id['D-'] = -411 # D+
+    pdg_id['K-'] = -321 # k+
+    pdg_id['pi-'] = -211 # pi+
+    pdg_id['numu'] = 14
+    pdg_id['nue'] = 12
+    pdg_id['numubar'] = -14
+    pdg_id['nuebar'] = -12
+
+    sibling['numu'] = 'mu+'
+    sibling['nue'] = 'e+'
+    sibling['numubar'] = 'mu-'
+    sibling['nuebar'] = 'e-'
+
+    @staticmethod
+    def rr(mother, daughter):
+        """ returns ratio of masses
+        """
+        return (ParticleProperties.mass_dict[ParticleProperties.sibling[daughter]]/ParticleProperties.mass_dict[mother])**2
 
 
 class MaterialProperties(object):
     a = {}; b = {}; density = {};
-    a["ice"]=0.249*Units.GeV/Units.m # GeV/mwe
-    a["rock"]=0.221*Units.GeV/Units.m # GeV/mwe
-    b["ice"]=0.422e-3/Units.m # 1/mwe
-    b["rock"]=0.531e-3/Units.m # 1/mwe
-    density["ice"] = 0.9167*Units.gr/Units.cm**3 # g/cm^3
+    a['ice']=0.249*Units.GeV/Units.m # GeV/mwe
+    a['rock']=0.221*Units.GeV/Units.m # GeV/mwe
+    b['ice']=0.422e-3/Units.m # 1/mwe
+    b['rock']=0.531e-3/Units.m # 1/mwe
+    density['ice'] = 0.9167*Units.gr/Units.cm**3 # g/cm^3
 
 
 def amu(particle):

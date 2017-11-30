@@ -102,12 +102,13 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', hadr='SIBYLL2.3'):
 def test_dndee(mother, daughter):
     x_range, dNdEE, dNdEE_interp = get_dNdEE(mother, daughter)
 
-    x_samp = np.logspace(np.log10(x_range[0]), np.log10(x_range[-1]), 1000)
-    c = plt.plot(x_samp, dNdEE_interp(x_samp), label = "Interpolated {}".format(mother))
-    plt.plot(x_range,dNdEE, '.', color=c[0].get_color(), label = "From Anatoli {}".format(mother))
+    # print x_range[0], x_range[-1]
+    x_samp = np.logspace(0, -9, 1000)
+    c = plt.plot(x_samp, dNdEE_interp(x_samp), label = "Interpolated {} to {}".format(mother, daughter))
+    plt.plot(x_range,dNdEE, '.', color=c[0].get_color(), label = "From Anatoli {} to {}".format(mother, daughter))
     plt.semilogx()
     plt.xlabel(r"$x=E_\nu/E_p$")
     plt.ylabel(r"$ \frac{dN}{dE_\nu} E_p$")
     plt.ylim(-0.1, 5.1)
-    plt.axvline(1-ParticleProperties.r_dict[mother], linestyle='--', color=c[0].get_color())
+    plt.axvline(1-ParticleProperties.rr(mother, daughter), linestyle='--', color=c[0].get_color())
     plt.legend()
