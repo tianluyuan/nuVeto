@@ -25,7 +25,7 @@ MCEQ = MCEqRun(
     **config)
 
 
-# @lru_cache(maxsize=2**12)
+@lru_cache(maxsize=2**12)
 def get_dNdEE(mother, daughter):
     ihijo = 20
     e_grid = MCEQ.e_grid
@@ -98,6 +98,18 @@ def get_deltahs(cos_theta, hadr='SIBYLL2.3c'):
     return deltahs
 
 
+def categ_to_mothers(categ, daughter):
+    charge = '-' if 'anti' in daughter else '+'
+    bar = '-bar' if 'anti' in daughter else ''
+    if categ == 'conv':
+        mothers = ['pi'+charge, 'K'+charge, 'K0L']
+    elif categ == 'pr':
+        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar]
+    else:
+        mothers = [categ,]
+    return mothers
+    
+
 def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fraction=True):
     def get_rescale_phi(mother, deltah, idx):
         inv_decay_length_array = (
@@ -106,32 +118,30 @@ def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5
         rescale_phi = inv_decay_length_array * MCEQ.get_solution(mother, grid_idx=idx)
         return interpolate.interp1d(MCEQ.e_grid, rescale_phi, fill_value='extrapolate')
 
-    daughter = kind.split('_')[1]
-    dNdEE_kaon = get_dNdEE('K+', daughter)[-1]
-    dNdEE_pion = get_dNdEE('pi+', daughter)[-1]
+    def get_integrand(categ, daughter, deltah, idx, weight_fn, esamp):
+        mothers = categ_to_mothers(categ, daughter)
+        ys = np.zeros(len(esamp))
+        for mother in mothers:
+            dNdEE = get_dNdEE(mother, daughter)[-1]
+            rescale_phi = get_rescale_phi(mother, deltah, idx)
+            ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn(esamp)
+            
+        return ys
+
+    categ, daughter = kind.split('_')
     
     ice_distance = overburden(cos_theta)
-    dN_kaon = lambda Ep: dNdEE_kaon(enu/Ep)/Ep
-    dN_kaon_reach = lambda Ep: dNdEE_kaon(enu / Ep)/Ep * (1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance))
-    dN_pion = lambda Ep: dNdEE_pion(enu/Ep)/Ep
-    dN_pion_reach = lambda Ep: dNdEE_pion(enu / Ep)/Ep * (1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance))
+    identity = lambda Ep: 1
+    reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance)
 
     deltahs = get_deltahs(cos_theta, hadr)
-    
     passing_numerator = 0
     passing_denominator = 0
     esamp = np.logspace(np.log10(enu), np.log10(MCEQ.e_grid[-1]), int(10**accuracy))
     for idx, deltah in enumerate(deltahs):
-        # do for kaon
-        rescale_phi = get_rescale_phi("K+", deltah, idx)
-        passing_numerator += integrate.trapz(dN_kaon_reach(esamp)*rescale_phi(esamp), esamp)
-        passing_denominator += integrate.trapz(dN_kaon(esamp)*rescale_phi(esamp), esamp)
+        passing_numerator += integrate.trapz(get_integrand(categ, daughter, deltah, idx, reaching, esamp), esamp)
+        passing_denominator += integrate.trapz(get_integrand(categ, daughter, deltah, idx, identity, esamp), esamp)
         # print passing_numerator, passing_denominator
-
-        # do for pion
-        rescale_phi = get_rescale_phi("pi+", deltah, idx)
-        passing_numerator += integrate.trapz(dN_pion_reach(esamp)*rescale_phi(esamp), esamp)
-        passing_denominator += integrate.trapz(dN_pion(esamp)*rescale_phi(esamp), esamp)
     return passing_numerator/passing_denominator if fraction else passing_numerator
 
 
