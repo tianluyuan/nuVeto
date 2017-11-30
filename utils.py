@@ -43,13 +43,13 @@ class ParticleProperties(object):
     pdg_id['pi-'] = -211 # pi+
     pdg_id['numu'] = 14
     pdg_id['nue'] = 12
-    pdg_id['numubar'] = -14
-    pdg_id['nuebar'] = -12
+    pdg_id['antinumu'] = -14
+    pdg_id['antinue'] = -12
 
     sibling['numu'] = 'mu+'
     sibling['nue'] = 'e+'
-    sibling['numubar'] = 'mu-'
-    sibling['nuebar'] = 'e-'
+    sibling['antinumu'] = 'mu-'
+    sibling['antinue'] = 'e-'
 
     @staticmethod
     def rr(mother, daughter):

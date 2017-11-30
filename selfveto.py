@@ -106,9 +106,9 @@ def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5
         rescale_phi = inv_decay_length_array * MCEQ.get_solution(mother, grid_idx=idx)
         return interpolate.interp1d(MCEQ.e_grid, rescale_phi, fill_value='extrapolate')
 
-    lepton = kind.split('_')[1]
-    dNdEE_kaon = get_dNdEE('K+', lepton)[-1]
-    dNdEE_pion = get_dNdEE('pi+', lepton)[-1]
+    daughter = kind.split('_')[1]
+    dNdEE_kaon = get_dNdEE('K+', daughter)[-1]
+    dNdEE_pion = get_dNdEE('pi+', daughter)[-1]
     
     ice_distance = overburden(cos_theta)
     dN_kaon = lambda Ep: dNdEE_kaon(enu/Ep)/Ep

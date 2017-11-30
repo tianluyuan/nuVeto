@@ -65,6 +65,7 @@ def test_elbert(cos_theta=1, kind='conv_numu', accuracy=5):
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, hadr=hadr, accuracy=accuracy,
                      fraction=True, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    plt.legend()
 
 
 def test_elbert_cth(enu=1e5, kind='conv_numu'):
@@ -74,6 +75,7 @@ def test_elbert_cth(enu=1e5, kind='conv_numu'):
     plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
         pr = test_pr_cth(enu, kind, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, enu))
+    plt.legend()
 
 
 def test_corsika(cos_theta_bin=-1, kind='conv_numu', hadr='SIBYLL2.3'):
@@ -97,6 +99,7 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', hadr='SIBYLL2.3'):
                                      eup[:,cos_theta_bin])).T,
                  label='CORSIKA {} {:.2g}'.format(kind, cos_theta),
                  fmt='.', color=pr.get_color())
+    plt.legend()
 
 
 def test_dndee(mother, daughter):
