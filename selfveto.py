@@ -36,14 +36,14 @@ def get_dNdEE(mother, daughter):
     dNdEE = dN_mat[ihijo]*e_grid/delta
     end_value = dNdEE[(x_range <= 1.) & (x_range >= 1.0e-3)][-1]
     rr = ParticleProperties.rr(mother, daughter)
-    if (mother == 'pi+' and daughter == 'numu') or (mother == 'pi-' and daughter == 'numubar'):
+    if (mother == 'pi+' and daughter == 'numu') or (mother == 'pi-' and daughter == 'antinumu'):
         # Lipari 93, eq 85
         dNdEE_interp = lambda x: 1/(1-rr)*(1-np.heaviside(x-1+rr, 0))
-    # elif mother == 'K+' or mother == 'K-':
-    #     # Lipari 93, eq 91
-    #     eps = ParticleProperties.mass_dict['pi+']/ParticleProperties.mass_dict['K+']
-    #     g = 1-8*eps**2-24*eps**4*np.log(eps)+8*eps**6-eps**8
-    #     dNdEE_interp = lambda x: 1/g*((12-24*eps**2)*(1-eps**2)/2-4*(1-eps**2)**3-12*eps**4*(1-eps**2)+12*eps**4*x-(12-24*eps**2)/2*x**2+4*x**3+12*eps**4*np.log((1-x)/eps**2))*(0.05)+1/(1-rr)*(1-np.heaviside(x-1+rr, 0))*0 
+    elif (mother == 'K+' and daughter == 'numu') or (mother == 'K-' and daughter == 'antinumu'):
+        # Lipari 93, eq 91
+        eps = ParticleProperties.mass_dict['pi+']/ParticleProperties.mass_dict['K+']
+        g = 1-8*eps**2-24*eps**4*np.log(eps)+8*eps**6-eps**8
+        dNdEE_interp = lambda x: np.nan_to_num((1-np.heaviside(x-1+rr, 0))*(1/g*((12-24*eps**2)*(1-eps**2)/2-4*(1-eps**2)**3-12*eps**4*(1-eps**2)+12*eps**4*x-(12-24*eps**2)/2*x**2+4*x**3+12*eps**4*np.log((1-x)/eps**2))*0.03352+1/(1-rr)*0.6356))
     else:
         dNdEE_interp = interpolate.interp1d(
             x_range[(x_range <= 1.) & (x_range >= 1.e-3)],
