@@ -106,7 +106,7 @@ def test_dndee(mother, daughter):
     x_range, dNdEE, dNdEE_interp = get_dNdEE(mother, daughter)
 
     # print x_range[0], x_range[-1]
-    x_samp = np.logspace(1, -9, 1000)
+    x_samp = np.logspace(1, -9, 5000)
     c = plt.plot(x_samp, dNdEE_interp(x_samp), label = "Interpolated {} to {}".format(mother, daughter))
     plt.plot(x_range,dNdEE, '.', color=c[0].get_color(), label = "MCEq {} to {}".format(mother, daughter))
     plt.semilogx()
