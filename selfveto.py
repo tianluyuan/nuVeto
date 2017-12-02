@@ -51,7 +51,7 @@ def get_dNdEE(mother, daughter):
     lower = dNdEE[(x_range < 1-rr) & (x_range >= 1.0e-3)][-1]
     dNdEE_interp = interpolate.interp1d(
         np.concatenate([[1-rr], x_range[good]]),
-        np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='cubic',
+        np.concatenate([[dNdEE_edge], dNdEE[good]]),
         bounds_error=False, fill_value=(lower, 0.0))
     return x_range, dNdEE, dNdEE_interp
 
