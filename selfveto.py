@@ -52,7 +52,7 @@ def get_dNdEE(mother, daughter):
     lower = dNdEE[(x_range < 1-rr) & (x_range >= 1.0e-3)][-1]
     dNdEE_interp = interpolate.interp1d(
         np.concatenate([[1-rr], x_range[good]]),
-        np.concatenate([[dNdEE_edge], dNdEE[good]]),
+        np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='quadratic',
         bounds_error=False, fill_value=(lower, 0.0))
     return x_range, dNdEE, dNdEE_interp
 
@@ -121,7 +121,7 @@ def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5
             ParticleProperties.mass_dict[mother] / MCEQ.e_grid * Units.GeV) *(
             deltah / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * MCEQ.get_solution(mother, grid_idx=idx)
-        return interpolate.interp1d(MCEQ.e_grid, rescale_phi, fill_value='extrapolate')
+        return interpolate.interp1d(MCEQ.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 
     def get_integrand(categ, daughter, deltah, idx, weight_fn, esamp):
         mothers = categ_to_mothers(categ, daughter)
