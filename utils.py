@@ -7,6 +7,7 @@ class Units(object):
     km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
     cm = km*1.e-5
     m = km*1.e-3
+    re = 6356752.*m
     gr = 5.62e23 # gr to GeV value from SQuIDS
     sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
     GeV = 1
@@ -85,6 +86,44 @@ class MaterialProperties(object):
     density['ice'] = 0.9167*Units.gr/Units.cm**3 # g/cm^3
 
 
+class Geometry(object):
+    def __init__(self, depth, elevation):
+        self.depth = depth*Units.m
+        self.elevation = elevation*Units.m
+
+        self._r = Units.re+self.elevation
+
+
+    def overburden(self, cos_theta):
+        """Returns the overburden for a detector at *depth* below some surface
+        at *elevation*.
+
+        From law of cosines,
+        x^2 == r^2+(r-d)^2-2r(r-d)cos(gamma)
+        where
+        r*cos(gamma) = r-d+x*cos(theta), solve and return x.
+
+        :param cos_theta: cosine of zenith angle 
+        :param depth:     depth of detector (in meters below the surface)
+        :param elevation: elevation of the surface above sea level (meters)
+        """
+        d = self.depth
+        r = self._r
+        z = r-d
+        return (np.sqrt(z**2*cos_theta**2+d*(2*r-d))-z*cos_theta)/Units.m
+
+
+    def cos_theta_eff(self, cos_theta):
+        """ Returns the effective cos_theta relative the the normal at the surface of the earth.
+
+        :param cos_theta: cosine of zenith angle (detector)
+        """
+        d = self.depth
+        r = self._r
+        z = r-d
+        return np.sqrt(1-(z/r)**2*(1-cos_theta**2))
+        
+    
 def amu(particle):
     """
     :param particle: primary particle's corsika id
@@ -96,26 +135,6 @@ def amu(particle):
 
 def centers(x):
     return (x[:-1]+x[1:])*0.5
-
-
-def overburden(cos_theta, depth=1950, elevation=2400):
-    """Returns the overburden for a detector at *depth* below some surface
-    at *elevation*.
-
-    From law of cosines,
-    x^2 == r^2+(r-d)^2-2r(r-d)cos(gamma)
-    where
-    r*cos(gamma) = r-d+x*cos(theta), solve and return x.
-
-    :param cos_theta: cosine of zenith angle 
-    :param depth:     depth of detector (in meters below the surface)
-    :param elevation: elevation of the surface above sea level (meters)
-    """
-    d = depth
-    r = 6356752. + elevation
-    z = r-d
-
-    return np.sqrt(z**2*cos_theta**2+d*(2*r-d))-z*cos_theta
 
 
 def minimum_muon_energy(distance):

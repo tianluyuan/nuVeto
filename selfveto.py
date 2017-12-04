@@ -23,6 +23,7 @@ MCEQ = MCEqRun(
     theta_deg = 0.,
     # expand the rest of the options from mceq_config.py
     **config)
+GEOM = Geometry(1950, 2400)
 
 
 @lru_cache(maxsize=2**12)
@@ -92,7 +93,7 @@ def get_dN(integrand):
 @lru_cache(maxsize=2**12)
 def get_deltahs(cos_theta, hadr='SIBYLL2.3c'):
     MCEQ.set_interaction_model(hadr)
-    MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
+    MCEQ.set_theta_deg(np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta))))
 
     Xvec = np.logspace(np.log10(1),
                        np.log10(MCEQ.density_model.max_X), 10)
@@ -134,7 +135,7 @@ def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5
 
     categ, daughter = kind.split('_')
     
-    ice_distance = overburden(cos_theta)
+    ice_distance = GEOM.overburden(cos_theta)
     identity = lambda Ep: 1
     reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance)
 
