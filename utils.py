@@ -1,5 +1,6 @@
 from MCEq.geometry import EarthGeometry
 import numpy as np
+from scipy import stats
 
 
 class Units(object):
@@ -156,11 +157,7 @@ def ice_column_density(costh, depth = 1950.*Units.m):
     return (overburden(costh, depth/Units.m, elevation=2400)*Units.m)*MaterialProperties.density["ice"]
 
 
-def muon_reach_prob(muon_energy, ice_distance):
-    return muon_energy > minimum_muon_energy(ice_distance)*Units.GeV
-    # simplifying assumption that the muon reach distribution is a gaussian
-    # the probability that it does not reach is given by the cumnulative distribution function
-    # on the other hand the reaching probability is given by the survival distribution function
-    # the former is associated with the passing rate.
-    return stats.norm.cdf(ice_column_density/MaterialProperties.density["ice"],
-            loc=MeanMuonDistance(muon_energy),scale=np.sqrt(MeanMuonDistance(muon_energy)))
+def muon_reach_prob(muon_energy, ice_distance, scale=0.0000001):
+    return stats.norm.cdf(muon_energy, loc=minimum_muon_energy(ice_distance)*Units.GeV,
+                          scale=scale*minimum_muon_energy(ice_distance)*Units.GeV)
+    # return muon_energy > minimum_muon_energy(ice_distance)*Units.GeV

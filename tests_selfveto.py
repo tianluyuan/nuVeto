@@ -1,7 +1,8 @@
 import pickle
-from external import elbert, selfveto
+from external import elbert
+from external import selfveto as jvssv
 from selfveto import *
-from utils import centers, ParticleProperties
+from utils import *
 from matplotlib import pyplot as plt
 import CRFluxModels as pm
 
@@ -61,11 +62,11 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
 def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')):
     hadrs=['DPMJET-III']
     ens = np.logspace(2,9, 100)
-    emu = selfveto.minimum_muon_energy(selfveto.overburden(cos_theta))
+    emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
     plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, cos_theta))
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
-                     fraction=True, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+                     label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.legend()
 
 
@@ -74,21 +75,21 @@ def test_elbert_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
     ens = np.logspace(2,9, 100)
-    emu = selfveto.minimum_muon_energy(selfveto.overburden(cos_theta))
+    emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
     plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, cos_theta))
     for pmodel in pmodels:
         pr = test_pr(cos_theta, kind, pmodel=pmodel[:2], hadr=hadr,
-                     fraction=True, label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
+                     label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
     plt.legend()
         
 
 def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')):
     hadrs=['DPMJET-III']
     cths = np.linspace(0,1, 100)
-    emu = selfveto.minimum_muon_energy(selfveto.overburden(cths))
+    emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
     plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
-        pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, enu))
+        pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, enu))
     plt.legend()
 
 
@@ -128,4 +129,15 @@ def test_dndee(mother, daughter):
     plt.ylabel(r"$ \frac{dN}{dE_\nu} E_p$")
     plt.ylim(-0.1, 5.1)
     plt.axvline(1-ParticleProperties.rr(mother, daughter), linestyle='--', color=c[0].get_color())
+    plt.legend()
+
+
+def test_preach(cos_theta=1, scale=0.1):
+    ice_distance = GEOM.overburden(cos_theta)
+    mean = minimum_muon_energy(ice_distance)
+    emus = np.linspace(mean-0.5*mean, mean+0.5*mean, 100)
+    plt.plot(emus*Units.GeV, muon_reach_prob(emus*Units.GeV, ice_distance, scale),
+             label=r'$\cos \theta = {{{}}}$, {:.0%}'.format(cos_theta, scale))
+    plt.xlabel(r'$E_\mu^i [GeV]$')
+    plt.ylabel(r'$P_{reach}$')
     plt.legend()
