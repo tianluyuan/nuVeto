@@ -57,39 +57,6 @@ def get_dNdEE(mother, daughter):
     return x_range, dNdEE, dNdEE_interp
 
 
-def get_dN(integrand):
-    e_bins = MCEQ.y.e_bins
-    e_grid = MCEQ.e_grid
-    RY_matrix = np.zeros((len(e_grid), len(e_grid)))
-    for ipadre in tqdm.tqdm(range(len(e_grid))):
-        for ihijo in range(len(e_grid)):
-            # print "doing " + str(ipadre) + " " + str(ihijo)
-            if ihijo > ipadre:
-                RY_matrix[ihijo][ipadre] = 0
-                continue
-
-            EnuMin = e_bins[ihijo]
-            EnuMax = e_bins[ihijo+1]
-            EpMin = e_bins[ipadre]
-            EpMax = e_bins[ipadre+1]
-
-            # integrand = lambda Ep, Enu: (dNdEE_Interpolator(
-            #     Enu / Ep) / Ep) * (1. - muon_reach_prob((Ep - Enu) * Units.GeV, ice_distance))
-            # xen = np.linspace(EnuMin, EnuMax, 100*np.log10(EnuMax))
-            # xep = np.linspace(EpMin, EpMax, 100*np.log10(EpMax))
-            # dep = xep[1]-xep[0]
-            # for ep in xep:
-            #     RY_matrix[ihijo][ipadre]+=integrate.trapz(
-            #         integrand(ep, xen), xen)/(EnuMax-EnuMin)*dep
-            RY_matrix[ihijo][ipadre] = integrate.dblquad(
-                integrand,
-                EnuMin, EnuMax,
-                lambda Enu: np.max([Enu, EpMin]),
-                lambda Enu: EpMax,
-                epsabs=0, epsrel=1.e-2)[0] / (EnuMax - EnuMin)
-    return RY_matrix
-
-
 @lru_cache(maxsize=2**12)
 def get_deltahs(cos_theta, hadr='SIBYLL2.3c'):
     MCEQ.set_interaction_model(hadr)
