@@ -13,12 +13,12 @@ def test_fn(slice_val):
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, **kwargs):
+def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,50)
     prs = plt.plot(ens, [passing_rate(
-        en, cos_theta, kind, pmodel, hadr, accuracy, fraction) for en in ens], **kwargs)
+        en, cos_theta, kind, pmodel, hadr, accuracy, fraction, scale, shift) for en in ens], **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
@@ -31,12 +31,12 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, **kwargs):
+def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,11)
     prs = plt.plot(cths, [passing_rate(
-        enu, cos_theta, kind, pmodel, hadr, accuracy, fraction) for cos_theta in cths], **kwargs)
+        enu, cos_theta, kind, pmodel, hadr, accuracy, fraction, scale, shift) for cos_theta in cths], **kwargs)
     plt.xlim(0, 1)
     plt.xscale('linear')
     plt.xlabel(r'$\cos \theta$')
@@ -56,6 +56,13 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
                            accuracy=accuracy, fraction=fraction,
                            label='accuracy {}'.format(accuracy))
     plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
+    plt.legend()
+
+
+def test_preach_shift(cos_theta=1, kind='conv_numu'):
+    shifts = [-0.3, -0.1, 0, 0.1, 0.3]
+    for shift in shifts:
+        test_pr(cos_theta, kind, shift=shift, label=r'$E_\mu^i$ shifted {:.0%}, {:.2g}'.format(shift, cos_theta))
     plt.legend()
 
 
@@ -132,12 +139,12 @@ def test_dndee(mother, daughter):
     plt.legend()
 
 
-def test_preach(cos_theta=1, scale=0.1):
+def test_preach(cos_theta=1, scale=0.1, shift=0):
     ice_distance = GEOM.overburden(cos_theta)
     mean = minimum_muon_energy(ice_distance)
     emus = np.linspace(mean-0.5*mean, mean+0.5*mean, 100)
-    plt.plot(emus*Units.GeV, muon_reach_prob(emus*Units.GeV, ice_distance, scale),
-             label=r'$\cos \theta = {{{}}}$, {:.0%}'.format(cos_theta, scale))
+    plt.plot(emus*Units.GeV, muon_reach_prob(emus*Units.GeV, ice_distance, scale, shift),
+             label=r'$\cos \theta = {{{}}}$, {:.0%} error, {:.0%} shift'.format(cos_theta, scale, shift))
     plt.xlabel(r'$E_\mu^i [GeV]$')
     plt.ylabel(r'$P_{reach}$')
     plt.legend()

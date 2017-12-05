@@ -157,7 +157,7 @@ def ice_column_density(costh, depth = 1950.*Units.m):
     return (overburden(costh, depth/Units.m, elevation=2400)*Units.m)*MaterialProperties.density["ice"]
 
 
-def muon_reach_prob(muon_energy, ice_distance, scale=0.0000001):
-    return stats.norm.cdf(muon_energy, loc=minimum_muon_energy(ice_distance)*Units.GeV,
-                          scale=scale*minimum_muon_energy(ice_distance)*Units.GeV)
-    # return muon_energy > minimum_muon_energy(ice_distance)*Units.GeV
+def muon_reach_prob(muon_energy, ice_distance, scale, shift):
+    min_mue = minimum_muon_energy(ice_distance)*Units.GeV
+    return stats.norm.cdf(muon_energy, loc=min_mue+shift*min_mue,
+                          scale=scale*min_mue)
