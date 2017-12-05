@@ -16,8 +16,8 @@ def passrates(kind='conv_numu'):
 
 
 def corr(kind='conv_numu'):
-    find_pf = {'conv_numu':partial(selfveto.correlated_passing_rate),
-               'pr_numu':partial(selfveto.correlated_passing_rate)}
+    find_pf = {'conv_numu':selfveto.correlated_passing_rate,
+               'pr_numu':selfveto.correlated_passing_rate}
     return find_pf[kind]
 
 

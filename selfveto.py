@@ -86,9 +86,7 @@ def categ_to_mothers(categ, daughter):
 
 def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fraction=True):
     def get_rescale_phi(mother, deltah, idx):
-        inv_decay_length_array = (
-            ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(
-            deltah / ParticleProperties.lifetime_dict[mother])
+        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(deltah / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * MCEQ.get_solution(mother, grid_idx=idx)
         return interpolate.interp1d(MCEQ.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 

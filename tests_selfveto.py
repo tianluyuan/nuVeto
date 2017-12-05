@@ -58,7 +58,7 @@ def test_accuracy(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', fraction=Tr
 
 
 def test_elbert(cos_theta=1, kind='conv_numu', accuracy=5):
-    hadrs=['DPMJET-III', 'SIBYLL2.3c']
+    hadrs=['DPMJET-III']
     ens = np.logspace(2,9, 100)
     emu = selfveto.minimum_muon_energy(selfveto.overburden(cos_theta))
     plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, cos_theta))
@@ -69,7 +69,7 @@ def test_elbert(cos_theta=1, kind='conv_numu', accuracy=5):
 
 
 def test_elbert_cth(enu=1e5, kind='conv_numu'):
-    hadrs=['DPMJET-III', 'SIBYLL2.3c']
+    hadrs=['DPMJET-III']
     cths = np.linspace(0,1, 100)
     emu = selfveto.minimum_muon_energy(selfveto.overburden(cths))
     plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, enu))
