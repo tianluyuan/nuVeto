@@ -88,8 +88,10 @@ class MaterialProperties(object):
 
 class Geometry(object):
     def __init__(self, depth, elevation):
-        self.depth = depth*Units.m
-        self.elevation = elevation*Units.m
+        """ Depath of detector and elevation of surface above sea-level
+        """
+        self.depth = depth
+        self.elevation = elevation
 
         self._r = Units.re+self.elevation
 

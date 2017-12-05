@@ -23,7 +23,7 @@ MCEQ = MCEqRun(
     theta_deg = 0.,
     # expand the rest of the options from mceq_config.py
     **config)
-GEOM = Geometry(1950, 2400)
+GEOM = Geometry(1950*Units.m, 2400*Units.m)
 
 
 @lru_cache(maxsize=2**12)
