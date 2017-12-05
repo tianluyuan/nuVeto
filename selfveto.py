@@ -23,7 +23,7 @@ MCEQ = MCEqRun(
     theta_deg = 0.,
     # expand the rest of the options from mceq_config.py
     **config)
-GEOM = Geometry(1950*Units.m, 2400*Units.m)
+GEOM = Geometry(1950*Units.m)
 
 
 @lru_cache(maxsize=2**12)
@@ -59,13 +59,15 @@ def get_dNdEE(mother, daughter):
 
 @lru_cache(maxsize=2**12)
 def get_deltahs(cos_theta, hadr='SIBYLL2.3c'):
+    theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
     MCEQ.set_interaction_model(hadr)
-    MCEQ.set_theta_deg(np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta))))
+    MCEQ.set_theta_deg(theta)
 
     Xvec = np.logspace(np.log10(1),
                        np.log10(MCEQ.density_model.max_X), 10)
-    heights = MCEQ.density_model.s_lX2h(np.log(Xvec)) * Units.cm
-    deltahs = heights[:-1] - heights[1:]
+    heights = MCEQ.density_model.X2h(Xvec) * Units.cm
+    lengths = GEOM.delta_l(heights, np.radians(theta))
+    deltahs = np.diff(lengths)
     MCEQ.solve(int_grid=Xvec, grid_var="X")
     return deltahs
 

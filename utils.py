@@ -1,3 +1,4 @@
+from MCEq.geometry import EarthGeometry
 import numpy as np
 
 
@@ -7,7 +8,6 @@ class Units(object):
     km = 5.0677309374099995 # km to GeV^-1 value from SQuIDS
     cm = km*1.e-5
     m = km*1.e-3
-    re = 6356752.*m
     gr = 5.62e23 # gr to GeV value from SQuIDS
     sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
     GeV = 1
@@ -86,14 +86,17 @@ class MaterialProperties(object):
     density['ice'] = 0.9167*Units.gr/Units.cm**3 # g/cm^3
 
 
-class Geometry(object):
-    def __init__(self, depth, elevation):
-        """ Depath of detector and elevation of surface above sea-level
+class Geometry(EarthGeometry):
+    def __init__(self, depth):
+        """ Depth of detector and elevation of surface above sea-level
         """
+        super(Geometry, self).__init__()
         self.depth = depth
-        self.elevation = elevation
-
-        self._r = Units.re+self.elevation
+        self.h_obs *= Units.cm
+        self.h_atm *= Units.cm
+        self.r_E *= Units.cm
+        self.r_top = self.r_E + self.h_atm
+        self.r_obs = self.r_E + self.h_obs
 
 
     def overburden(self, cos_theta):
@@ -110,18 +113,18 @@ class Geometry(object):
         :param elevation: elevation of the surface above sea level (meters)
         """
         d = self.depth
-        r = self._r
+        r = self.r_E
         z = r-d
         return (np.sqrt(z**2*cos_theta**2+d*(2*r-d))-z*cos_theta)/Units.m
 
 
     def cos_theta_eff(self, cos_theta):
-        """ Returns the effective cos_theta relative the the normal at the surface of the earth.
+        """ Returns the effective cos_theta relative the the normal at earth surface.
 
         :param cos_theta: cosine of zenith angle (detector)
         """
         d = self.depth
-        r = self._r
+        r = self.r_E
         z = r-d
         return np.sqrt(1-(z/r)**2*(1-cos_theta**2))
         
