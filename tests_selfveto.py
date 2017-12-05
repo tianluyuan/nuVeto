@@ -59,6 +59,13 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
     plt.legend()
 
 
+def test_preach_scale(cos_theta=1, kind='conv_numu'):
+    scales = [1e-6, 0.1, 0.5, 1.]
+    for scale in scales:
+        test_pr(cos_theta, kind, scale=scale, label=r'$E_\mu^i$ error {:.0%}, {:.2g}'.format(scale, cos_theta))
+    plt.legend()
+
+
 def test_preach_shift(cos_theta=1, kind='conv_numu'):
     shifts = [-0.3, -0.1, 0, 0.1, 0.3]
     for shift in shifts:
