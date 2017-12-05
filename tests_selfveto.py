@@ -3,6 +3,7 @@ from external import elbert, selfveto
 from selfveto import *
 from utils import centers, ParticleProperties
 from matplotlib import pyplot as plt
+import CRFluxModels as pm
 
 
 def test_fn(slice_val):
@@ -11,12 +12,12 @@ def test_fn(slice_val):
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fraction=True, **kwargs):
+def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=5, fraction=True, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,50)
     prs = plt.plot(ens, [passing_rate(
-        en, cos_theta, kind, hadr, accuracy, fraction) for en in ens], **kwargs)
+        en, cos_theta, kind, pmodel, hadr, accuracy, fraction) for en in ens], **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
@@ -29,12 +30,12 @@ def test_pr(cos_theta=1., kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fract
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fraction=True, **kwargs):
+def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=5, fraction=True, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,11)
     prs = plt.plot(cths, [passing_rate(
-        enu, cos_theta, kind, hadr, accuracy, fraction) for cos_theta in cths], **kwargs)
+        enu, cos_theta, kind, pmodel, hadr, accuracy, fraction) for cos_theta in cths], **kwargs)
     plt.xlim(0, 1)
     plt.xscale('linear')
     plt.xlabel(r'$\cos \theta$')
@@ -46,39 +47,52 @@ def test_pr_cth(enu=1e5, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fracti
     return prs[0]
 
 
-def test_accuracy(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', fraction=True):
+def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
     plt.clf()
     accuracies = [2, 5, 6]
     for accuracy in accuracies:
-        test_fn(slice_val)(slice_val, kind, hadr=hadr,
+        test_fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr,
                            accuracy=accuracy, fraction=fraction,
                            label='accuracy {}'.format(accuracy))
     plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
     plt.legend()
 
 
-def test_elbert(cos_theta=1, kind='conv_numu', accuracy=5):
+def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')):
     hadrs=['DPMJET-III']
     ens = np.logspace(2,9, 100)
     emu = selfveto.minimum_muon_energy(selfveto.overburden(cos_theta))
     plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, cos_theta))
     for hadr in hadrs:
-        pr = test_pr(cos_theta, kind, hadr=hadr, accuracy=accuracy,
+        pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
                      fraction=True, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.legend()
 
 
-def test_elbert_cth(enu=1e5, kind='conv_numu'):
+def test_elbert_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
+    pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
+               (pm.PolyGonato, False, 'poly-gonato'),
+               (pm.GaisserHonda, None, 'GH')]
+    ens = np.logspace(2,9, 100)
+    emu = selfveto.minimum_muon_energy(selfveto.overburden(cos_theta))
+    plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, cos_theta))
+    for pmodel in pmodels:
+        pr = test_pr(cos_theta, kind, pmodel=pmodel[:2], hadr=hadr,
+                     fraction=True, label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
+    plt.legend()
+        
+
+def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')):
     hadrs=['DPMJET-III']
     cths = np.linspace(0,1, 100)
     emu = selfveto.minimum_muon_energy(selfveto.overburden(cths))
     plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
-        pr = test_pr_cth(enu, kind, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, enu))
+        pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, enu))
     plt.legend()
 
 
-def test_corsika(cos_theta_bin=-1, kind='conv_numu', hadr='SIBYLL2.3'):
+def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3'):
     if isinstance(cos_theta_bin, list):
         [test_corsika(cth, kind) for cth in cos_theta_bin]
         return
@@ -91,7 +105,7 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', hadr='SIBYLL2.3'):
     eff, elow, eup, xedges, yedges = corsika[translate[kind]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
-    pr = test_pr(cos_theta, kind, hadr=hadr, fraction=True, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,

@@ -108,9 +108,7 @@ class Geometry(EarthGeometry):
         where
         r*cos(gamma) = r-d+x*cos(theta), solve and return x.
 
-        :param cos_theta: cosine of zenith angle 
-        :param depth:     depth of detector (in meters below the surface)
-        :param elevation: elevation of the surface above sea level (meters)
+        :param cos_theta: cosine of zenith angle in detector coord
         """
         d = self.depth
         r = self.r_E

@@ -10,15 +10,14 @@ from mceq_config import config, mceq_config_without
 from utils import *
 
 
-SETUP = {'flux':pm.HillasGaisser2012,
-         'gen':'H3a',
+SETUP = {'pmodel':(pm.HillasGaisser2012,'H3a'),
          'hadr':'SIBYLL2.3c'}
 MCEQ = MCEqRun(
     # provide the string of the interaction model
     interaction_model=SETUP['hadr'],
     # primary cosmic ray flux model
     # support a tuple (primary model class (not instance!), arguments)
-    primary_model=(SETUP['flux'], SETUP['gen']),
+    primary_model=SETUP['pmodel'],
     # zenith angle \theta in degrees, measured positively from vertical direction
     theta_deg = 0.,
     # expand the rest of the options from mceq_config.py
@@ -58,8 +57,9 @@ def get_dNdEE(mother, daughter):
 
 
 @lru_cache(maxsize=2**12)
-def get_deltahs(cos_theta, hadr='SIBYLL2.3c'):
+def get_deltahs(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
+    MCEQ.set_primary_model(*pmodel)
     MCEQ.set_interaction_model(hadr)
     MCEQ.set_theta_deg(theta)
 
@@ -84,7 +84,7 @@ def categ_to_mothers(categ, daughter):
     return mothers
     
 
-def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5, fraction=True):
+def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=5, fraction=True):
     def get_rescale_phi(mother, deltah, idx):
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(deltah / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * MCEQ.get_solution(mother, grid_idx=idx)
@@ -106,7 +106,7 @@ def passing_rate(enu, cos_theta, kind='conv_numu', hadr='SIBYLL2.3c', accuracy=5
     identity = lambda Ep: 1
     reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance)
 
-    deltahs = get_deltahs(cos_theta, hadr)
+    deltahs = get_deltahs(cos_theta, pmodel, hadr)
     passing_numerator = 0
     passing_denominator = 0
     esamp = np.logspace(np.log10(enu), np.log10(MCEQ.e_grid[-1]), int(10**accuracy))
