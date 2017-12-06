@@ -56,7 +56,7 @@ def get_dNdEE(mother, daughter):
 
 
 @lru_cache(maxsize=2**12)
-def get_deltahs(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
+def solver(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
     MCEQ.set_primary_model(*pmodel)
     MCEQ.set_interaction_model(hadr)
@@ -68,7 +68,78 @@ def get_deltahs(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3
     lengths = GEOM.delta_l(heights, np.radians(theta))
     deltahs = np.diff(lengths)
     MCEQ.solve(int_grid=Xvec, grid_var="X")
-    return deltahs
+    return deltahs, MCEQ.grid_sol
+
+
+def get_solution(grid_sol,
+                 particle_name,
+                 mag=0.,
+                 grid_idx=None,
+                 integrate=False):
+    """Retrieves solution of the calculation on the energy grid.
+
+    Some special prefixes are accepted for lepton names:
+
+    - the total flux of muons, muon neutrinos etc. from all sources/mothers
+      can be retrieved by the prefix ``total_``, i.e. ``total_numu``
+    - the conventional flux of muons, muon neutrinos etc. from all sources
+      can be retrieved by the prefix ``conv_``, i.e. ``conv_numu``
+    - correspondigly, the flux of leptons which originated from the decay
+      of a charged pion carries the prefix ``pi_`` and from a kaon ``k_``
+    - conventional leptons originating neither from pion nor from kaon
+      decay are collected in a category without any prefix, e.g. ``numu`` or
+      ``mu+``
+
+    Args:
+      particle_name (str): The name of the particle such, e.g.
+        ``total_mu+`` for the total flux spectrum of positive muons or
+        ``pr_antinumu`` for the flux spectrum of prompt anti muon neutrinos
+      mag (float, optional): 'magnification factor': the solution is
+        multiplied by ``sol`` :math:`= \\Phi \\cdot E^{mag}`
+      grid_idx (int, optional): if the integrator has been configured to save
+        intermediate solutions on a depth grid, then ``grid_idx`` specifies
+        the index of the depth grid for which the solution is retrieved. If
+        not specified the flux at the surface is returned
+      integrate (bool, optional): return averge particle number instead of
+      flux (multiply by bin width)
+
+    Returns:
+      (numpy.array): flux of particles on energy grid :attr:`e_grid`
+    """
+    # Account for the
+
+    res = np.zeros(MCEQ.d)
+    ref = MCEQ.pname2pref
+    sol = None
+    if grid_idx is None:
+        sol = grid_sol[-1]
+    elif grid_idx >= len(grid_sol):
+        sol = grid_sol[-1]
+    else:
+        sol = grid_sol[grid_idx]
+
+    if particle_name.startswith('total'):
+        lep_str = particle_name.split('_')[1]
+        for prefix in ('pr_', 'pi_', 'k_', ''):
+            particle_name = prefix + lep_str
+            res += sol[ref[particle_name].lidx():
+                       ref[particle_name].uidx()] * \
+                MCEQ.e_grid ** mag
+    elif particle_name.startswith('conv'):
+        lep_str = particle_name.split('_')[1]
+        for prefix in ('pi_', 'k_', ''):
+            particle_name = prefix + lep_str
+            res += sol[ref[particle_name].lidx():
+                       ref[particle_name].uidx()] * \
+                MCEQ.e_grid ** mag
+    else:
+        res = sol[ref[particle_name].lidx():
+                  ref[particle_name].uidx()] * \
+            MCEQ.e_grid ** mag
+    if not integrate:
+        return res
+    else:
+        return res * MCEQ.e_widths
 
 
 def categ_to_mothers(categ, daughter):
@@ -84,17 +155,17 @@ def categ_to_mothers(categ, daughter):
     
 
 def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0):
-    def get_rescale_phi(mother, deltah, idx):
+    def get_rescale_phi(mother, deltah, grid_sol, idx):
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(deltah / ParticleProperties.lifetime_dict[mother])
-        rescale_phi = inv_decay_length_array * MCEQ.get_solution(mother, grid_idx=idx)
+        rescale_phi = inv_decay_length_array * get_solution(grid_sol, mother, grid_idx=idx)
         return interpolate.interp1d(MCEQ.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 
-    def get_integrand(categ, daughter, deltah, idx, weight_fn, esamp):
+    def get_integrand(categ, daughter, deltah, grid_sol, idx, weight_fn, esamp):
         mothers = categ_to_mothers(categ, daughter)
         ys = np.zeros(len(esamp))
         for mother in mothers:
             dNdEE = get_dNdEE(mother, daughter)[-1]
-            rescale_phi = get_rescale_phi(mother, deltah, idx)
+            rescale_phi = get_rescale_phi(mother, deltah, grid_sol, idx)
             ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn(esamp)
             
         return ys
@@ -105,13 +176,15 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
     identity = lambda Ep: 1
     reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance, scale, shift)
 
-    deltahs = get_deltahs(cos_theta, pmodel, hadr)
+    deltahs, grid_sol = solver(cos_theta, pmodel, hadr)
     passing_numerator = 0
     passing_denominator = 0
     esamp = np.logspace(np.log10(enu), np.log10(MCEQ.e_grid[-1]), int(10**accuracy))
     for idx, deltah in enumerate(deltahs):
-        passing_numerator += integrate.trapz(get_integrand(categ, daughter, deltah, idx, reaching, esamp), esamp)
-        passing_denominator += integrate.trapz(get_integrand(categ, daughter, deltah, idx, identity, esamp), esamp)
+        passing_numerator += integrate.trapz(
+            get_integrand(categ, daughter, deltah, grid_sol, idx, reaching, esamp), esamp)
+        passing_denominator += integrate.trapz(
+            get_integrand(categ, daughter, deltah, grid_sol, idx, identity, esamp), esamp)
         # print passing_numerator, passing_denominator
     return passing_numerator/passing_denominator if fraction else passing_numerator
 

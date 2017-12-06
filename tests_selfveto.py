@@ -77,7 +77,7 @@ def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
     hadrs=['DPMJET-III']
     ens = np.logspace(2,9, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
-    plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, cos_theta))
+    plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
                      label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
@@ -90,7 +90,7 @@ def test_elbert_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
                (pm.GaisserHonda, None, 'GH')]
     ens = np.logspace(2,9, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
-    plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, cos_theta))
+    plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
     for pmodel in pmodels:
         pr = test_pr(cos_theta, kind, pmodel=pmodel[:2], hadr=hadr,
                      label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
@@ -101,7 +101,7 @@ def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
     hadrs=['DPMJET-III']
     cths = np.linspace(0,1, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
-    plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, enu))
+    plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
         pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, enu))
     plt.legend()
