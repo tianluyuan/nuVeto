@@ -57,6 +57,9 @@ def get_dNdEE(mother, daughter):
 
 @lru_cache(maxsize=2**12)
 def solver(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
+    """This will cache MCEQ solutions for each combination of the
+    arguments. Ensure that it returns everything that changes with different arguments
+    """
     theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
     MCEQ.set_primary_model(*pmodel)
     MCEQ.set_interaction_model(hadr)
