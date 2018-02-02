@@ -149,7 +149,7 @@ def categ_to_mothers(categ, daughter):
     charge = '-' if 'anti' in daughter else '+'
     bar = '-bar' if 'anti' in daughter else ''
     if categ == 'conv':
-        mothers = ['pi'+charge, 'K'+charge, 'K0L']
+        mothers = ['pi'+charge, 'K'+charge, 'K0L'] #K0S in uncorrelated?
     elif categ == 'pr':
         mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar]
     else:

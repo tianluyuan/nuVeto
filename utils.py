@@ -26,6 +26,7 @@ class ParticleProperties(object):
     mass_dict['mu-']=0.1056583745*Units.GeV
     mass_dict['K+']=0.493677*Units.GeV # GeV
     mass_dict['K0L']=0.497611*Units.GeV # GeV
+    mass_dict['K0S']=0.497611*Units.GeV # GeV
     mass_dict['pi+']=0.139570*Units.GeV # GeV
     mass_dict['K-']=0.493677*Units.GeV # GeV
     mass_dict['pi-']=0.139570*Units.GeV # GeV
@@ -39,6 +40,7 @@ class ParticleProperties(object):
 
     lifetime_dict['K+']=1.2389e-8*Units.sec # s
     lifetime_dict['K0L']=5.116e-8*Units.sec # s
+    lifetime_dict['K0S']=8.954e-11*Units.sec # s
     lifetime_dict['pi+']=2.6033e-8*Units.sec # 
     lifetime_dict['K-']=1.2389e-8*Units.sec # s
     lifetime_dict['pi-']=2.6033e-8*Units.sec # 
