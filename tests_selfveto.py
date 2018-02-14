@@ -83,7 +83,7 @@ def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
         pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
                      label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True,
-                     label='Modified $P_{{reach}}$ {:.2g}'.format(cos_theta))
+                     label='Correct $P_{{reach}}$ {:.2g}'.format(cos_theta))
     plt.legend()
 
 
@@ -125,7 +125,7 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
     cos_theta = centers(yedges)[cos_theta_bin]
 
     pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta), linestyle='--')
-    test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='Modified $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color())
+    test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='Correct $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color())
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,
