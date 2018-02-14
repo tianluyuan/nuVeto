@@ -14,12 +14,12 @@ def test_fn(slice_val):
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prplpkl=None, **kwargs):
+def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,50)
     prs = plt.plot(ens, [passing_rate(
-        en, cos_theta, kind, pmodel, hadr, accuracy, fraction, scale, shift, prplpkl) for en in ens], **kwargs)
+        en, cos_theta, kind, pmodel, hadr, accuracy, fraction, scale, shift, prpl) for en in ens], **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
@@ -32,12 +32,12 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, **kwargs):
+def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,11)
     prs = plt.plot(cths, [passing_rate(
-        enu, cos_theta, kind, pmodel, hadr, accuracy, fraction, scale, shift) for cos_theta in cths], **kwargs)
+        enu, cos_theta, kind, pmodel, hadr, accuracy, fraction, scale, shift, prpl) for cos_theta in cths], **kwargs)
     plt.xlim(0, 1)
     plt.xscale('linear')
     plt.xlabel(r'$\cos \theta$')
@@ -60,12 +60,6 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
     plt.legend()
 
 
-def test_preach_actual(cos_theta=1, kind='conv_numu'):
-    test_pr(cos_theta, kind, prplpkl='resources/prpl.pkl', label=r'MMC $P_{reach}$ {:.2g}'.format(cos_theta))
-    test_elbert(cos_theta, kind)
-    plt.legend()
-
-
 def test_preach_scale(cos_theta=1, kind='conv_numu'):
     scales = [1e-6, 0.1, 0.5, 1.]
     for scale in scales:
@@ -81,13 +75,15 @@ def test_preach_shift(cos_theta=1, kind='conv_numu'):
 
 
 def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
-    hadrs=['SIBYLL2.3']
+    hadrs=['DPMJET-III']
     ens = np.logspace(2,9, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
     plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
                      label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+        pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True,
+                     label='Modified $P_{{reach}}$ {:.2g}'.format(cos_theta))
     plt.legend()
 
 
@@ -104,13 +100,14 @@ def test_elbert_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
     plt.legend()
         
 
-def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')):
+def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
     hadrs=['DPMJET-III']
     cths = np.linspace(0,1, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
     plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
         pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, enu))
+        pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='{} {} {:.2g}'.format(hadr, kind, enu))
     plt.legend()
 
 
@@ -127,7 +124,8 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
     eff, elow, eup, xedges, yedges = corsika[translate[kind]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
-    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta), linestyle='--')
+    test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='Modified $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color())
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,

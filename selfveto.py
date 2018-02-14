@@ -24,6 +24,7 @@ MCEQ = MCEqRun(
     # expand the rest of the options from mceq_config.py
     **config)
 GEOM = Geometry(1950*Units.m)
+MUINT = pickle.load(open('external/mmc/prpl.pkl'))
 
 
 @lru_cache(maxsize=2**12)
@@ -159,13 +160,12 @@ def categ_to_mothers(categ, daughter):
     return mothers
     
 
-def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prplpkl=None):
-    def prpl(muon_energy, ice_distance):
-        # print muon_energy
-        muint = pickle.load(open(prplpkl))
-        return muint(zip(muon_energy, np.array([ice_distance]*len(muon_energy))))
-        
+def muon_prpl(muon_energy, ice_distance):
+    # print muon_energy
+    return MUINT(zip(muon_energy, np.array([ice_distance]*len(muon_energy))))
 
+
+def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False):
     def get_rescale_phi(mother, deltah, grid_sol, idx):
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(deltah / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * get_solution(grid_sol, mother, grid_idx=idx)
@@ -185,10 +185,10 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
     
     ice_distance = GEOM.overburden(cos_theta)
     identity = lambda Ep: 1
-    if prplpkl is None:
+    if not prpl:
         reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance, scale, shift)
     else:
-        reaching = lambda Ep: 1. - prpl((Ep-enu)*Units.GeV, ice_distance) 
+        reaching = lambda Ep: 1. - muon_prpl((Ep-enu)*Units.GeV, ice_distance) 
 
     deltahs, grid_sol = solver(cos_theta, pmodel, hadr)
     passing_numerator = 0
