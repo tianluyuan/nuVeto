@@ -1,6 +1,7 @@
 import pickle
 from external import elbert
 from external import selfveto as jvssv
+import mu
 from selfveto import *
 from utils import *
 from matplotlib import pyplot as plt
@@ -13,12 +14,12 @@ def test_fn(slice_val):
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, **kwargs):
+def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prplpkl=None, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,50)
     prs = plt.plot(ens, [passing_rate(
-        en, cos_theta, kind, pmodel, hadr, accuracy, fraction, scale, shift) for en in ens], **kwargs)
+        en, cos_theta, kind, pmodel, hadr, accuracy, fraction, scale, shift, prplpkl) for en in ens], **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
@@ -59,6 +60,12 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
     plt.legend()
 
 
+def test_preach_actual(cos_theta=1, kind='conv_numu'):
+    test_pr(cos_theta, kind, prplpkl='resources/prpl.pkl', label=r'MMC $P_{reach}$ {:.2g}'.format(cos_theta))
+    test_elbert(cos_theta, kind)
+    plt.legend()
+
+
 def test_preach_scale(cos_theta=1, kind='conv_numu'):
     scales = [1e-6, 0.1, 0.5, 1.]
     for scale in scales:
@@ -73,8 +80,8 @@ def test_preach_shift(cos_theta=1, kind='conv_numu'):
     plt.legend()
 
 
-def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')):
-    hadrs=['DPMJET-III']
+def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
+    hadrs=['SIBYLL2.3']
     ens = np.logspace(2,9, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
     plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
@@ -155,3 +162,12 @@ def test_preach(cos_theta=1, scale=0.1, shift=0):
     plt.xlabel(r'$E_\mu^i [GeV]$')
     plt.ylabel(r'$P_{reach}$')
     plt.legend()
+
+
+def test_plpr(preach, plight=1e3):
+    intg = mu.int_ef(preach, plight)
+    plt.scatter(intg[:,0], intg[:,1], c=intg[:,2])
+    plt.loglog()
+    plt.xlabel(r'$E_i$ [GeV]')
+    plt.ylabel(r'Overburden [m]')
+    plt.colorbar()

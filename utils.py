@@ -139,19 +139,6 @@ def amu(particle):
     return 1 if particle==14 else particle/100
 
 
-def calc_nbins(x):
-    ptile = np.percentile(x, 75) - np.percentile(x, 25)
-    if ptile == 0:
-        return 10
-    n =  (np.max(x) - np.min(x)) / (2 * len(x)**(-1./3) * ptile)
-    return np.floor(n)
-
-
-def calc_bins(x):
-    nbins = calc_nbins(x)
-    return np.linspace(np.min(x), np.max(x)+2, num=nbins+1)
-
-
 def centers(x):
     return (x[:-1]+x[1:])*0.5
 
