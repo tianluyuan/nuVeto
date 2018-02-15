@@ -40,7 +40,7 @@ def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, '
     corr = np.asarray([passing_rate(en, cos_theta, kind, pmodel,
                                     hadr, accuracy, fraction, scale, shift, prpl) for en in ens])
     uncorr = np.asarray([usv.passing_rate(en, cos_theta, kind.split('_')[1],
-                                          hadr=hadr, fraction=fraction) for en in ens])
+                                          hadr=hadr, fraction=fraction, nenu=0) for en in ens])
     prs = plt.plot(ens, corr*uncorr, **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
