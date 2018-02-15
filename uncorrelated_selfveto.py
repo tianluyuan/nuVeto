@@ -14,7 +14,7 @@ from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 from barr_uncertainties import *
-from utils import overburden, amu, minimum_muon_energy
+from utils import *
 
 
 SETUP = {'flux':pm.HillasGaisser2012,
@@ -30,6 +30,7 @@ MCEQ = MCEqRun(
     theta_deg = 0.,
     # expand the rest of the options from mceq_config.py
     **config)
+GEOM = Geometry(1950*Units.m)
 
 
 # def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
@@ -102,7 +103,7 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
 
 
 def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
-    emu_min = minimum_muon_energy(overburden(cos_theta))
+    emu_min = minimum_muon_energy(GEOM.overburden(cos_theta))
     if nenu*enu > 0.01*primary_energy:
         primary_energy -= nenu*enu
     if primary_energy < emu_min:

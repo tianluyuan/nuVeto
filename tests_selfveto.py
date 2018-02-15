@@ -32,6 +32,28 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
+def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, nenu=2, **kwargs):
+    """ plot the corr*uncorr passing rate (flux or fraction)
+    """
+    import uncorrelated_selfveto as usv
+    ens = np.logspace(3,7,50)
+    corr = np.asarray([passing_rate(en, cos_theta, kind, pmodel,
+                                    hadr, accuracy, fraction, scale, shift, prpl) for en in ens])
+    uncorr = np.asarray([usv.passing_rate(en, cos_theta, kind.split('_')[1],
+                                          hadr=hadr, fraction=fraction) for en in ens])
+    prs = plt.plot(ens, corr*uncorr, **kwargs)
+    plt.xlim(10**3, 10**7)
+    plt.xscale('log')
+    plt.xlabel(r'$E_\nu$')
+    if fraction:
+        plt.ylim(-0.05, 1.05)
+        plt.ylabel(r'Passing fraction')
+    else:
+        plt.yscale('log')
+        plt.ylabel(r'Passing flux')
+    return prs[0]
+
+
 def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
@@ -125,8 +147,8 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
     eff, elow, eup, xedges, yedges = corsika[translate[kind]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
-    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-    test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
+    pr = test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,
