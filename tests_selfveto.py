@@ -82,8 +82,8 @@ def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
                      label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-        pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True,
-                     label='Correct $P_{{reach}}$ {:.2g}'.format(cos_theta))
+        test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True,
+                label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
     plt.legend()
 
 
@@ -107,7 +107,8 @@ def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
     plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
         pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, enu))
-        pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='{} {} {:.2g}'.format(hadr, kind, enu))
+        test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='{} {} {:.2g}'.format(hadr, kind, enu),
+                    color=pr.get_color(), linestyle='--')
     plt.legend()
 
 
@@ -124,8 +125,8 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
     eff, elow, eup, xedges, yedges = corsika[translate[kind]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
-    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta), linestyle='--')
-    test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='Correct $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color())
+    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,

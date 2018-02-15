@@ -76,7 +76,7 @@ def hist_preach(infile, plotdir=None):
 
 
 def int_ef(preach, plight=1e3):
-    """ integate preach*plight
+    """ integate p_reach*p_light over e_f to reduce dimensionality for interpolator
     """
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
