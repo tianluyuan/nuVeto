@@ -101,7 +101,7 @@ def test_hadrs(slice_val=1, kind='numu', fraction=True):
 
 
 def test_elbert(cos_theta=1, kind='pr_nue'):
-    hadrs=['DPMJET-III', 'SIBYLL2.3c']
+    hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
     ens = np.logspace(2,9, 100)
     emu = selfveto.minimum_muon_energy(selfveto.overburden(cos_theta))
     plt.plot(ens, elbert.uncorr(kind)(ens, emu, cos_theta), 'k--', label='Elbert approx. {} {:.2g}'.format(kind, cos_theta))
