@@ -134,7 +134,7 @@ def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.
                             mu.info.e_grid))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, prpl=False):
     pmod = SETUP['flux'](SETUP['gen'])
     passed = 0
     total = 0
@@ -147,7 +147,10 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accur
         istart = max(0, np.argmax(eprimaries > enu) - 1)
         for primary_energy in eprimaries[istart:]:
             res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, hadr)
-            pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, hadr, nenu)
+            if prpl:
+                pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, hadr, nenu)
+            else:
+                pnm = prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods, hadr, nenu)
             numer.append(res*pnm)
             denom.append(res)
 
