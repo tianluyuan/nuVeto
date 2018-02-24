@@ -100,12 +100,16 @@ def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
     hadrs=['DPMJET-III']
     ens = np.logspace(2,9, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
-    plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
+    # plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
-                     label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+                     label='Average muon range'.format(hadr, kind, cos_theta))
         test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True,
-                label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
+                label='Correct muon range'.format(cos_theta), color=pr.get_color(), linestyle='--')
+        # pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
+        #              label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+        # test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True,
+        #         label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
     plt.legend()
 
 

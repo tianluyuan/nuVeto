@@ -1,3 +1,4 @@
+import pickle
 from MCEq.geometry import EarthGeometry
 import numpy as np
 from scipy import stats
@@ -89,6 +90,15 @@ class MaterialProperties(object):
     density['ice'] = 0.9167*Units.gr/Units.cm**3 # g/cm^3
 
 
+class MuonProb(object):
+    def __init__(self, pklfile):
+        self.mu_int = pickle.load(open(pklfile))
+
+
+    def prpl(self, mu_e, overburden):
+        return self.mu_int(zip(mu_e, [overburden]*len(mu_e)))
+        
+    
 class Geometry(EarthGeometry):
     def __init__(self, depth):
         """ Depth of detector and elevation of surface above sea-level

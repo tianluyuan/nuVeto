@@ -31,6 +31,7 @@ MCEQ = MCEqRun(
     # expand the rest of the options from mceq_config.py
     **config)
 GEOM = Geometry(1950*Units.m)
+MU = MuonProb('external/mmc/prpl.pkl')
 
 
 # def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
@@ -102,10 +103,11 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
     return flux(primary_energy, particle)*fnsol(elep)
 
 
-def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
-    emu_min = minimum_muon_energy(GEOM.overburden(cos_theta))
+def prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
+    # only subtract if it matters
     if nenu*enu > 0.01*primary_energy:
         primary_energy -= nenu*enu
+    emu_min = minimum_muon_energy(GEOM.overburden(cos_theta))
     if primary_energy < emu_min:
         return 1
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
@@ -120,6 +122,16 @@ def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.
     # return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
     return np.exp(-np.trapz(np.concatenate(([fnmu(emu_min)],mu.yields[above])),
                             np.concatenate(([emu_min],mu.info.e_grid[above]))))
+
+
+def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
+    # only subtract if it matters
+    if nenu*enu > 0.01*primary_energy:
+        primary_energy -= nenu*enu
+    mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
+    
+    return np.exp(-np.trapz(mu.yields*MU.prpl(mu.info.e_grid*Units.GeV, GEOM.overburden(cos_theta)),
+                            mu.info.e_grid))
 
 
 def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2):
