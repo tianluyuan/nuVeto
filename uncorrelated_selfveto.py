@@ -48,9 +48,10 @@ MU = MuonProb('external/mmc/prpl.pkl')
 
 
 @lru_cache(maxsize=2**12)
-def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
+def mcsolver(primary_energy, cos_theta, particle, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     Info = namedtuple('Info', 'e_grid e_widths')
     Yields = namedtuple('Yields', 'mu numu nue conv_numu conv_nue pr_numu pr_nue')
+    MCEQ.set_primary_model(*pmodel)
     MCEQ.set_single_primary_particle(primary_energy, particle)
     MCEQ.set_theta_deg(np.degrees(np.arccos(cos_theta)))
     MCEQ.set_interaction_model(hadr)
@@ -81,36 +82,36 @@ def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
     return Info(MCEQ.e_grid, MCEQ.e_widths), Yields(mu, numu, nue, conv_numu, conv_nue, pr_numu, pr_nue)
 
 
-def mceq_yield(primary_energy, cos_theta, particle, kind='mu', pmods=(), hadr='SIBYLL2.3c'):
+def mceq_yield(primary_energy, cos_theta, particle, kind='mu', pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     Solution = namedtuple('Solution', 'info yields')
-    info, mcs = mcsolver(primary_energy, cos_theta, particle, pmods, hadr)
+    info, mcs = mcsolver(primary_energy, cos_theta, particle, pmods, pmodel, hadr)
     return Solution(info, mcs._asdict()[kind])
 
 
-def flux(primary_energy, particle):
+def flux(primary_energy, particle, pmodel):
     """ Primary flux
     """
-    pmod = SETUP['flux'](SETUP['gen'])
+    pmod = pmodel[0](pmodel[1])
     return pmod.nucleus_flux(particle, primary_energy)
 
 
-def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmods=(), hadr='SIBYLL2.3c'):
+def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     """ response function in https://arxiv.org/pdf/1405.0525.pdf
     """
-    sol = mceq_yield(primary_energy, cos_theta, particle, kind, pmods, hadr)
+    sol = mceq_yield(primary_energy, cos_theta, particle, kind, pmods, pmodel, hadr)
     fnsol = interp1d(sol.info.e_grid, sol.yields, kind='quadratic',
                      assume_sorted=True)
-    return flux(primary_energy, particle)*fnsol(elep)
+    return flux(primary_energy, particle, pmodel)*fnsol(elep)
 
 
-def prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
+def prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2):
     # only subtract if it matters
     if nenu*enu > 0.01*primary_energy:
         primary_energy -= nenu*enu
     emu_min = minimum_muon_energy(GEOM.overburden(cos_theta))
     if primary_energy < emu_min:
         return 1
-    mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
+    mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, pmodel, hadr)
     if mu.info.e_grid[-1] < emu_min:
         # probability of no muons that make it will be 1 if emu_min > highest yield
         return 1
@@ -124,23 +125,21 @@ def prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods=(), hadr='S
                             np.concatenate(([emu_min],mu.info.e_grid[above]))))
 
 
-def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.3c', nenu=2):
+def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2):
     # only subtract if it matters
     if nenu*enu > 0.01*primary_energy:
         primary_energy -= nenu*enu
 
     l_ice = GEOM.overburden(cos_theta)
-    if MU.prpl((primary_energy*Units.GeV, l_ice)) < 1e-5:
-        return 1
-    mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
+    mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, pmodel, hadr)
 
     coords = zip(mu.info.e_grid*Units.GeV, [l_ice]*len(mu.info.e_grid))
     return np.exp(-np.trapz(mu.yields*MU.prpl(coords),
                             mu.info.e_grid))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, prpl=False):
-    pmod = SETUP['flux'](SETUP['gen'])
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, prpl=False):
+    pmod = pmodel[0](pmodel[1])
     passed = 0
     total = 0
     for particle in pmod.nucleus_ids:
@@ -151,11 +150,11 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), hadr='SIBYLL2.3c', accur
         denom = []
         istart = max(0, np.argmax(eprimaries > enu) - 1)
         for primary_energy in eprimaries[istart:]:
-            res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, hadr)
+            res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, pmodel, hadr)
             if prpl:
-                pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, hadr, nenu)
+                pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, pmodel, hadr, nenu)
             else:
-                pnm = prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods, hadr, nenu)
+                pnm = prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods, pmodel, hadr, nenu)
             numer.append(res*pnm)
             denom.append(res)
 
