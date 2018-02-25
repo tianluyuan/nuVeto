@@ -128,9 +128,14 @@ def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), hadr='SIBYLL2.
     # only subtract if it matters
     if nenu*enu > 0.01*primary_energy:
         primary_energy -= nenu*enu
+
+    l_ice = GEOM.overburden(cos_theta)
+    if MU.prpl((primary_energy*Units.GeV, l_ice)) < 1e-5:
+        return 1
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, hadr)
-    
-    return np.exp(-np.trapz(mu.yields*MU.prpl(mu.info.e_grid*Units.GeV, GEOM.overburden(cos_theta)),
+
+    coords = zip(mu.info.e_grid*Units.GeV, [l_ice]*len(mu.info.e_grid))
+    return np.exp(-np.trapz(mu.yields*MU.prpl(coords),
                             mu.info.e_grid))
 
 

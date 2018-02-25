@@ -95,8 +95,8 @@ class MuonProb(object):
         self.mu_int = pickle.load(open(pklfile))
 
 
-    def prpl(self, mu_e, overburden):
-        return self.mu_int(zip(mu_e, [overburden]*len(mu_e)))
+    def prpl(self, coord):
+        return self.mu_int(coord)
         
     
 class Geometry(EarthGeometry):
