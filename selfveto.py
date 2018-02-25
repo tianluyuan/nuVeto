@@ -179,10 +179,14 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
     
     ice_distance = GEOM.overburden(cos_theta)
     identity = lambda Ep: 1
-    if not prpl:
-        reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance, scale, shift)
+    if 'numu' not in daughter:
+        # muon accompanies numu only
+        reaching = identity
     else:
-        reaching = lambda Ep: 1. - MU.prpl((Ep-enu)*Units.GeV, ice_distance) 
+        if not prpl:
+            reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance, scale, shift)
+        else:
+            reaching = lambda Ep: 1. - MU.prpl((Ep-enu)*Units.GeV, ice_distance) 
 
     deltahs, grid_sol = solver(cos_theta, pmodel, hadr)
     passing_numerator = 0
