@@ -78,6 +78,8 @@ def hist_preach(infile, plotdir=None):
 def int_ef(preach, plight=1e3):
     """ integate p_reach*p_light over e_f to reduce dimensionality for interpolator
     """
+    if isinstance(preach, str) and os.path.isfile(preach):
+        preach = hist_preach(preach)
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
     for (ei, l), sdf in df.groupby(['ei', 'l']):
