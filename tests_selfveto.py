@@ -138,7 +138,7 @@ def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
     plt.legend()
 
 
-def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3'):
+def test_corsika(corsika_file, cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3'):
     if isinstance(cos_theta_bin, list):
         [test_corsika(cth, kind) for cth in cos_theta_bin]
         return
@@ -147,7 +147,7 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
                  'pr_nue':'nue_prompt',
                  'conv_numu':'numu_conv',
                  'conv_nue':'nue_conv'}
-    corsika = pickle.load(open('external/corsika/sibyll23.pkl'))
+    corsika = pickle.load(open(corsika_file))
     eff, elow, eup, xedges, yedges = corsika[translate[kind]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
