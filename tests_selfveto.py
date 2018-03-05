@@ -32,7 +32,7 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, nenu=2, **kwargs):
+def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, nenu=0, **kwargs):
     """ plot the corr*uncorr passing rate (flux or fraction)
     """
     import uncorrelated_selfveto as usv
@@ -40,7 +40,7 @@ def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, '
     corr = np.asarray([passing_rate(en, cos_theta, kind, pmodel,
                                     hadr, accuracy, fraction, scale, shift, prpl) for en in ens])
     uncorr = np.asarray([usv.passing_rate(en, cos_theta, kind, pmodel=pmodel,
-                                          hadr=hadr, fraction=fraction, nenu=0, prpl=prpl) for en in ens])
+                                          hadr=hadr, fraction=fraction, nenu=nenu, prpl=prpl) for en in ens])
     prs = plt.plot(ens, corr*uncorr, **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
@@ -162,6 +162,17 @@ def test_corsika(corsika_file, cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.Hi
                  fmt='.', color=pr.get_color())
     plt.legend()
 
+
+def test_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
+    pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
+               (pm.PolyGonato, False, 'poly-gonato'),
+               (pm.GaisserHonda, None, 'GH')]
+    ens = np.logspace(2,9, 50)
+    for pmodel in pmodels:
+        pr = test_pr_mult(cos_theta, kind, pmodel=pmodel[:2], hadr=hadr,
+                          label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
+    plt.legend()
+        
 
 def test_dndee(mother, daughter):
     x_range, dNdEE, dNdEE_interp = get_dNdEE(mother, daughter)
