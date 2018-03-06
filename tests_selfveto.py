@@ -200,22 +200,14 @@ def test_preach(cos_theta=1, scale=0.1, shift=0):
     plt.legend()
 
 
-def test_plpr(preach, plight=1e3):
-    intg = mu.int_ef(preach, plight)
-    plt.scatter(intg[:,0], intg[:,1], c=intg[:,2])
-    plt.loglog()
-    plt.xlabel(r'$E_i$ [GeV]')
-    plt.ylabel(r'Overburden [m]')
-    plt.colorbar()
-
-
-def test_prpl(int_prpl):
+def test_prpl(int_prpl, include_mean=False):
     plt.scatter(int_prpl[:,0], int_prpl[:,1], c=int_prpl[:,2])
-    l_ice = np.unique(int_prpl[:,1])
-    small_ice = l_ice[l_ice<2.7e4]
-    plt.plot(minimum_muon_energy(small_ice), small_ice, 'k--', label=r'Mean $E_\mu^i$')
     plt.xlabel(r'$E_\mu^i$ [GeV]')
     plt.ylabel(r'$l_{ice}$ [m]')
     plt.loglog()
     plt.colorbar()
-    plt.legend()
+    if include_mean:
+        l_ice = np.unique(int_prpl[:,1])
+        small_ice = l_ice[l_ice<2.7e4]
+        plt.plot(minimum_muon_energy(small_ice), small_ice, 'k--', label=r'Mean $E_\mu^i$')
+        plt.legend()
