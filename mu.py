@@ -3,7 +3,7 @@ from collections import namedtuple
 import utils
 import numpy as np
 import pandas as pd
-from scipy import interpolate
+from scipy import interpolate, stats
 from matplotlib import pyplot as plt
 
 
@@ -75,7 +75,7 @@ def hist_preach(infile, plotdir=None):
     return np.asarray(preach)
 
 
-def int_ef(preach, plight=1e3):
+def int_ef(preach, plight):
     """ integate p_reach*p_light over e_f to reduce dimensionality for interpolator
     """
     if isinstance(preach, str) and os.path.isfile(preach):
@@ -83,14 +83,29 @@ def int_ef(preach, plight=1e3):
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
     for (ei, l), sdf in df.groupby(['ei', 'l']):
-        above = sdf.loc[sdf['ef'] > plight]
-        intg.append((ei, l, np.sum(above['ew']*above['pdf'])))
+        intg.append((ei, l, np.sum(sdf['ew']*sdf['pdf']*plight(sdf['ef']))))
 
     return np.asarray(intg)
 
 
-def interp(preach, plight=1e3):
+def interp(preach, plight):
     intg = int_ef(preach, plight)
     df = pd.DataFrame(intg, columns='ei l prpl'.split())
     df = df.pivot_table(index='ei', columns='l', values='prpl').fillna(0)
     return interpolate.RegularGridInterpolator((df.index,df.columns), df.values, bounds_error=False, fill_value=0)
+
+
+def sigmoid(emu, center, scale):
+    return stats.norm.cdf(emu, loc=center, scale=scale)
+
+
+def pl_heaviside(emu):
+    """ heaviside at 1 TeV
+    """
+    return sigmoid(emu, 1e3, 1e-6)
+
+
+def pl_smeared(emu):
+    """ sigmoid centered at 500 GeV
+    """
+    return sigmoid(emu, 750, 100)
