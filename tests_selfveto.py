@@ -54,7 +54,7 @@ def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, '
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, prpl=None, **kwargs):
+def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, prpl='step_1', **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,11)
@@ -82,20 +82,24 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
     plt.legend()
 
 
+def test_prpl(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None), hadr='SIBYLL2.3c'):
+    prpls = [None, 'step_1', 'sigmoid_0.75_0.1']
+
+    ens = np.logspace(2,9, 100)
+    for prpl in prpls:
+        test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
+                label='{} {} {:.2g}'.format(prpl, kind, cos_theta))
+    plt.legend()
+
+
 def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1'):
     hadrs=['DPMJET-III']
     ens = np.logspace(2,9, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
-    # plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
+    plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
     for hadr in hadrs:
-        pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=None,
-                     label='Average muon range'.format(hadr, kind, cos_theta))
         test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
-                label='Correct muon range'.format(cos_theta), color=pr.get_color(), linestyle='--')
-        # pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
-        #              label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-        # test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True,
-        #         label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
+                label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.legend()
 
 
@@ -118,9 +122,7 @@ def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.GaisserHonda, None), p
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
     plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
-        pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, enu))
-        test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='{} {} {:.2g}'.format(hadr, kind, enu),
-                    color=pr.get_color(), linestyle='--')
+        test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='{} {} {:.2g}'.format(hadr, kind, enu))
     plt.legend()
 
 
