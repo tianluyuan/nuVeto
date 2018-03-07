@@ -1,3 +1,4 @@
+import os
 from functools32 import lru_cache
 import numpy as np
 import scipy.integrate as integrate
@@ -184,7 +185,7 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
         if prpl is None:
             reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance, scale, shift)
         else:
-            fn = MuonProb(os.path.join('external/mmc', prpl+'.pkl'))
+            fn = MuonProb(os.path.join('data', prpl+'.pkl'))
             reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
                                                    [ice_distance]*len(Ep)))
 

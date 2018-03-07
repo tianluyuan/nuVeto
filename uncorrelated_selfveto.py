@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-
 """
 Calculate the rate at which atmospheric neutrinos arrive at an underground
 detector with no accompanying muons.
 """
+import os
 from collections import namedtuple
 from enum import Enum
 from functools32 import lru_cache
@@ -132,7 +131,7 @@ def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.Hil
     l_ice = GEOM.overburden(cos_theta)
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, pmodel, hadr)
 
-    fn = MuonProb(os.path.join('external/mmc', prpl+'.pkl'))
+    fn = MuonProb(os.path.join('data', prpl+'.pkl'))
     coords = zip(mu.info.e_grid*Units.GeV, [l_ice]*len(mu.info.e_grid))
     return np.exp(-np.trapz(mu.yields*fn.prpl(coords),
                             mu.info.e_grid))
