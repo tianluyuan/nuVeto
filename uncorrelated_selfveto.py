@@ -31,7 +31,6 @@ MCEQ = MCEqRun(
     # expand the rest of the options from mceq_config.py
     **config)
 GEOM = Geometry(1950*Units.m)
-MU = MuonProb('external/mmc/prpl.pkl')
 
 
 # def mcsolver(primary_energy, cos_theta, particle, pmods=(), hadr='SIBYLL2.3c'):
@@ -125,7 +124,7 @@ def prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=
                             np.concatenate(([emu_min],mu.info.e_grid[above]))))
 
 
-def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2):
+def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2, prpl=None):
     # only subtract if it matters
     if nenu*enu > 0.01*primary_energy:
         primary_energy -= nenu*enu
@@ -133,12 +132,13 @@ def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.Hil
     l_ice = GEOM.overburden(cos_theta)
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, pmodel, hadr)
 
+    fn = MuonProb(os.path.join('external/mmc', prpl+'.pkl'))
     coords = zip(mu.info.e_grid*Units.GeV, [l_ice]*len(mu.info.e_grid))
-    return np.exp(-np.trapz(mu.yields*MU.prpl(coords),
+    return np.exp(-np.trapz(mu.yields*fn.prpl(coords),
                             mu.info.e_grid))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, prpl=False):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, prpl=None):
     pmod = pmodel[0](pmodel[1])
     passed = 0
     total = 0
@@ -151,8 +151,8 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser
         istart = max(0, np.argmax(eprimaries > enu) - 1)
         for primary_energy in eprimaries[istart:]:
             res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, pmodel, hadr)
-            if prpl:
-                pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, pmodel, hadr, nenu)
+            if prpl is not None:
+                pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, pmodel, hadr, nenu, prpl)
             else:
                 pnm = prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods, pmodel, hadr, nenu)
             numer.append(res*pnm)

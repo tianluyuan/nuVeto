@@ -7,7 +7,6 @@ from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 from utils import *
-import mu
 
 
 SETUP = {'pmodel':(pm.HillasGaisser2012,'H3a'),
@@ -23,7 +22,6 @@ MCEQ = MCEqRun(
     # expand the rest of the options from mceq_config.py
     **config)
 GEOM = Geometry(1950*Units.m)
-MU = MuonProb('external/mmc/prpl.pkl')
 
 
 @lru_cache(maxsize=2**12)
@@ -159,7 +157,7 @@ def categ_to_mothers(categ, daughter):
     return mothers
     
 
-def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False):
+def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=None):
     def get_rescale_phi(mother, deltah, grid_sol, idx):
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(deltah / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * get_solution(grid_sol, mother, grid_idx=idx)
@@ -183,10 +181,11 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
         # muon accompanies numu only
         reaching = identity
     else:
-        if not prpl:
+        if prpl is None:
             reaching = lambda Ep: 1. - muon_reach_prob((Ep - enu) * Units.GeV, ice_distance, scale, shift)
         else:
-            reaching = lambda Ep: 1. - MU.prpl(zip((Ep-enu)*Units.GeV,
+            fn = MuonProb(os.path.join('external/mmc', prpl+'.pkl'))
+            reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
                                                    [ice_distance]*len(Ep)))
 
     deltahs, grid_sol = solver(cos_theta, pmodel, hadr)

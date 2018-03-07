@@ -14,7 +14,7 @@ def test_fn(slice_val):
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, **kwargs):
+def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=None, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,50)
@@ -32,7 +32,7 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, nenu=0, **kwargs):
+def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=None, nenu=0, **kwargs):
     """ plot the corr*uncorr passing rate (flux or fraction)
     """
     import uncorrelated_selfveto as usv
@@ -54,7 +54,7 @@ def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, '
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=False, **kwargs):
+def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, scale=1e-6, shift=0, prpl=None, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,11)
@@ -96,7 +96,7 @@ def test_preach_shift(cos_theta=1, kind='conv_numu'):
     plt.legend()
 
 
-def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
+def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='prpl'):
     hadrs=['DPMJET-III']
     ens = np.logspace(2,9, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
@@ -104,7 +104,7 @@ def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
     for hadr in hadrs:
         pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
                      label='Average muon range'.format(hadr, kind, cos_theta))
-        test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True,
+        test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
                 label='Correct muon range'.format(cos_theta), color=pr.get_color(), linestyle='--')
         # pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
         #              label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
@@ -126,19 +126,19 @@ def test_elbert_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
     plt.legend()
         
 
-def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.GaisserHonda, None)):
+def test_elbert_cth(enu=1e5, kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='prpl'):
     hadrs=['DPMJET-III']
     cths = np.linspace(0,1, 100)
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
     plt.plot(cths, elbert.corr(kind)(enu, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, enu))
     for hadr in hadrs:
         pr = test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, enu))
-        test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='{} {} {:.2g}'.format(hadr, kind, enu),
+        test_pr_cth(enu, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='{} {} {:.2g}'.format(hadr, kind, enu),
                     color=pr.get_color(), linestyle='--')
     plt.legend()
 
 
-def test_corsika(corsika_file, cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3'):
+def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='prpl', corsika_file='nu_all_maxmu'):
     if isinstance(cos_theta_bin, list):
         [test_corsika(cth, kind) for cth in cos_theta_bin]
         return
@@ -147,12 +147,12 @@ def test_corsika(corsika_file, cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.Hi
                  'pr_nue':'nue_prompt',
                  'conv_numu':'numu_conv',
                  'conv_nue':'nue_conv'}
-    corsika = pickle.load(open(corsika_file))
+    corsika = pickle.load(open(os.path.join('external/corsika', corsika_file+'.pkl'))
     eff, elow, eup, xedges, yedges = corsika[translate[kind]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
     pr = test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-    test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=True, label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
+    test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,
