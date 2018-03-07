@@ -104,7 +104,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
             self.total_pion += self.mceq_run.get_solution('pi-', 0, grid_idx=idx)*deltah
             self.total_kaon += self.mceq_run.get_solution('K-', 0, grid_idx=idx)*deltah
 
-    def RunMCLayeredMode(self, costh,number_of_layers=1000):
+    def RunMCLayeredMode(self, costh,number_of_layers=10000):
         self.mceq_run = MCEqRun(
                         self.hadronic_model,
                         primary_model=self.primary_cr_model,
