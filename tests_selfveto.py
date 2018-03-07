@@ -139,8 +139,11 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
     eff, elow, eup, xedges, yedges = corsika[translate[kind]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
-    pr = test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-    test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='Corrected $P_{{reach}}$ {:.2g}'.format(cos_theta), color=pr.get_color(), linestyle='--')
+    ens = np.logspace(2,9, 100)
+    emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
+    plt.plot(ens, elbert.passrates(kind)(ens, emu, cos_theta), 'k--',
+             label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
+    pr = test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,
