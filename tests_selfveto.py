@@ -82,7 +82,7 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
     plt.legend()
 
 
-def test_prpl(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None), hadr='SIBYLL2.3c'):
+def test_prpls(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None), hadr='SIBYLL2.3c'):
     prpls = [None, 'step_1', 'sigmoid_0.75_0.1']
 
     ens = np.logspace(2,9, 100)
@@ -177,7 +177,7 @@ def test_dndee(mother, daughter):
     plt.legend()
 
 
-def test_prpl(int_prpl, include_mean=False):
+def test_plot_prpl(int_prpl, include_mean=False):
     plt.scatter(int_prpl[:,0], int_prpl[:,1], c=int_prpl[:,2])
     plt.xlabel(r'$E_\mu^i$ [GeV]')
     plt.ylabel(r'$l_{ice}$ [m]')
