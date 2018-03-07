@@ -123,7 +123,7 @@ def prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=
                             np.concatenate(([emu_min],mu.info.e_grid[above]))))
 
 
-def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2, prpl=None):
+def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2, prpl='step_1'):
     # only subtract if it matters
     if nenu*enu > 0.01*primary_energy:
         primary_energy -= nenu*enu
@@ -137,7 +137,7 @@ def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.Hil
                             mu.info.e_grid))
 
 
-def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, prpl=None):
+def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=20, fraction=True, nenu=2, prpl='step_1'):
     pmod = pmodel[0](pmodel[1])
     passed = 0
     total = 0
