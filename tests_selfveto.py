@@ -136,7 +136,7 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
                  'conv_numu':'numu_conv',
                  'conv_nue':'nue_conv'}
     corsika = pickle.load(open(os.path.join('external/corsika', corsika_file+'.pkl')))
-    eff, elow, eup, xedges, yedges = corsika[translate[kind]]
+    eff, elow, eup, xedges, yedges = corsika[translate[kind.replace('anti', '')]]
     cos_theta = centers(yedges)[cos_theta_bin]
 
     ens = np.logspace(2,9, 100)
