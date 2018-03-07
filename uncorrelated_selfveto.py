@@ -2,7 +2,6 @@
 Calculate the rate at which atmospheric neutrinos arrive at an underground
 detector with no accompanying muons.
 """
-import os
 from collections import namedtuple
 from enum import Enum
 from functools32 import lru_cache
@@ -102,27 +101,6 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
     return flux(primary_energy, particle, pmodel)*fnsol(elep)
 
 
-def prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2):
-    # only subtract if it matters
-    if nenu*enu > 0.01*primary_energy:
-        primary_energy -= nenu*enu
-    emu_min = minimum_muon_energy(GEOM.overburden(cos_theta))
-    if primary_energy < emu_min:
-        return 1
-    mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, pmodel, hadr)
-    if mu.info.e_grid[-1] < emu_min:
-        # probability of no muons that make it will be 1 if emu_min > highest yield
-        return 1
-    fnmu = interp1d(mu.info.e_grid, mu.yields, kind='quadratic',
-                    assume_sorted=True)
-    above = mu.info.e_grid > emu_min
-
-    # idx = max(0,np.argmax(mu.info.e_grid > emu_min)-1)
-    # return np.exp(-simps(mu.yields[idx:], mu.info.e_grid[idx:]))
-    return np.exp(-np.trapz(np.concatenate(([fnmu(emu_min)],mu.yields[above])),
-                            np.concatenate(([emu_min],mu.info.e_grid[above]))))
-
-
 def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2, prpl='step_1'):
     # only subtract if it matters
     if nenu*enu > 0.01*primary_energy:
@@ -131,7 +109,7 @@ def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.Hil
     l_ice = GEOM.overburden(cos_theta)
     mu = mceq_yield(primary_energy, cos_theta, particle, 'mu', pmods, pmodel, hadr)
 
-    fn = MuonProb(os.path.join('data', prpl+'.pkl'))
+    fn = MuonProb(prpl)
     coords = zip(mu.info.e_grid*Units.GeV, [l_ice]*len(mu.info.e_grid))
     return np.exp(-np.trapz(mu.yields*fn.prpl(coords),
                             mu.info.e_grid))
@@ -150,10 +128,7 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser
         istart = max(0, np.argmax(eprimaries > enu) - 1)
         for primary_energy in eprimaries[istart:]:
             res = response_function(primary_energy, cos_theta, particle, enu, kind, pmods, pmodel, hadr)
-            if prpl is not None:
-                pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, pmodel, hadr, nenu, prpl)
-            else:
-                pnm = prob_nomu_simple(primary_energy, cos_theta, particle, enu, pmods, pmodel, hadr, nenu)
+            pnm = prob_nomu(primary_energy, cos_theta, particle, enu, pmods, pmodel, hadr, nenu, prpl)
             numer.append(res*pnm)
             denom.append(res)
 

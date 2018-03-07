@@ -1,3 +1,4 @@
+import os
 import pickle
 from MCEq.geometry import EarthGeometry
 import numpy as np
@@ -92,9 +93,31 @@ class MaterialProperties(object):
 
 class MuonProb(object):
     def __init__(self, pklfile):
-        self.mu_int = pickle.load(open(pklfile))
+        if pklfile is None:
+            self.mu_int = self.muon_reach_prob
+        else:
+            self.mu_int = pickle.load(open(os.path.join('data', pklfile+'.pkl')))
 
 
+    def minimum_muon_energy(self, distance):
+        """
+        Minimum muon energy required to survive the given thickness of ice with at
+        least 1 TeV 50% of the time.
+
+        :returns: minimum muon energy [GeV]
+        """
+        # require that the muon have median energy 1 TeV
+        b, c = 2.52151, 7.13834
+        return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
+
+    
+    def muon_reach_prob(self, coord):
+        coord = np.asarray(coord)
+        muon_energy, ice_distance = coord[:,0], coord[:,1]
+        min_mue = self.minimum_muon_energy(ice_distance)*Units.GeV
+        return muon_energy > min_mue
+
+    
     def prpl(self, coord):
         return self.mu_int(coord)
         
@@ -153,22 +176,8 @@ def centers(x):
     return (x[:-1]+x[1:])*0.5
 
 
-def minimum_muon_energy(distance):
-    """
-    Minimum muon energy required to survive the given thickness of ice with at
-    least 1 TeV 50% of the time.
-
-    :returns: minimum muon energy [GeV]
-    """
-    # require that the muon have median energy 1 TeV
-    b, c = 2.52151, 7.13834
-    return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
-
-
 def ice_column_density(costh, depth = 1950.*Units.m):
     return (overburden(costh, depth/Units.m, elevation=2400)*Units.m)*MaterialProperties.density["ice"]
 
 
-def muon_reach_prob(muon_energy, ice_distance):
-    min_mue = minimum_muon_energy(ice_distance)*Units.GeV
-    return muon_energy > min_mue
+

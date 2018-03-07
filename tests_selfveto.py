@@ -88,7 +88,7 @@ def test_elbert(cos_theta=1, kind='conv_numu', pmodel=(pm.GaisserHonda, None), p
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
     # plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
     for hadr in hadrs:
-        pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr,
+        pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=None,
                      label='Average muon range'.format(hadr, kind, cos_theta))
         test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
                 label='Correct muon range'.format(cos_theta), color=pr.get_color(), linestyle='--')
@@ -184,5 +184,5 @@ def test_prpl(int_prpl, include_mean=False):
     if include_mean:
         l_ice = np.unique(int_prpl[:,1])
         small_ice = l_ice[l_ice<2.7e4]
-        plt.plot(minimum_muon_energy(small_ice), small_ice, 'k--', label=r'Mean $E_\mu^i$')
+        plt.plot(jvssv.minimum_muon_energy(small_ice), small_ice, 'k--', label=r'Mean $E_\mu^i$')
         plt.legend()
