@@ -94,27 +94,27 @@ class MaterialProperties(object):
 class MuonProb(object):
     def __init__(self, pklfile):
         if pklfile is None:
-            self.mu_int = self.muon_reach_prob
+            self.mu_int = self.median_approx
         else:
             self.mu_int = pickle.load(open(os.path.join('data', pklfile+'.pkl')))
 
 
-    def minimum_muon_energy(self, distance):
+    def median_emui(self, distance):
         """
         Minimum muon energy required to survive the given thickness of ice with at
         least 1 TeV 50% of the time.
 
-        :returns: minimum muon energy [GeV]
+        :returns: minimum muon energy [GeV] for 1 TeV
         """
         # require that the muon have median energy 1 TeV
         b, c = 2.52151, 7.13834
         return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
 
     
-    def muon_reach_prob(self, coord):
+    def median_approx(self, coord):
         coord = np.asarray(coord)
         muon_energy, ice_distance = coord[:,0], coord[:,1]
-        min_mue = self.minimum_muon_energy(ice_distance)*Units.GeV
+        min_mue = self.median_emui(ice_distance)*Units.GeV
         return muon_energy > min_mue
 
     
