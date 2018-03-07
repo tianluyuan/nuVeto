@@ -11,6 +11,8 @@ from utils import *
 
 SETUP = {'pmodel':(pm.HillasGaisser2012,'H3a'),
          'hadr':'SIBYLL2.3c'}
+ADV_SET = config['adv_set']
+ADV_SET['no_mixing'] = False
 MCEQ = MCEqRun(
     # provide the string of the interaction model
     interaction_model=SETUP['hadr'],
@@ -19,8 +21,10 @@ MCEQ = MCEqRun(
     primary_model=SETUP['pmodel'],
     # zenith angle \theta in degrees, measured positively from vertical direction
     theta_deg = 0.,
+    adv_set = ADV_SET,
+    compact_mode = False,
     # expand the rest of the options from mceq_config.py
-    **config)
+    **mceq_config_without(['compact_mode', 'adv_set']))
 GEOM = Geometry(1950*Units.m)
 
 
@@ -31,7 +35,7 @@ def get_dNdEE(mother, daughter):
     delta = MCEQ.e_widths
     x_range = e_grid[ihijo]/e_grid
     rr = ParticleProperties.rr(mother, daughter)
-    dN_mat = MCEQ.ds.get_d_matrix(ParticleProperties.pdg_id[mother],
+    dN_mat = MCEQ.decays.get_d_matrix(ParticleProperties.pdg_id[mother],
                                   ParticleProperties.pdg_id[daughter])
     dNdEE = dN_mat[ihijo]*e_grid/delta
     logx = np.log10(x_range)
@@ -204,7 +208,7 @@ def GetPassingFractionPrompt(cos_theta):
     delta = caca.mceq_run.e_widths
     ihijo = 20
     x_range = (e_grid / e_grid[ihijo])**-1
-    dNdEE = caca.mceq_run.ds.get_d_matrix(411, 14)[ihijo] * e_grid / delta
+    dNdEE = caca.mceq_run.decays.get_d_matrix(411, 14)[ihijo] * e_grid / delta
     end_value = dNdEE[(x_range <= 1.) & (x_range >= 1.0e-3)][-1]
     dNdEE_DInterpolator = interpolate.interp1d(x_range[(x_range <= 1.) & (x_range >= 1.e-3)],
                                                dNdEE[(x_range <= 1.) & (
