@@ -27,7 +27,6 @@ MCEQ = MCEqRun(
     **mceq_config_without(['compact_mode', 'adv_set']))
 GEOM = Geometry(1950*Units.m)
 
-
 @lru_cache(maxsize=2**12)
 def get_dNdEE(mother, daughter):
     ihijo = 20
@@ -69,17 +68,18 @@ def solver(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     MCEQ.set_interaction_model(hadr)
     MCEQ.set_theta_deg(theta)
 
-    Xvec = np.logspace(np.log10(1),
-                       np.log10(MCEQ.density_model.max_X), 10)
-    heights = MCEQ.density_model.X2h(Xvec) * Units.cm
+    x_vec = np.logspace(np.log10(1), np.log10(MCEQ.density_model.max_X), 11)
+    heights = MCEQ.density_model.X2h(x_vec) * Units.cm
     lengths = GEOM.delta_l(heights, np.radians(theta))
     deltahs = np.diff(lengths)
-    MCEQ.solve(int_grid=Xvec, grid_var="X")
-    return deltahs, MCEQ.grid_sol
+    MCEQ.solve(int_grid=x_vec[:-1], grid_var="X")
+    return deltahs, x_vec[:-1], MCEQ.grid_sol
 
 
 def get_solution(grid_sol,
                  particle_name,
+                 dh,
+                 xv,
                  mag=0.,
                  grid_idx=None,
                  integrate=False):
@@ -113,8 +113,6 @@ def get_solution(grid_sol,
     Returns:
       (numpy.array): flux of particles on energy grid :attr:`e_grid`
     """
-    # Account for the
-
     res = np.zeros(MCEQ.d)
     ref = MCEQ.pname2pref
     sol = None
@@ -142,10 +140,15 @@ def get_solution(grid_sol,
     elif particle_name.startswith('D') or particle_name.startswith('Lambda'):
         res = np.array([0.]*len(MCEQ.e_grid))
         for prim in ['p', 'p-bar', 'n', 'n-bar']:
-            res += np.dot(MCEQ.y.get_y_matrix(
+            prim_flux = get_solution(grid_sol, prim, 0, grid_idx)
+            prim_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[prim])
+            rho_air = MCEQ.density_model.X2rho(xv)
+            decay_length_array = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /(dh*Units.cm)
+            int_yields = MCEQ.y.get_y_matrix(
                 ParticleProperties.pdg_id[prim],
-                ParticleProperties.pdg_id[particle_name]),
-                          get_solution(grid_sol, prim, 0, grid_idx))
+                ParticleProperties.pdg_id[particle_name])
+            res += np.dot(int_yields,
+                          prim_flux*prim_xs*rho_air*decay_length_array*Units.Na)
         res *= MCEQ.e_grid ** mag
     else:
         res = sol[ref[particle_name].lidx():
@@ -170,17 +173,17 @@ def categ_to_mothers(categ, daughter):
     
 
 def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, prpl='step_1'):
-    def get_rescale_phi(mother, deltah, grid_sol, idx):
-        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(deltah / ParticleProperties.lifetime_dict[mother])
-        rescale_phi = inv_decay_length_array * get_solution(grid_sol, mother, grid_idx=idx)
+    def get_rescale_phi(mother, dh, xv, grid_sol, idx):
+        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[mother])
+        rescale_phi = inv_decay_length_array * get_solution(grid_sol, mother, dh, xv, grid_idx=idx)
         return interpolate.interp1d(MCEQ.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 
-    def get_integrand(categ, daughter, deltah, grid_sol, idx, weight_fn, esamp):
+    def get_integrand(categ, daughter, dh, xv, grid_sol, idx, weight_fn, esamp):
         mothers = categ_to_mothers(categ, daughter)
         ys = np.zeros(len(esamp))
         for mother in mothers:
             dNdEE = get_dNdEE(mother, daughter)[-1]
-            rescale_phi = get_rescale_phi(mother, deltah, grid_sol, idx)
+            rescale_phi = get_rescale_phi(mother, dh, xv, grid_sol, idx)
             ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn(esamp)
             
         return ys
@@ -197,14 +200,14 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
         reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
                                                [ice_distance]*len(Ep)))
 
-    deltahs, grid_sol = solver(cos_theta, pmodel, hadr)
+    deltahs, x_vec, grid_sol = solver(cos_theta, pmodel, hadr)
     passing_numerator = 0
     passing_denominator = 0
     esamp = np.logspace(np.log10(enu), np.log10(MCEQ.e_grid[-1]), int(10**accuracy))
-    for idx, deltah in enumerate(deltahs):
+    for idx, (dh, xv) in enumerate(zip(deltahs, x_vec)):
         passing_numerator += integrate.trapz(
-            get_integrand(categ, daughter, deltah, grid_sol, idx, reaching, esamp), esamp)
+            get_integrand(categ, daughter, dh, xv, grid_sol, idx, reaching, esamp), esamp)
         passing_denominator += integrate.trapz(
-            get_integrand(categ, daughter, deltah, grid_sol, idx, identity, esamp), esamp)
+            get_integrand(categ, daughter, dh, xv, grid_sol, idx, identity, esamp), esamp)
         # print passing_numerator, passing_denominator
     return passing_numerator/passing_denominator if fraction else passing_numerator
