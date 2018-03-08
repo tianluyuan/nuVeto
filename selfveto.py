@@ -78,7 +78,6 @@ def solver(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
 
 def get_solution(grid_sol,
                  particle_name,
-                 dh,
                  xv,
                  mag=0.,
                  grid_idx=None,
@@ -140,10 +139,10 @@ def get_solution(grid_sol,
     elif particle_name.startswith('D') or particle_name.startswith('Lambda'):
         res = np.array([0.]*len(MCEQ.e_grid))
         for prim in ['p', 'p-bar', 'n', 'n-bar']:
-            prim_flux = get_solution(grid_sol, prim, 0, grid_idx)
+            prim_flux = get_solution(grid_sol, prim, xv, mag=0, grid_idx=grid_idx)
             prim_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[prim])
             rho_air = MCEQ.density_model.X2rho(xv)
-            decay_length_array = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /(dh*Units.cm)
+            decay_length_array = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
             int_yields = MCEQ.y.get_y_matrix(
                 ParticleProperties.pdg_id[prim],
                 ParticleProperties.pdg_id[particle_name])
@@ -175,7 +174,7 @@ def categ_to_mothers(categ, daughter):
 def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, prpl='step_1'):
     def get_rescale_phi(mother, dh, xv, grid_sol, idx):
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (MCEQ.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[mother])
-        rescale_phi = inv_decay_length_array * get_solution(grid_sol, mother, dh, xv, grid_idx=idx)
+        rescale_phi = inv_decay_length_array * get_solution(grid_sol, mother, xv, grid_idx=idx)
         return interpolate.interp1d(MCEQ.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 
     def get_integrand(categ, daughter, dh, xv, grid_sol, idx, weight_fn, esamp):
