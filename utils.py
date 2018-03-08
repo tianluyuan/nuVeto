@@ -50,8 +50,8 @@ class ParticleProperties(object):
     lifetime_dict['D-']=1.040e-12*Units.sec # seconds to usual Units
     lifetime_dict['Ds+']=5.00e-13*Units.sec
     lifetime_dict['Ds-']=5.00e-13*Units.sec
-    lifetime_dict['D0']=4.101*Units.sec
-    lifetime_dict['D0-bar']=4.101*Units.sec
+    lifetime_dict['D0']=4.101e-13*Units.sec
+    lifetime_dict['D0-bar']=4.101e-13*Units.sec
 
     
     pdg_id['p'] = 2212
