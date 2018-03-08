@@ -53,6 +53,11 @@ class ParticleProperties(object):
     lifetime_dict['D0']=4.101*Units.sec
     lifetime_dict['D0-bar']=4.101*Units.sec
 
+    
+    pdg_id['p'] = 2212
+    pdg_id['n'] = 2112
+    pdg_id['p-bar'] = -2212
+    pdg_id['n-bar'] = -2112
     pdg_id['D+'] = 411 # D+
     pdg_id['K+'] = 321 # k+
     pdg_id['K0S'] = 310

@@ -139,6 +139,14 @@ def get_solution(grid_sol,
             res += sol[ref[particle_name].lidx():
                        ref[particle_name].uidx()] * \
                 MCEQ.e_grid ** mag
+    elif particle_name.startswith('D') or particle_name.startswith('Lambda'):
+        res = np.array([0.]*len(MCEQ.e_grid))
+        for prim in ['p', 'p-bar', 'n', 'n-bar']:
+            res += np.dot(MCEQ.y.get_y_matrix(
+                ParticleProperties.pdg_id[prim],
+                ParticleProperties.pdg_id[particle_name]),
+                          get_solution(grid_sol, prim, 0, grid_idx))
+        res *= MCEQ.e_grid ** mag
     else:
         res = sol[ref[particle_name].lidx():
                   ref[particle_name].uidx()] * \
