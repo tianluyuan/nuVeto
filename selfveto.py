@@ -226,7 +226,7 @@ def get_solution(grid_sol,
                 ParticleProperties.pdg_id[prim],
                 ParticleProperties.pdg_id[particle_name])
             res += np.dot(int_yields,
-                          prim_flux*(prim_xs-part_xs)*ntcm2)
+                          prim_flux*prim_xs*ntcm2)
         res *= MCEQ.e_grid ** mag
     else:
         res = sol[ref[particle_name].lidx():
