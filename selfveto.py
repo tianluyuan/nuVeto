@@ -137,16 +137,21 @@ def get_solution(grid_sol,
                        ref[particle_name].uidx()] * \
                 MCEQ.e_grid ** mag
     elif particle_name.startswith('D') or particle_name.startswith('Lambda'):
+        # flux of charm mesons cuts off below 1e6
+        # need to calculate yield(prim, cmes)*prim_flux*(prim_interact-cmes_decay)
         res = np.array([0.]*len(MCEQ.e_grid))
+        part_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])
+        rho_air = MCEQ.density_model.X2rho(xv)
+        # cmeson decay length
+        decayl = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
+        # cmeson interaction length
+        interactionl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
+        # number of targets per cm2
+        ntcm2 = rho_air*np.minimum(decayl,interactionl)*Units.Na/Units.mol_air
         for prim in ['p', 'p-bar', 'n', 'n-bar']:
             prim_flux = sol[ref[prim].lidx():
                             ref[prim].uidx()]
             prim_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[prim])
-            part_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])
-            rho_air = MCEQ.density_model.X2rho(xv)
-            decayl = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
-            itactl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
-            ntcm2 = rho_air*np.minimum(decayl,itactl)*Units.Na/Units.mol_air
             int_yields = MCEQ.y.get_y_matrix(
                 ParticleProperties.pdg_id[prim],
                 ParticleProperties.pdg_id[particle_name])
