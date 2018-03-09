@@ -139,16 +139,19 @@ def get_solution(grid_sol,
     elif particle_name.startswith('D') or particle_name.startswith('Lambda'):
         res = np.array([0.]*len(MCEQ.e_grid))
         for prim in ['p', 'p-bar', 'n', 'n-bar']:
-            prim_flux = get_solution(grid_sol, prim, xv, mag=0, grid_idx=grid_idx)
+            prim_flux = sol[ref[prim].lidx():
+                            ref[prim].uidx()]
             prim_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[prim])
+            part_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])
             rho_air = MCEQ.density_model.X2rho(xv)
             decayl = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
-            ntargets = rho_air*decayl*Units.Na/Units.mol_air
+            itactl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
+            ntcm2 = rho_air*np.minimum(decayl,itactl)*Units.Na/Units.mol_air
             int_yields = MCEQ.y.get_y_matrix(
                 ParticleProperties.pdg_id[prim],
                 ParticleProperties.pdg_id[particle_name])
             res += np.dot(int_yields,
-                          prim_flux*prim_xs*ntargets)
+                          prim_flux*(prim_xs-part_xs)*ntcm2)
         res *= MCEQ.e_grid ** mag
     else:
         res = sol[ref[particle_name].lidx():
