@@ -225,6 +225,8 @@ def test_nu_flux(cos_theta, kind='pr_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
         plt.plot(MCEQ.e_grid, theirs/mine,
                  label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.ylabel(r'ratio theirs/mine')
+        plt.xscale('log')
+        plt.ylim(0, 4)
     else:
         pr = plt.plot(MCEQ.e_grid, theirs,
                   label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
@@ -235,4 +237,5 @@ def test_nu_flux(cos_theta, kind='pr_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
         plt.loglog()
 
     plt.xlabel(r'$E_\nu$')
+    plt.xlim(10**3, 10**7)
     plt.legend()
