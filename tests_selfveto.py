@@ -194,17 +194,21 @@ def test_plot_prpl(int_prpl, include_mean=False):
 
 
 def test_charm_flux(cos_theta, cmes='D0'):
+    plt.figure()
     deltahs, xvec, sol = solver(cos_theta)
     for idx in range(0,len(sol),4):
         mceq = get_solution_orig(sol, cmes, xvec[idx],
                                  3, grid_idx=idx)
         calc = get_solution(sol, cmes, xvec[idx],
                             3, grid_idx=idx)
-        pout = plt.loglog(MCEQ.e_grid, mceq)
+        pout = plt.loglog(MCEQ.e_grid, mceq,
+                          label='h={:.2g} km'.format(
+                              float(MCEQ.density_model.X2h(xvec[idx]))/1e5))
         plt.loglog(MCEQ.e_grid, calc, '--',
                    color=pout[0].get_color())
 
     plt.xlabel(r'$E_p$')
     plt.ylabel(r'$\Phi_p$')
     plt.ylim(ymin=1e-20)
+    plt.legend()
         
