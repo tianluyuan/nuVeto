@@ -183,7 +183,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         return (self.mceq_run.density_model.h2X(height/Units.cm) - self.mceq_run.density_model.h2X((height+distance)/Units.cm))*Units.gr/Units.cm**2
 
     def GetIceColumnDensity(self, costh, depth = 1950.*Units.m):
-        return (utils.overburden(costh, depth/Units.m, elevation=2400)*Units.m)*self.MaterialProperties.density["ice"]
+        return (utils.Geometry().overburden(costh, depth/Units.m, elevation=2400)*Units.m)*self.MaterialProperties.density["ice"]
 
     def DecayProbability(self, primary_energy, distance, meson):
         if not (meson in self.ParticleProperties.r_dict):
@@ -206,7 +206,7 @@ class CorrelatedSelfVetoProbabilityCalculator(SelfVetoProbabilityCalculator):
         return np.log((a_ + muon_energy*b_)/(a_ + min_muon_energy*b_))/b_
 
     def MuonReachProbability(self, muon_energy, ice_distance):
-        if(muon_energy > utils.minimum_muon_energy(ice_distance)*Units.GeV):
+        if(muon_energy > utils.MuonProb(None).median_emui(ice_distance)*Units.GeV):
             return 1.
         else:
             return 0.
