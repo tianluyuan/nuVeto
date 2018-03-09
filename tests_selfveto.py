@@ -193,13 +193,13 @@ def test_plot_prpl(int_prpl, include_mean=False):
         plt.legend()
 
 
-def test_charm_flux(cos_theta, cmes='D0'):
+def test_parent_flux(cos_theta, parent='D0'):
     plt.figure()
     deltahs, xvec, sol = solver(cos_theta)
     for idx in range(0,len(sol),4):
-        mceq = get_solution_orig(sol, cmes, xvec[idx],
+        mceq = get_solution_orig(sol, parent, xvec[idx],
                                  3, grid_idx=idx)
-        calc = get_solution(sol, cmes, xvec[idx],
+        calc = get_solution(sol, parent, xvec[idx],
                             3, grid_idx=idx)
         pout = plt.loglog(MCEQ.e_grid, mceq,
                           label='h={:.2g} km'.format(
@@ -212,3 +212,27 @@ def test_charm_flux(cos_theta, cmes='D0'):
     plt.ylim(ymin=1e-20)
     plt.legend()
         
+
+def test_nu_flux(cos_theta, kind='pr_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', ratio=False):
+    theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
+    MCEQ.set_primary_model(*pmodel)
+    MCEQ.set_interaction_model(hadr)
+    MCEQ.set_theta_deg(theta)
+    MCEQ.solve()
+    theirs = MCEQ.get_solution(kind)
+    mine = np.asarray([passing_rate(en, cos_theta, kind, pmodel, hadr, fraction=False) for en in MCEQ.e_grid])
+    if ratio:
+        plt.plot(MCEQ.e_grid, theirs/mine,
+                 label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+        plt.ylabel(r'ratio theirs/mine')
+    else:
+        pr = plt.plot(MCEQ.e_grid, theirs,
+                  label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+        plt.plot(MCEQ.e_grid, mine,
+                 linestyle='--', color=pr[0].get_color())
+        plt.ylabel(r'$\Phi_\nu$')
+        plt.ylim(ymin=1e-30)
+        plt.loglog()
+
+    plt.xlabel(r'$E_\nu$')
+    plt.legend()

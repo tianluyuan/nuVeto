@@ -288,4 +288,4 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
         passing_denominator += integrate.trapz(
             get_integrand(categ, daughter, dh, xv, grid_sol, idx, identity, esamp), esamp)
         # print passing_numerator, passing_denominator
-    return passing_numerator/passing_denominator if fraction else passing_numerator
+    return passing_numerator/passing_denominator if fraction else passing_denominator
