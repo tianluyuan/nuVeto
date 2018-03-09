@@ -213,21 +213,17 @@ def test_parent_flux(cos_theta, parent='D0'):
     plt.legend()
         
 
-def test_nu_flux(cos_theta, kind='pr_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', ratio=False):
+def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
     MCEQ.set_primary_model(*pmodel)
     MCEQ.set_interaction_model(hadr)
     MCEQ.set_theta_deg(theta)
     MCEQ.solve()
-    theirs = MCEQ.get_solution(kind)
-    mine = np.asarray([passing_rate(en, cos_theta, kind, pmodel, hadr, fraction=False) for en in MCEQ.e_grid])
-    if ratio:
-        plt.plot(MCEQ.e_grid, theirs/mine,
-                 label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-        plt.ylabel(r'ratio theirs/mine')
-        plt.xscale('log')
-        plt.ylim(0, 4)
-    else:
+    fig, axs = plt.subplots(2,1)
+    for kind in ['conv_numu', 'pr_numu', 'conv_nue']:
+        plt.sca(axs[0])
+        theirs = MCEQ.get_solution(kind)
+        mine = np.asarray([passing_rate(en, cos_theta, kind, pmodel, hadr, fraction=False) for en in MCEQ.e_grid])
         pr = plt.plot(MCEQ.e_grid, theirs,
                   label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.plot(MCEQ.e_grid, mine,
@@ -235,7 +231,15 @@ def test_nu_flux(cos_theta, kind='pr_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
         plt.ylabel(r'$\Phi_\nu$')
         plt.ylim(ymin=1e-30)
         plt.loglog()
+        plt.xlim(10**3, 10**7)
+        plt.legend()
 
-    plt.xlabel(r'$E_\nu$')
-    plt.xlim(10**3, 10**7)
-    plt.legend()
+        plt.sca(axs[1])
+        plt.plot(MCEQ.e_grid, theirs/mine,
+                 label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+        plt.ylabel(r'ratio theirs/mine')
+        plt.xscale('log')
+        plt.ylim(0, 4)
+
+        plt.xlabel(r'$E_\nu$')
+        plt.xlim(10**3, 10**7)
