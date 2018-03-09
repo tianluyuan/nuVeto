@@ -195,7 +195,7 @@ def test_plot_prpl(int_prpl, include_mean=False):
 
 def test_charm_flux(cos_theta, cmes='D0'):
     deltahs, xvec, sol = solver(cos_theta)
-    for idx in range(0,len(sol),3):
+    for idx in range(0,len(sol),4):
         mceq = get_solution_orig(sol, cmes, xvec[idx],
                                  3, grid_idx=idx)
         calc = get_solution(sol, cmes, xvec[idx],

@@ -217,7 +217,7 @@ def get_solution(grid_sol,
         # cmeson interaction length
         interactionl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
         # number of targets per cm2
-        ntcm2 = rho_air*np.minimum(decayl,interactionl)*Units.Na/Units.mol_air
+        ntcm2 = rho_air*decayl*Units.Na/Units.mol_air
         for prim in ['p', 'p-bar', 'n', 'n-bar']:
             prim_flux = sol[ref[prim].lidx():
                             ref[prim].uidx()]
