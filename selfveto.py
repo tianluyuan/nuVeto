@@ -142,12 +142,13 @@ def get_solution(grid_sol,
             prim_flux = get_solution(grid_sol, prim, xv, mag=0, grid_idx=grid_idx)
             prim_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[prim])
             rho_air = MCEQ.density_model.X2rho(xv)
-            decay_length_array = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
+            decayl = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
+            ntargets = rho_air*decayl*Units.Na/Units.mol_air
             int_yields = MCEQ.y.get_y_matrix(
                 ParticleProperties.pdg_id[prim],
                 ParticleProperties.pdg_id[particle_name])
             res += np.dot(int_yields,
-                          prim_flux*prim_xs*rho_air*decay_length_array*Units.Na)
+                          prim_flux*prim_xs*ntargets)
         res *= MCEQ.e_grid ** mag
     else:
         res = sol[ref[particle_name].lidx():

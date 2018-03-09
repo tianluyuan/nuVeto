@@ -17,6 +17,7 @@ class Units(object):
     MeV = 1e-3*GeV
     TeV = 1.e3*GeV
     PeV = 1.e3*TeV
+    mol_air = 29.
 
 
 class ParticleProperties(object):
