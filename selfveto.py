@@ -68,7 +68,7 @@ def solver(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     MCEQ.set_interaction_model(hadr)
     MCEQ.set_theta_deg(theta)
 
-    x_vec = np.logspace(np.log10(1), np.log10(MCEQ.density_model.max_X), 11)
+    x_vec = np.logspace(np.log10(1), np.log10(MCEQ.density_model.max_X), 21)
     heights = MCEQ.density_model.X2h(x_vec)
     lengths = MCEQ.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
     deltahs = np.diff(lengths)
@@ -140,6 +140,7 @@ def get_solution_orig(grid_sol,
         res = sol[ref[particle_name].lidx():
                   ref[particle_name].uidx()] * \
             MCEQ.e_grid ** mag
+
     if not integrate:
         return res
     else:
@@ -153,18 +154,6 @@ def get_solution(grid_sol,
                  grid_idx=None,
                  integrate=False):
     """Retrieves solution of the calculation on the energy grid.
-
-    Some special prefixes are accepted for lepton names:
-
-    - the total flux of muons, muon neutrinos etc. from all sources/mothers
-      can be retrieved by the prefix ``total_``, i.e. ``total_numu``
-    - the conventional flux of muons, muon neutrinos etc. from all sources
-      can be retrieved by the prefix ``conv_``, i.e. ``conv_numu``
-    - correspondigly, the flux of leptons which originated from the decay
-      of a charged pion carries the prefix ``pi_`` and from a kaon ``k_``
-    - conventional leptons originating neither from pion nor from kaon
-      decay are collected in a category without any prefix, e.g. ``numu`` or
-      ``mu+``
 
     Args:
       particle_name (str): The name of the particle such, e.g.
@@ -192,46 +181,33 @@ def get_solution(grid_sol,
     else:
         sol = grid_sol[grid_idx]
 
-    if particle_name.startswith('total'):
-        lep_str = particle_name.split('_')[1]
-        for prefix in ('pr_', 'pi_', 'k_', ''):
-            particle_name = prefix + lep_str
-            res += sol[ref[particle_name].lidx():
-                       ref[particle_name].uidx()] * \
-                MCEQ.e_grid ** mag
-    elif particle_name.startswith('conv'):
-        lep_str = particle_name.split('_')[1]
-        for prefix in ('pi_', 'k_', ''):
-            particle_name = prefix + lep_str
-            res += sol[ref[particle_name].lidx():
-                       ref[particle_name].uidx()] * \
-                MCEQ.e_grid ** mag
-    elif particle_name.startswith('D') or particle_name.startswith('Lambda'):
-        # flux of charm mesons cuts off below 1e6
-        # need to calculate yield(prim, cmes)*prim_flux*(prim_interact-cmes_decay)
-        res = np.array([0.]*len(MCEQ.e_grid))
-        part_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])
-        rho_air = MCEQ.density_model.X2rho(xv)
-        # cmeson decay length
-        decayl = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
-        # cmeson interaction length
-        interactionl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
-        # number of targets per cm2
-        ndens = rho_air*Units.Na/Units.mol_air
-        for prim in ['p', 'p-bar', 'n', 'n-bar']:
-            prim_flux = sol[ref[prim].lidx():
-                            ref[prim].uidx()]
-            prim_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[prim])
-            int_yields = MCEQ.y.get_y_matrix(
-                ParticleProperties.pdg_id[prim],
-                ParticleProperties.pdg_id[particle_name])
-            res += np.dot(int_yields,
-                          prim_flux*prim_xs*ndens)
-        res *= decayl*MCEQ.e_grid ** mag
-    else:
-        res = sol[ref[particle_name].lidx():
-                  ref[particle_name].uidx()] * \
-            MCEQ.e_grid ** mag
+    # need to calculate yield(prim, cmes)*prim_flux*(prim_interact-cmes_decay)
+    res = np.array([0.]*len(MCEQ.e_grid))
+    part_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])
+    rho_air = MCEQ.density_model.X2rho(xv)
+    # cmeson decay length
+    decayl = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
+    # cmeson interaction length
+    interactionl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
+    # number of targets per cm2
+    ndens = rho_air*Units.Na/Units.mol_air
+    for prim in ['p', 'p-bar', 'n', 'n-bar']:
+        prim_flux = sol[ref[prim].lidx():
+                        ref[prim].uidx()]
+        prim_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[prim])
+        int_yields = MCEQ.y.get_y_matrix(
+            ParticleProperties.pdg_id[prim],
+            ParticleProperties.pdg_id[particle_name])
+        res += np.dot(int_yields,
+                      prim_flux*prim_xs*ndens)
+    res *= decayl
+    # combine with direct
+    direct = sol[ref[particle_name].lidx():
+                 ref[particle_name].uidx()]
+    res = np.concatenate((res[direct<=0], direct[direct>0]))
+
+    res *= MCEQ.e_grid ** mag
+
     if not integrate:
         return res
     else:
