@@ -219,7 +219,7 @@ def get_solution(grid_sol,
         # number of targets per cm2
         deltal = MCEQ.density_model.geom.delta_l(MCEQ.density_model.X2h(xv),
                                                  np.radians(MCEQ.density_model.theta_deg))
-        ntcm2 = rho_air*np.minimum(deltal,decayl)*Units.Na/Units.mol_air
+        ndens = rho_air*Units.Na/Units.mol_air
         for prim in ['p', 'p-bar', 'n', 'n-bar']:
             prim_flux = sol[ref[prim].lidx():
                             ref[prim].uidx()]
@@ -228,8 +228,8 @@ def get_solution(grid_sol,
                 ParticleProperties.pdg_id[prim],
                 ParticleProperties.pdg_id[particle_name])
             res += np.dot(int_yields,
-                          prim_flux*prim_xs*ntcm2)
-        res *= MCEQ.e_grid ** mag
+                          prim_flux*prim_xs*ndens)
+        res *= decayl*MCEQ.e_grid ** mag
     else:
         res = sol[ref[particle_name].lidx():
                   ref[particle_name].uidx()] * \
