@@ -243,12 +243,13 @@ def get_solution(grid_sol,
 def categ_to_mothers(categ, daughter):
     charge = '-' if 'anti' in daughter else '+'
     bar = '-bar' if 'anti' in daughter else ''
+    lbar = '-bar' if 'anti' not in daughter else ''
     if categ == 'conv':
         mothers = ['pi'+charge, 'K'+charge, 'K0L'] #K0S in uncorrelated?
         if 'nue' in daughter:
             mothers.append('K0S')
     elif categ == 'pr':
-        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+bar]
+        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+lbar]
     else:
         mothers = [categ,]
     return mothers

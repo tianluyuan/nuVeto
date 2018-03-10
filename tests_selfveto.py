@@ -241,7 +241,7 @@ def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.
                  label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.ylabel(r'ratio theirs/mine')
         plt.xscale('log')
-        plt.ylim(0, 4)
+        plt.ylim(0.5, 1.9)
 
         plt.xlabel(r'$E_\nu$')
         plt.xlim(10**3, 10**7)
