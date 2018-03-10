@@ -3,6 +3,7 @@ import pickle
 from MCEq.geometry import EarthGeometry
 import numpy as np
 from scipy import stats
+import ParticleDataTool
 
 
 class Units(object):
@@ -21,62 +22,15 @@ class Units(object):
 
 
 class ParticleProperties(object):
+    modtab = ParticleDataTool.SibyllParticleTable()
+    pd = ParticleDataTool.PYTHIAParticleData()
+    
     mass_dict = {}; lifetime_dict = {}; pdg_id = {}; sibling = {};
 
-    mass_dict['e+']=0.510998*Units.MeV
-    mass_dict['mu+']=0.1056583745*Units.GeV
-    mass_dict['e-']=0.510998*Units.MeV
-    mass_dict['mu-']=0.1056583745*Units.GeV
-    mass_dict['K+']=0.493677*Units.GeV # GeV
-    mass_dict['K0L']=0.497611*Units.GeV # GeV
-    mass_dict['K0S']=0.497611*Units.GeV # GeV
-    mass_dict['pi+']=0.139570*Units.GeV # GeV
-    mass_dict['K-']=0.493677*Units.GeV # GeV
-    mass_dict['pi-']=0.139570*Units.GeV # GeV
-    mass_dict['D+']=1.86962*Units.GeV # GeV
-    mass_dict['D-']=1.86962*Units.GeV # GeV
-    mass_dict['Ds+']=1.96830*Units.GeV # GeV
-    mass_dict['Ds-']=1.96830*Units.GeV # GeV
-    mass_dict['D0']=1.86484*Units.GeV # GeV
-    mass_dict['D0-bar']=1.86484*Units.GeV # GeV
-    mass_dict['air']=(Units.mol_air)*Units.GeV # GeV
-
-    lifetime_dict['K+']=1.2389e-8*Units.sec # s
-    lifetime_dict['K0L']=5.116e-8*Units.sec # s
-    lifetime_dict['K0S']=8.954e-11*Units.sec # s
-    lifetime_dict['pi+']=2.6033e-8*Units.sec # 
-    lifetime_dict['K-']=1.2389e-8*Units.sec # s
-    lifetime_dict['pi-']=2.6033e-8*Units.sec # 
-    lifetime_dict['D+']=1.040e-12*Units.sec # seconds to usual Units
-    lifetime_dict['D-']=1.040e-12*Units.sec # seconds to usual Units
-    lifetime_dict['Ds+']=5.00e-13*Units.sec
-    lifetime_dict['Ds-']=5.00e-13*Units.sec
-    lifetime_dict['D0']=4.101e-13*Units.sec
-    lifetime_dict['D0-bar']=4.101e-13*Units.sec
-
-    
-    pdg_id['p'] = 2212
-    pdg_id['n'] = 2112
-    pdg_id['p-bar'] = -2212
-    pdg_id['n-bar'] = -2112
-    pdg_id['Lambda0'] = 3122
-    pdg_id['Lambda0-bar'] = -3122
-    pdg_id['D+'] = 411 # D+
-    pdg_id['K+'] = 321 # k+
-    pdg_id['K0S'] = 310
-    pdg_id['K0L'] = 130
-    pdg_id['pi+'] = 211 # pi+
-    pdg_id['D-'] = -411 # D+
-    pdg_id['K-'] = -321 # k+
-    pdg_id['pi-'] = -211 # pi+
-    pdg_id['Ds+'] = 431
-    pdg_id['Ds-'] = -431
-    pdg_id['D0'] = 421
-    pdg_id['D0-bar'] = -421
-    pdg_id['numu'] = 14
-    pdg_id['nue'] = 12
-    pdg_id['antinumu'] = -14
-    pdg_id['antinue'] = -12
+    for k in modtab.part_table.keys():
+        pdg_id[k] = modtab.modname2pdg[k]
+        mass_dict[k] = pd.mass(pdg_id[k]) * Units.GeV
+        lifetime_dict[k] = pd.ctau(pdg_id[k]) * Units.cm
 
     sibling['numu'] = 'mu+'
     sibling['nue'] = 'e+'
