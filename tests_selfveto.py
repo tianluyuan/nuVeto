@@ -193,16 +193,16 @@ def test_plot_prpl(int_prpl, include_mean=False):
         plt.legend()
 
 
-def test_parent_flux(cos_theta, parent='D0'):
+def test_parent_flux(cos_theta, parent='D0', mag=3):
     plt.figure()
     deltahs, xvec, sol = solver(cos_theta)
     theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
     MCEQ.set_theta_deg(theta)
     for idx in range(0,len(sol),4):
         mceq = get_solution_orig(sol, parent, xvec[idx],
-                                 3, grid_idx=idx)
+                                 mag, grid_idx=idx)
         calc = get_solution(sol, parent, xvec[idx],
-                            3, grid_idx=idx)
+                            mag, grid_idx=idx)
         pout = plt.loglog(MCEQ.e_grid, mceq,
                           label='h={:.2g} km'.format(
                               float(MCEQ.density_model.X2h(xvec[idx]))/1e5))
@@ -210,12 +210,12 @@ def test_parent_flux(cos_theta, parent='D0'):
                    color=pout[0].get_color())
 
     plt.xlabel(r'$E_p$')
-    plt.ylabel(r'$\Phi_p$')
+    plt.ylabel(r'$E_p^{} \Phi_p$'.format(mag))
     plt.ylim(ymin=1e-20)
     plt.legend()
         
 
-def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
+def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):
     theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
     MCEQ.set_primary_model(*pmodel)
     MCEQ.set_interaction_model(hadr)
@@ -226,14 +226,14 @@ def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.
         plt.sca(axs[0])
         theirs = MCEQ.get_solution(kind)
         mine = np.asarray([passing_rate(en, cos_theta, kind, pmodel, hadr, fraction=False) for en in MCEQ.e_grid])
-        pr = plt.plot(MCEQ.e_grid, theirs,
+        pr = plt.plot(MCEQ.e_grid, theirs*MCEQ.e_grid**mag,
                   label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-        plt.plot(MCEQ.e_grid, mine,
+        plt.plot(MCEQ.e_grid, mine*MCEQ.e_grid**mag,
                  linestyle='--', color=pr[0].get_color())
-        plt.ylabel(r'$\Phi_\nu$')
-        plt.ylim(ymin=1e-30)
+        plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
         plt.loglog()
         plt.xlim(10**3, 10**7)
+        plt.ylim(ymin=1e-8)
         plt.legend()
 
         plt.sca(axs[1])
