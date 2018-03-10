@@ -39,7 +39,7 @@ class ParticleProperties(object):
     mass_dict['Ds-']=1.96830*Units.GeV # GeV
     mass_dict['D0']=1.86484*Units.GeV # GeV
     mass_dict['D0-bar']=1.86484*Units.GeV # GeV
-    mass_dict['air']=(14.5)*Units.GeV # GeV
+    mass_dict['air']=(Units.mol_air)*Units.GeV # GeV
 
     lifetime_dict['K+']=1.2389e-8*Units.sec # s
     lifetime_dict['K0L']=5.116e-8*Units.sec # s

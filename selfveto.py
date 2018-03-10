@@ -35,7 +35,7 @@ def get_dNdEE(mother, daughter):
     x_range = e_grid[ihijo]/e_grid
     rr = ParticleProperties.rr(mother, daughter)
     dN_mat = MCEQ.decays.get_d_matrix(ParticleProperties.pdg_id[mother],
-                                  ParticleProperties.pdg_id[daughter])
+                                      ParticleProperties.pdg_id[daughter])
     dNdEE = dN_mat[ihijo]*e_grid/delta
     logx = np.log10(x_range)
     logx_width = -np.diff(logx)[0]
@@ -248,7 +248,7 @@ def categ_to_mothers(categ, daughter):
         if 'nue' in daughter:
             mothers.append('K0S')
     elif categ == 'pr':
-        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar]
+        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+bar]
     else:
         mothers = [categ,]
     return mothers
