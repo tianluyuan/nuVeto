@@ -69,8 +69,8 @@ def solver(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     MCEQ.set_theta_deg(theta)
 
     x_vec = np.logspace(np.log10(1), np.log10(MCEQ.density_model.max_X), 11)
-    heights = MCEQ.density_model.X2h(x_vec) * Units.cm
-    lengths = MCEQ.density_model.geom.delta_l(heights, np.radians(theta))
+    heights = MCEQ.density_model.X2h(x_vec)
+    lengths = MCEQ.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
     deltahs = np.diff(lengths)
     MCEQ.solve(int_grid=x_vec[:-1], grid_var="X")
     return deltahs, x_vec[:-1], MCEQ.grid_sol
