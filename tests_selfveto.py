@@ -196,9 +196,8 @@ def test_plot_prpl(int_prpl, include_mean=False):
 def test_parent_flux(cos_theta, parent='D0', mag=3):
     plt.figure()
     deltahs, xvec, sol = solver(cos_theta)
-    theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
+    theta = np.degrees(np.arccos(cos_theta))
     MCEQ.set_theta_deg(theta)
-    MCEQ.solve()
     for idx in range(0,len(sol),4):
         mceq = get_solution_orig(sol, parent, xvec[idx],
                                  mag, grid_idx=idx)

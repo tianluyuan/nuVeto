@@ -217,8 +217,6 @@ def get_solution(grid_sol,
         # cmeson interaction length
         interactionl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
         # number of targets per cm2
-        deltal = MCEQ.density_model.geom.delta_l(MCEQ.density_model.X2h(xv),
-                                                 np.radians(MCEQ.density_model.theta_deg))
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in ['p', 'p-bar', 'n', 'n-bar']:
             prim_flux = sol[ref[prim].lidx():
