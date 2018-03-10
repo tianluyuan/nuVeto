@@ -70,7 +70,7 @@ def solver(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
 
     x_vec = np.logspace(np.log10(1), np.log10(MCEQ.density_model.max_X), 11)
     heights = MCEQ.density_model.X2h(x_vec) * Units.cm
-    lengths = GEOM.delta_l(heights, np.radians(theta))
+    lengths = MCEQ.density_model.geom.delta_l(heights, np.radians(theta))
     deltahs = np.diff(lengths)
     MCEQ.solve(int_grid=x_vec[:-1], grid_var="X")
     return deltahs, x_vec[:-1], MCEQ.grid_sol
@@ -217,7 +217,9 @@ def get_solution(grid_sol,
         # cmeson interaction length
         interactionl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
         # number of targets per cm2
-        ntcm2 = rho_air*decayl*Units.Na/Units.mol_air
+        deltal = MCEQ.density_model.geom.delta_l(MCEQ.density_model.X2h(xv),
+                                                 np.radians(MCEQ.density_model.theta_deg))
+        ntcm2 = rho_air*np.minimum(deltal,decayl)*Units.Na/Units.mol_air
         for prim in ['p', 'p-bar', 'n', 'n-bar']:
             prim_flux = sol[ref[prim].lidx():
                             ref[prim].uidx()]
