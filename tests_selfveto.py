@@ -213,6 +213,7 @@ def test_parent_flux(cos_theta, parent='D0', mag=3):
     plt.ylabel(r'$E_p^{} \Phi_p$'.format(mag))
     plt.ylim(ymin=1e-20)
     plt.legend()
+    plt.title(parent)
         
 
 def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):

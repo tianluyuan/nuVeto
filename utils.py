@@ -27,7 +27,7 @@ class ParticleProperties(object):
     
     mass_dict = {}; lifetime_dict = {}; pdg_id = {}; sibling = {};
 
-    for k in modtab.part_table.keys():
+    for k in modtab.part_table:
         pdg_id[k] = modtab.modname2pdg[k]
         mass_dict[k] = pd.mass(pdg_id[k]) * Units.GeV
         lifetime_dict[k] = pd.ctau(pdg_id[k]) * Units.cm
