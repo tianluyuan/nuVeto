@@ -193,10 +193,12 @@ def test_plot_prpl(int_prpl, include_mean=False):
         plt.legend()
 
 
-def test_parent_flux(cos_theta, parent='D0', mag=3):
+def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):
     plt.figure()
     deltahs, xvec, sol = solver(cos_theta)
     theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
+    MCEQ.set_primary_model(*pmodel)
+    MCEQ.set_interaction_model(hadr)
     MCEQ.set_theta_deg(theta)
     MCEQ.solve()
     for idx in range(0,len(sol),4):
