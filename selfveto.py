@@ -181,13 +181,12 @@ def get_solution(grid_sol,
     else:
         sol = grid_sol[grid_idx]
 
-    # need to calculate yield(prim, cmes)*prim_flux*(prim_interact-cmes_decay)
     res = np.array([0.]*len(MCEQ.e_grid))
     part_xs = MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])
     rho_air = MCEQ.density_model.X2rho(xv)
-    # cmeson decay length
+    # meson decay length
     decayl = (MCEQ.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
-    # cmeson interaction length
+    # meson interaction length
     interactionl = 1/(MCEQ.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
     # number of targets per cm2
     ndens = rho_air*Units.Na/Units.mol_air
