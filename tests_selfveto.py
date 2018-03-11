@@ -195,21 +195,17 @@ def test_plot_prpl(int_prpl, include_mean=False):
 
 def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):
     plt.figure()
-    deltahs, xvec, sol = solver(cos_theta, pmodel, hadr)
-    theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
-    MCEQ.set_primary_model(*pmodel)
-    MCEQ.set_interaction_model(hadr)
-    MCEQ.set_theta_deg(theta)
-    MCEQ.solve()
-    for idx in range(0,len(sol),4):
-        mceq = get_solution_orig(sol, parent, xvec[idx],
-                                 mag, grid_idx=idx)
-        calc = get_solution(sol, parent, xvec[idx],
-                            mag, grid_idx=idx)
-        pout = plt.loglog(MCEQ.e_grid, mceq,
+    sv = SelfVeto(cos_theta, pmodel, hadr)
+    deltahs, x_vec = sv.deltahs, sv.x_vec
+    for idx in range(0,len(x_vec),4):
+        mceq = sv.get_solution_orig(parent, x_vec[idx],
+                                    mag, grid_idx=idx)
+        calc = sv.get_solution(parent, x_vec[idx],
+                               mag, grid_idx=idx)
+        pout = plt.loglog(sv.mceq.e_grid, mceq,
                           label='h={:.2g} km'.format(
-                              float(MCEQ.density_model.X2h(xvec[idx]))/1e5))
-        plt.loglog(MCEQ.e_grid, calc, '--',
+                              float(sv.mceq.density_model.X2h(x_vec[idx]))/1e5))
+        plt.loglog(sv.mceq.e_grid, calc, '--',
                    color=pout[0].get_color())
 
     plt.xlabel(r'$E_p$')
@@ -220,19 +216,15 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
         
 
 def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):
-    theta = np.degrees(np.arccos(GEOM.cos_theta_eff(cos_theta)))
-    MCEQ.set_primary_model(*pmodel)
-    MCEQ.set_interaction_model(hadr)
-    MCEQ.set_theta_deg(theta)
-    MCEQ.solve()
+    sv = SelfVeto(cos_theta, pmodel, hadr)
     fig, axs = plt.subplots(2,1)
     for kind in ['conv_numu', 'pr_numu', 'conv_nue']:
         plt.sca(axs[0])
-        theirs = MCEQ.get_solution(kind)
-        mine = np.asarray([passing_rate(en, cos_theta, kind, pmodel, hadr, fraction=False) for en in MCEQ.e_grid])
-        pr = plt.plot(MCEQ.e_grid, theirs*MCEQ.e_grid**mag,
+        theirs = sv.mceq.get_solution(kind)
+        mine = np.asarray([passing_rate(en, cos_theta, kind, pmodel, hadr, fraction=False) for en in sv.mceq.e_grid])
+        pr = plt.plot(sv.mceq.e_grid, theirs*sv.mceq.e_grid**mag,
                   label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-        plt.plot(MCEQ.e_grid, mine*MCEQ.e_grid**mag,
+        plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
                  linestyle='--', color=pr[0].get_color())
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
         plt.loglog()
@@ -241,7 +233,7 @@ def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.
         plt.legend()
 
         plt.sca(axs[1])
-        plt.plot(MCEQ.e_grid, theirs/mine,
+        plt.plot(sv.mceq.e_grid, theirs/mine,
                  label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.ylabel(r'ratio theirs/mine')
         plt.xscale('log')
