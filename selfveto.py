@@ -47,7 +47,6 @@ class SelfVeto(object):
         self.x_vec = x_vec[:-1]
 
 
-    @lru_cache(maxsize=2**12)
     def get_dNdEE(self, mother, daughter):
         ihijo = 20
         e_grid = self.mceq.e_grid
