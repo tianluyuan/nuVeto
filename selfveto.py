@@ -182,7 +182,7 @@ class SelfVeto(object):
         else:
             sol = self.mceq.grid_sol[grid_idx]
 
-        res = np.array([0.]*len(self.mceq.e_grid))
+        res = np.zeros(len(self.mceq.e_grid))
         part_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[particle_name])
         xv = self.x_vec[grid_idx]
         rho_air = self.mceq.density_model.X2rho(xv)
