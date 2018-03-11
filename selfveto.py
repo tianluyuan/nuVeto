@@ -40,11 +40,9 @@ class SelfVeto(object):
         x_vec = np.logspace(np.log10(1), np.log10(self.mceq.density_model.max_X), 11)
         heights = self.mceq.density_model.X2h(x_vec)
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
-        dh_vec = np.diff(lengths)
-        self.mceq.solve(int_grid=x_vec[:-1], grid_var="X")
-
-        self.dh_vec = dh_vec
+        self.dh_vec = np.diff(lengths)
         self.x_vec = x_vec[:-1]
+        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
 
 
     def get_dNdEE(self, mother, daughter):
@@ -222,7 +220,6 @@ class SelfVeto(object):
 
     
     def get_integrand(self, categ, daughter, idx, weight_fn, esamp, enu):
-        dh = self.dh_vec[idx]
         mothers = categ_to_mothers(categ, daughter)
         ys = np.zeros(len(esamp))
         for mother in mothers:
