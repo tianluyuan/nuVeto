@@ -196,12 +196,10 @@ def test_plot_prpl(int_prpl, include_mean=False):
 def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):
     plt.figure()
     sv = SelfVeto(cos_theta, pmodel, hadr)
-    deltahs, x_vec = sv.deltahs, sv.x_vec
+    dh_vec, x_vec = sv.dh_vec, sv.x_vec
     for idx in range(0,len(x_vec),4):
-        mceq = sv.get_solution_orig(parent, x_vec[idx],
-                                    mag, grid_idx=idx)
-        calc = sv.get_solution(parent, x_vec[idx],
-                               mag, grid_idx=idx)
+        mceq = sv.get_solution_orig(parent, mag, grid_idx=idx)
+        calc = sv.get_solution(parent, mag, grid_idx=idx)
         pout = plt.loglog(sv.mceq.e_grid, mceq,
                           label='h={:.2g} km'.format(
                               float(sv.mceq.density_model.X2h(x_vec[idx]))/1e5))

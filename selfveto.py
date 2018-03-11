@@ -14,7 +14,7 @@ class SelfVeto(object):
                  pmodel=(pm.HillasGaisser2012,'H3a'),
                  hadr='SIBYLL2.3c'):
         self.mceq = None
-        self.deltahs = None
+        self.dh_vec = None
         self.x_vec = None
         self.geom = Geometry(1950*Units.m)
         self._solver(costh, pmodel, hadr)
@@ -40,10 +40,10 @@ class SelfVeto(object):
         x_vec = np.logspace(np.log10(1), np.log10(self.mceq.density_model.max_X), 11)
         heights = self.mceq.density_model.X2h(x_vec)
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
-        deltahs = np.diff(lengths)
+        dh_vec = np.diff(lengths)
         self.mceq.solve(int_grid=x_vec[:-1], grid_var="X")
 
-        self.deltahs = deltahs
+        self.dh_vec = dh_vec
         self.x_vec = x_vec[:-1]
 
 
@@ -81,7 +81,6 @@ class SelfVeto(object):
 
     def get_solution_orig(self,
                           particle_name,
-                          xv,
                           mag=0.,
                           grid_idx=None,
                           integrate=False):
@@ -152,7 +151,6 @@ class SelfVeto(object):
 
     def get_solution(self,
                      particle_name,
-                     xv,
                      mag=0.,
                      grid_idx=None,
                      integrate=False):
@@ -186,6 +184,7 @@ class SelfVeto(object):
 
         res = np.array([0.]*len(self.mceq.e_grid))
         part_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[particle_name])
+        xv = self.x_vec[grid_idx]
         rho_air = self.mceq.density_model.X2rho(xv)
         # meson decay length
         decayl = (self.mceq.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
@@ -216,19 +215,24 @@ class SelfVeto(object):
             return res * self.mceq.e_widths
 
 
-def categ_to_mothers(categ, daughter):
-    charge = '-' if 'anti' in daughter else '+'
-    bar = '-bar' if 'anti' in daughter else ''
-    lbar = '-bar' if 'anti' not in daughter else ''
-    if categ == 'conv':
-        mothers = ['pi'+charge, 'K'+charge, 'K0L'] #K0S in uncorrelated?
-        if 'nue' in daughter:
-            mothers.append('K0S')
-    elif categ == 'pr':
-        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+lbar]
-    else:
-        mothers = [categ,]
-    return mothers
+    def get_rescale_phi(self, mother, idx):
+        dh = self.dh_vec[idx]
+        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[mother])
+        rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_idx=idx)
+        return interpolate.interp1d(self.mceq.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
+
+    
+    def get_integrand(self, categ, daughter, idx, weight_fn, esamp, enu):
+        dh = self.dh_vec[idx]
+        mothers = categ_to_mothers(categ, daughter)
+        ys = np.zeros(len(esamp))
+        for mother in mothers:
+            dNdEE = self.get_dNdEE(mother, daughter)[-1]
+            rescale_phi = self.get_rescale_phi(mother, idx)
+            ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn(esamp)
+
+        return ys
+
 
 SVS = {}
 
@@ -240,21 +244,6 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
         sv = SelfVeto(cos_theta, pmodel, hadr)
         SVS[(cos_theta, pmodel, hadr)] = sv
     
-    def get_rescale_phi(mother, dh, xv, grid_sol, idx):
-        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (sv.mceq.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[mother])
-        rescale_phi = inv_decay_length_array * sv.get_solution(mother, xv, grid_idx=idx)
-        return interpolate.interp1d(sv.mceq.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
-
-    def get_integrand(categ, daughter, dh, xv, grid_sol, idx, weight_fn, esamp):
-        mothers = categ_to_mothers(categ, daughter)
-        ys = np.zeros(len(esamp))
-        for mother in mothers:
-            dNdEE = sv.get_dNdEE(mother, daughter)[-1]
-            rescale_phi = get_rescale_phi(mother, dh, xv, grid_sol, idx)
-            ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn(esamp)
-
-        return ys
-
     categ, daughter = kind.split('_')
 
     ice_distance = sv.geom.overburden(cos_theta)
@@ -270,10 +259,10 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
     passing_numerator = 0
     passing_denominator = 0
     esamp = np.logspace(np.log10(enu), np.log10(sv.mceq.e_grid[-1]), int(10**accuracy))
-    for idx, (dh, xv) in enumerate(zip(sv.deltahs, sv.x_vec)):
+    for idx in xrange(len(sv.x_vec)):
         passing_numerator += integrate.trapz(
-            get_integrand(categ, daughter, dh, xv, sv.mceq.grid_sol, idx, reaching, esamp), esamp)
+            sv.get_integrand(categ, daughter, idx, reaching, esamp, enu), esamp)
         passing_denominator += integrate.trapz(
-            get_integrand(categ, daughter, dh, xv, sv.mceq.grid_sol, idx, identity, esamp), esamp)
+            sv.get_integrand(categ, daughter, idx, identity, esamp, enu), esamp)
         # print passing_numerator, passing_denominator
     return passing_numerator/passing_denominator if fraction else passing_denominator

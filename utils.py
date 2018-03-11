@@ -142,4 +142,16 @@ def ice_column_density(costh, depth = 1950.*Units.m):
     return (overburden(costh, depth/Units.m, elevation=2400)*Units.m)*MaterialProperties.density["ice"]
 
 
-
+def categ_to_mothers(categ, daughter):
+    charge = '-' if 'anti' in daughter else '+'
+    bar = '-bar' if 'anti' in daughter else ''
+    lbar = '-bar' if 'anti' not in daughter else ''
+    if categ == 'conv':
+        mothers = ['pi'+charge, 'K'+charge, 'K0L'] #K0S in uncorrelated?
+        if 'nue' in daughter:
+            mothers.append('K0S')
+    elif categ == 'pr':
+        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+lbar]
+    else:
+        mothers = [categ,]
+    return mothers
