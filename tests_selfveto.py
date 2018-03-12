@@ -57,7 +57,7 @@ def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, '
 def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, prpl='step_1', **kwargs):
     """ plot the passing rate (flux or fraction)
     """
-    cths = np.linspace(0,1,11)
+    cths = np.linspace(0,1,21)
     prs = plt.plot(cths, [passing_rate(
         enu, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl) for cos_theta in cths], **kwargs)
     plt.xlim(0, 1)
