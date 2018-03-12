@@ -16,6 +16,7 @@ class SelfVeto(object):
         self.mceq = None
         self.dh_vec = None
         self.x_vec = None
+        self.costh = costh
         self.geom = Geometry(1950*Units.m)
         self._solver(costh, pmodel, hadr)
 
@@ -230,6 +231,31 @@ class SelfVeto(object):
         return ys
 
 
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=4, prpl='step_1'):
+        categ, daughter = kind.split('_')
+
+        ice_distance = self.geom.overburden(self.costh)
+        identity = lambda Ep: 1
+        if 'numu' not in daughter:
+            # muon accompanies numu only
+            reaching = identity
+        else:
+            fn = MuonProb(prpl)
+            reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
+                                                   [ice_distance]*len(Ep)))
+
+        passing_numerator = 0
+        passing_denominator = 0
+        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), int(10**accuracy))
+        for idx in xrange(len(self.x_vec)):
+            passing_numerator += integrate.trapz(
+                self.get_integrand(categ, daughter, idx, reaching, esamp, enu), esamp)
+            passing_denominator += integrate.trapz(
+                self.get_integrand(categ, daughter, idx, identity, esamp, enu), esamp)
+            # print passing_numerator, passing_denominator
+        return passing_numerator, passing_denominator
+
+
 SVS = {}
 
 
@@ -239,26 +265,16 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
     except KeyError:        
         sv = SelfVeto(cos_theta, pmodel, hadr)
         SVS[(cos_theta, pmodel, hadr)] = sv
-    
-    categ, daughter = kind.split('_')
 
-    ice_distance = sv.geom.overburden(cos_theta)
-    identity = lambda Ep: 1
-    if 'numu' not in daughter:
-        # muon accompanies numu only
-        reaching = identity
-    else:
-        fn = MuonProb(prpl)
-        reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
-                                               [ice_distance]*len(Ep)))
+    num, den = sv.get_fluxes(enu, kind, accuracy, prpl)
+    return num/den if fraction else num
 
-    passing_numerator = 0
-    passing_denominator = 0
-    esamp = np.logspace(np.log10(enu), np.log10(sv.mceq.e_grid[-1]), int(10**accuracy))
-    for idx in xrange(len(sv.x_vec)):
-        passing_numerator += integrate.trapz(
-            sv.get_integrand(categ, daughter, idx, reaching, esamp, enu), esamp)
-        passing_denominator += integrate.trapz(
-            sv.get_integrand(categ, daughter, idx, identity, esamp, enu), esamp)
-        # print passing_numerator, passing_denominator
-    return passing_numerator/passing_denominator if fraction else passing_denominator
+
+def total_flux(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, prpl='step_1'):
+    try:
+        sv = SVS[(cos_theta, pmodel, hadr)]
+    except KeyError:        
+        sv = SelfVeto(cos_theta, pmodel, hadr)
+        SVS[(cos_theta, pmodel, hadr)] = sv
+
+    return sv.get_fluxes(enu, kind, accuracy, prpl)[1]

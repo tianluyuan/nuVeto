@@ -219,7 +219,7 @@ def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.
     for kind in ['conv_numu', 'pr_numu', 'conv_nue']:
         plt.sca(axs[0])
         theirs = sv.mceq.get_solution(kind)
-        mine = np.asarray([passing_rate(en, cos_theta, kind, pmodel, hadr, fraction=False) for en in sv.mceq.e_grid])
+        mine = np.asarray([total_flux(en, cos_theta, kind, pmodel, hadr) for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, theirs*sv.mceq.e_grid**mag,
                   label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
