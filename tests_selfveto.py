@@ -64,6 +64,7 @@ def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     plt.xscale('linear')
     plt.xlabel(r'$\cos \theta$')
     if fraction:
+        plt.ylim(-0.05, 1.05)
         plt.ylabel(r'Passing fraction')
     else:
         plt.yscale('log')
