@@ -208,7 +208,7 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
     plt.ylabel(r'$E_p^{} \Phi_p$'.format(mag))
     plt.ylim(ymin=1e-20)
     plt.legend()
-    plt.title(parent)
+    plt.title('{} {:.2g}'.format(parent, cos_theta))
     # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
 
