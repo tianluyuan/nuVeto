@@ -147,11 +147,11 @@ def categ_to_mothers(categ, daughter):
     bar = '-bar' if 'anti' in daughter else ''
     lbar = '-bar' if 'anti' not in daughter else ''
     if categ == 'conv':
-        mothers = ['pi'+charge, 'K'+charge, 'K0L', 'Lambda0'+lbar]
+        mothers = ['pi'+charge, 'K'+charge, 'K0L']
         if 'nue' in daughter:
             mothers.extend(['K0S'])
     elif categ == 'pr':
-        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar]# 'LambdaC+'+bar
+        mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar]# 'Lambda0'+lbar, 'LambdaC+'+bar
     else:
         mothers = [categ,]
     return mothers
