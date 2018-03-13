@@ -13,14 +13,33 @@ class SelfVeto(object):
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012,'H3a'),
                  hadr='SIBYLL2.3c'):
-        self.mceq = None
-        self.dh_vec = None
-        self.x_vec = None
+        """A separate MCEq instance needs to be created for each
+        combination of __init__'s arguments. To access pmodel and hadr,
+        use mceq.pm_params and mceq.yields_params
+        """
         self.costh = costh
-        self.pmodel = pmodel
-        self.hadr = hadr
         self.geom = Geometry(1950*Units.m)
         self._solver()
+        theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
+
+        self.mceq = MCEqRun(
+            # provide the string of the interaction model
+            interaction_model=self.hadr,
+            # primary cosmic ray flux model
+            # support a tuple (primary model class (not instance!), arguments)
+            primary_model=self.pmodel,
+            # zenith angle \theta in degrees, measured positively from vertical direction
+            theta_deg = theta,
+            # expand the rest of the options from mceq_config.py
+            **config)
+
+        x_vec = np.logspace(np.log10(1e-4),
+                            np.log10(self.mceq.density_model.max_X), 11)
+        heights = self.mceq.density_model.X2h(x_vec)
+        lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
+        self.dh_vec = np.diff(lengths)
+        self.x_vec = x_vec[:-1]
+        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
 
 
     @staticmethod
@@ -51,31 +70,6 @@ class SelfVeto(object):
             except KeyError:
                 continue
         return allowed
-
-
-    def _solver(self):
-        """This will cache self.mceq solutions for each combination of the
-        arguments. Ensure that it returns everything that changes with different arguments
-        """
-        theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
-        self.mceq = MCEqRun(
-            # provide the string of the interaction model
-            interaction_model=self.hadr,
-            # primary cosmic ray flux model
-            # support a tuple (primary model class (not instance!), arguments)
-            primary_model=self.pmodel,
-            # zenith angle \theta in degrees, measured positively from vertical direction
-            theta_deg = theta,
-            # expand the rest of the options from mceq_config.py
-            **config)
-
-        x_vec = np.logspace(np.log10(1e-4),
-                            np.log10(self.mceq.density_model.max_X), 11)
-        heights = self.mceq.density_model.X2h(x_vec)
-        lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
-        self.dh_vec = np.diff(lengths)
-        self.x_vec = x_vec[:-1]
-        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
 
 
     def get_dNdEE(self, mother, daughter):
