@@ -212,7 +212,7 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
     # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
 
-def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):
+def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7)):
     sv = SelfVeto(cos_theta, pmodel, hadr)
     fig, axs = plt.subplots(2,1)
     for kind in ['conv_numu', 'pr_numu', 'conv_nue']:
@@ -225,7 +225,7 @@ def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.
                  linestyle='--', color=pr[0].get_color())
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
         plt.loglog()
-        plt.xlim(10**3, 10**7)
+        plt.xlim(*np.power(10,logxlim))
         plt.ylim(ymin=1e-8)
         plt.legend()
 
@@ -237,4 +237,5 @@ def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.
         plt.ylim(0.5, 1.9)
 
         plt.xlabel(r'$E_\nu$')
-        plt.xlim(10**3, 10**7)
+        plt.xlim(*np.power(10,logxlim))
+
