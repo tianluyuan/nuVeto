@@ -19,15 +19,14 @@ class SelfVeto(object):
         """
         self.costh = costh
         self.geom = Geometry(1950*Units.m)
-        self._solver()
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
         self.mceq = MCEqRun(
             # provide the string of the interaction model
-            interaction_model=self.hadr,
+            interaction_model=hadr,
             # primary cosmic ray flux model
             # support a tuple (primary model class (not instance!), arguments)
-            primary_model=self.pmodel,
+            primary_model=pmodel,
             # zenith angle \theta in degrees, measured positively from vertical direction
             theta_deg = theta,
             # expand the rest of the options from mceq_config.py
