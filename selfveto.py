@@ -83,7 +83,7 @@ class SelfVeto(object):
         dNdEE = dN_mat[ihijo]*e_grid/delta
         logx = np.log10(x_range)
         logx_width = -np.diff(logx)[0]
-        good = (logx + logx_width/2 < np.log10(1-rr)) & (x_range >= 1.e-3)
+        good = (logx + logx_width/2 < np.log10(1-rr)) & (x_range >= 5.e-2)
         if (mother == 'pi+' and daughter == 'numu') or (mother == 'pi-' and daughter == 'antinumu'):
             # pi -> numu are all 2-body
             dNdEE_edge = 1/(1-rr)
