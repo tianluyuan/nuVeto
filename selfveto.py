@@ -38,7 +38,8 @@ class SelfVeto(object):
             # expand the rest of the options from mceq_config.py
             **config)
 
-        x_vec = np.logspace(np.log10(1), np.log10(self.mceq.density_model.max_X), 11)
+        x_vec = np.logspace(np.log10(1e-4),
+                            np.log10(self.mceq.density_model.max_X), 11)
         heights = self.mceq.density_model.X2h(x_vec)
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
         self.dh_vec = np.diff(lengths)
