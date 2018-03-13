@@ -195,12 +195,12 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
     plt.figure()
     sv = SelfVeto(cos_theta, pmodel, hadr)
     dh_vec, x_vec = sv.dh_vec, sv.x_vec
-    for idx in range(0,len(x_vec),4):
+    for idx, x_val in enumerate(x_vec):
         mceq = sv.get_solution_orig(parent, mag, grid_idx=idx)
         calc = sv.get_solution(parent, mag, grid_idx=idx)
         pout = plt.loglog(sv.mceq.e_grid, mceq,
                           label='h={:.2g} km'.format(
-                              float(sv.mceq.density_model.X2h(x_vec[idx]))/1e5))
+                              float(sv.mceq.density_model.X2h(x_val))/1e5))
         plt.loglog(sv.mceq.e_grid, calc, '--',
                    color=pout[0].get_color())
 
@@ -209,6 +209,7 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
     plt.ylim(ymin=1e-20)
     plt.legend()
     plt.title(parent)
+    # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
 
 def test_nu_flux(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):

@@ -37,6 +37,20 @@ class SelfVeto(object):
         return mothers
 
 
+    @staticmethod
+    def projectiles():
+        pdg_ids = config['adv_set']['allowed_projectiles']
+        namer = ParticleProperties.modtab.pdg2modname
+        allowed = []
+        for pdg_id in pdg_ids:
+            allowed.append(namer[pdg_id])
+            try:
+                allowed.append(namer[-pdg_id])
+            except KeyError:
+                continue
+        return allowed
+
+
     def _solver(self, cos_theta,
                pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
         """This will cache self.mceq solutions for each combination of the
@@ -207,7 +221,7 @@ class SelfVeto(object):
         interactionl = 1/(self.mceq.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
-        for prim in ['p', 'p-bar', 'n', 'n-bar']:
+        for prim in self.projectiles():
             prim_flux = sol[ref[prim].lidx():
                             ref[prim].uidx()]
             prim_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[prim])
