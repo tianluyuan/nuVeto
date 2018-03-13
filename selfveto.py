@@ -17,8 +17,10 @@ class SelfVeto(object):
         self.dh_vec = None
         self.x_vec = None
         self.costh = costh
+        self.pmodel = pmodel
+        self.hadr = hadr
         self.geom = Geometry(1950*Units.m)
-        self._solver(costh, pmodel, hadr)
+        self._solver()
 
 
     @staticmethod
@@ -51,18 +53,17 @@ class SelfVeto(object):
         return allowed
 
 
-    def _solver(self, cos_theta,
-               pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
+    def _solver(self):
         """This will cache self.mceq solutions for each combination of the
         arguments. Ensure that it returns everything that changes with different arguments
         """
-        theta = np.degrees(np.arccos(self.geom.cos_theta_eff(cos_theta)))
+        theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
         self.mceq = MCEqRun(
             # provide the string of the interaction model
-            interaction_model=hadr,
+            interaction_model=self.hadr,
             # primary cosmic ray flux model
             # support a tuple (primary model class (not instance!), arguments)
-            primary_model=pmodel,
+            primary_model=self.pmodel,
             # zenith angle \theta in degrees, measured positively from vertical direction
             theta_deg = theta,
             # expand the rest of the options from mceq_config.py
