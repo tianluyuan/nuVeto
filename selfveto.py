@@ -21,6 +21,22 @@ class SelfVeto(object):
         self._solver(costh, pmodel, hadr)
 
 
+    @staticmethod
+    def categ_to_mothers(categ, daughter):
+        charge = '-' if 'anti' in daughter else '+'
+        bar = '-bar' if 'anti' in daughter else ''
+        lbar = '-bar' if 'anti' not in daughter else ''
+        if categ == 'conv':
+            mothers = ['pi'+charge, 'K'+charge, 'K0L']
+            if 'nue' in daughter:
+                mothers.extend(['K0S'])
+        elif categ == 'pr':
+            mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar]# 'Lambda0'+lbar, 'LambdaC+'+bar
+        else:
+            mothers = [categ,]
+        return mothers
+
+
     def _solver(self, cos_theta,
                pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
         """This will cache self.mceq solutions for each combination of the
@@ -222,7 +238,7 @@ class SelfVeto(object):
 
     
     def get_integrand(self, categ, daughter, idx, weight_fn, esamp, enu):
-        mothers = categ_to_mothers(categ, daughter)
+        mothers = self.categ_to_mothers(categ, daughter)
         ys = np.zeros(len(esamp))
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
