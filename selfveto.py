@@ -70,7 +70,7 @@ class SelfVeto(object):
             # everything else 3-body
             dNdEE_edge = 0.
 
-        lower = dNdEE[(x_range < 1-rr) & (x_range >= 1.0e-3)][-1]
+        lower = dNdEE[good][-1]
         dNdEE_interp = interpolate.interp1d(
             np.concatenate([[1-rr], x_range[good]]),
             np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='quadratic',

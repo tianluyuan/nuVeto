@@ -163,7 +163,8 @@ def test_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
         
 
 def test_dndee(mother, daughter):
-    x_range, dNdEE, dNdEE_interp = get_dNdEE(mother, daughter)
+    sv = SelfVeto(0)
+    x_range, dNdEE, dNdEE_interp = sv.get_dNdEE(mother, daughter)
 
     # print x_range[0], x_range[-1]
     x_samp = np.logspace(1, -9, 5000)
