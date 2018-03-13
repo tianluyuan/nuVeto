@@ -199,7 +199,7 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
         mceq = sv.get_solution_orig(parent, mag, grid_idx=idx)
         calc = sv.get_solution(parent, mag, grid_idx=idx)
         pout = plt.loglog(sv.mceq.e_grid, mceq,
-                          label='h={:.2g} km'.format(
+                          label='h={:.3g} km'.format(
                               float(sv.mceq.density_model.X2h(x_val))/1e5))
         plt.loglog(sv.mceq.e_grid, calc, '--',
                    color=pout[0].get_color())
