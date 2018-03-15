@@ -173,7 +173,7 @@ def test_dndee(mother, daughter):
     plt.semilogx()
     plt.xlabel(r"$x=E_\nu/E_p$")
     plt.ylabel(r"$ \frac{dN}{dE_\nu} E_p$")
-    plt.ylim(-0.1, 5.1)
+    # plt.ylim(-0.1, 5.1)
     plt.axvline(1-ParticleProperties.rr(mother, daughter), linestyle='--', color=c[0].get_color())
     plt.legend()
 

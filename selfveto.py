@@ -80,6 +80,7 @@ class SelfVeto(object):
         delta = self.mceq.e_widths
         x_range = e_grid[ihijo]/e_grid
         rr = ParticleProperties.rr(mother, daughter)
+        dNdEE_edge = ParticleProperties.br_2body(mother, daughter)/(1-rr)
         dN_mat = self.mceq.decays.get_d_matrix(
             ParticleProperties.pdg_id[mother],
             ParticleProperties.pdg_id[daughter])
@@ -87,15 +88,6 @@ class SelfVeto(object):
         logx = np.log10(x_range)
         logx_width = -np.diff(logx)[0]
         good = (logx + logx_width/2 < np.log10(1-rr)) & (x_range >= 5.e-2)
-        if (mother == 'pi+' and daughter == 'numu') or (mother == 'pi-' and daughter == 'antinumu'):
-            # pi -> numu are all 2-body
-            dNdEE_edge = 1/(1-rr)
-        elif (mother == 'K+' and daughter == 'numu') or (mother == 'K-' and daughter == 'antinumu'):
-            # K -> numu are mostly 2-body
-            dNdEE_edge = 0.6356/(1-rr)
-        else:
-            # everything else 3-body
-            dNdEE_edge = 0.
 
         lower = dNdEE[good][-1]
         dNdEE_interp = interpolate.interp1d(

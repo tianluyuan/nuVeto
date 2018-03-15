@@ -39,13 +39,26 @@ class ParticleProperties(object):
         other_masses = []
         mother_pdg = ParticleProperties.pdg_id[mother]
         daughter_pdg = ParticleProperties.pdg_id[daughter]
-        for dchan in ParticleProperties.pd.decay_channels(mother_pdg):
-            if daughter_pdg in dchan[1]:
+        for br, prod in ParticleProperties.pd.decay_channels(mother_pdg):
+            if daughter_pdg in prod:
                 mass_tot = sum([ParticleProperties.pd.mass(prod)
-                                for prod in dchan[1]])-ParticleProperties.pd.mass(daughter_pdg)
+                                for prod in prod])-ParticleProperties.pd.mass(daughter_pdg)
                 other_masses.append(mass_tot)
                 
         return (min(other_masses)/ParticleProperties.mass_dict[mother])**2
+
+
+    @staticmethod
+    def br_2body(mother, daughter):
+        """ returns the two-body branching ratio if it exists
+        """
+        mother_pdg = ParticleProperties.pdg_id[mother]
+        daughter_pdg = ParticleProperties.pdg_id[daughter]
+        brs = 0
+        for br, prod in ParticleProperties.pd.decay_channels(mother_pdg):
+            if daughter_pdg in prod and len(prod) == 2:
+                brs += br 
+        return brs
 
 
 class MaterialProperties(object):
