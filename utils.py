@@ -32,16 +32,20 @@ class ParticleProperties(object):
         mass_dict[k] = pd.mass(pdg_id[k]) * Units.GeV
         lifetime_dict[k] = pd.ctau(pdg_id[k]) * Units.cm
 
-    sibling['numu'] = 'mu+'
-    sibling['nue'] = 'e+'
-    sibling['antinumu'] = 'mu-'
-    sibling['antinue'] = 'e-'
-
     @staticmethod
     def rr(mother, daughter):
         """ returns ratio of masses
         """
-        return (ParticleProperties.mass_dict[ParticleProperties.sibling[daughter]]/ParticleProperties.mass_dict[mother])**2
+        other_masses = []
+        mother_pdg = ParticleProperties.pdg_id[mother]
+        daughter_pdg = ParticleProperties.pdg_id[daughter]
+        for dchan in ParticleProperties.pd.decay_channels(mother_pdg):
+            if daughter_pdg in dchan[1]:
+                mass_tot = sum([ParticleProperties.pd.mass(prod)
+                                for prod in dchan[1]])-ParticleProperties.pd.mass(daughter_pdg)
+                other_masses.append(mass_tot)
+                
+        return (min(other_masses)/ParticleProperties.mass_dict[mother])**2
 
 
 class MaterialProperties(object):
