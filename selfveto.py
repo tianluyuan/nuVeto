@@ -231,8 +231,8 @@ class SelfVeto(object):
         # combine with direct
         direct = sol[ref[particle_name].lidx():
                      ref[particle_name].uidx()]
-        res = np.concatenate((res[direct<=0], direct[direct>0]))
-
+        res = np.concatenate((res[direct==0], direct[direct!=0]))
+        
         res *= self.mceq.e_grid ** mag
 
         if not integrate:
