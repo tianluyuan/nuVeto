@@ -217,6 +217,8 @@ def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
     if direct_mceq:
         fig, axs = plt.subplots(2,1)
         plt.sca(axs[0])
+    else:
+        plt.figure()
     for kind in kinds.split():
         mine = np.asarray([total_flux(en, cos_theta, kind, pmodel, hadr) for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
