@@ -1,6 +1,7 @@
 import os
 import pickle
 from MCEq.geometry import EarthGeometry
+from mceq_config import config
 import numpy as np
 from scipy import stats
 import ParticleDataTool
@@ -18,7 +19,7 @@ class Units(object):
     MeV = 1e-3*GeV
     TeV = 1.e3*GeV
     PeV = 1.e3*TeV
-    mol_air = 14.5
+    mol_air = config['A_target']
 
 
 class ParticleProperties(object):
