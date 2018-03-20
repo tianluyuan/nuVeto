@@ -212,8 +212,10 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
     # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
 
-def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7), direct_mceq=True):
+def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7)):
     sv = SelfVeto(cos_theta, pmodel, hadr)
+    direct_mceq = all([sv.mceq.pname2pref.has_key(k) for k in kinds.split()])
+
     if direct_mceq:
         fig, axs = plt.subplots(2,1)
         plt.sca(axs[0])
@@ -221,11 +223,11 @@ def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
         plt.figure()
     for kind in kinds.split():
         mine = np.asarray([total_flux(en, cos_theta, kind, pmodel, hadr) for en in sv.mceq.e_grid])
-        plt.sca(axs[0])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
                       label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
         plt.loglog()
+        plt.xlabel(r'$E_\nu$')
         plt.xlim(*np.power(10,logxlim))
         plt.ylim(ymin=1e-8)
         plt.legend()
@@ -240,7 +242,6 @@ def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
             plt.ylabel(r'ratio MCEq/Calc')
             plt.xscale('log')
             plt.ylim(0.5, 1.9)
-
-        plt.xlabel(r'$E_\nu$')
-        plt.xlim(*np.power(10,logxlim))
-
+            plt.xlabel(r'$E_\nu$')
+            plt.xlim(*np.power(10,logxlim))
+            plt.sca(axs[0])
