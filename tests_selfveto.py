@@ -214,34 +214,31 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
 
 def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7)):
     sv = SelfVeto(cos_theta, pmodel, hadr)
-    direct_mceq = all([sv.mceq.pname2pref.has_key(k) for k in kinds.split()])
-
-    if direct_mceq:
-        fig, axs = plt.subplots(2,1)
-        plt.sca(axs[0])
-    else:
-        plt.figure()
+    fig, axs = plt.subplots(2,1)
     for kind in kinds.split():
+        plt.sca(axs[0])
         mine = np.asarray([total_flux(en, cos_theta, kind, pmodel, hadr) for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
                       label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
         plt.loglog()
-        plt.xlabel(r'$E_\nu$')
         plt.xlim(*np.power(10,logxlim))
         plt.ylim(ymin=1e-8)
         plt.legend()
 
-        if direct_mceq:
+        try:
             theirs = sv.mceq.get_solution(kind)
             pr = plt.plot(sv.mceq.e_grid, theirs*sv.mceq.e_grid**mag,
                           linestyle='--', color=pr[0].get_color())
 
             plt.sca(axs[1])
             plt.plot(sv.mceq.e_grid, theirs/mine)
+        except KeyError:
+            plt.sca(axs[1])
+        finally:
             plt.ylabel(r'ratio MCEq/Calc')
             plt.xscale('log')
             plt.ylim(0.5, 1.9)
             plt.xlabel(r'$E_\nu$')
             plt.xlim(*np.power(10,logxlim))
-            plt.sca(axs[0])
+
