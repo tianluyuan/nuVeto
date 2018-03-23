@@ -214,11 +214,15 @@ class SelfVeto(object):
             prim_flux = sol[ref[prim].lidx():
                             ref[prim].uidx()]
             prim_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[prim])
-            int_yields = self.mceq.y.get_y_matrix(
-                ParticleProperties.pdg_id[prim],
-                ParticleProperties.pdg_id[particle_name])
-            res += np.dot(int_yields,
-                          prim_flux*prim_xs*ndens)
+            try:
+                int_yields = self.mceq.y.get_y_matrix(
+                    ParticleProperties.pdg_id[prim],
+                    ParticleProperties.pdg_id[particle_name])
+                res += np.dot(int_yields,
+                              prim_flux*prim_xs*ndens)
+            except KeyError as e:
+                continue
+                
         res *= decayl
         # combine with direct
         direct = sol[ref[particle_name].lidx():
