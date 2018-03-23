@@ -1,10 +1,15 @@
+#!/usr/bin/env python
+
 import os
 from collections import namedtuple
+import pickle
 import utils
 import numpy as np
 import pandas as pd
-from scipy import interpolate, stats
+import argparse
+from scipy import interpolate
 from matplotlib import pyplot as plt
+import pl
 
 
 def calc_nbins(x):
@@ -95,17 +100,18 @@ def interp(preach, plight):
     return interpolate.RegularGridInterpolator((df.index,df.columns), df.values, bounds_error=False, fill_value=0)
 
 
-def sigmoid(emu, center, scale):
-    return stats.norm.cdf(emu, loc=center, scale=scale)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Generate muon detection probability')
+    parser.add_argument('mmc', metavar='MMC',
+                    help='text file containing MMC simulated data')
+    parser.add_argument('--plight', default='pl_heaviside',
+                        choices=[fn for fn in dir(pl) if fn.startswith('pl_')],
+                        help='choice of a plight function to apply as defined in pl.py')
+    parser.add_argument('-o', dest='output', default='data/step_1.pkl',
+                        help='output file')
 
-
-def pl_heaviside(emu):
-    """ heaviside at 1 TeV
-    """
-    return sigmoid(emu, 1e3, 1e-6)
-
-
-def pl_smeared(emu):
-    """ sigmoid centered at 500 GeV
-    """
-    return sigmoid(emu, 750, 100)
+    args = parser.parse_args()
+    intp = interp(args.mmc, getattr(pl, args.plight))
+    pickle.dump(intp, open(args.output, 'w'))
+    print 'Output pickled into {}'.format(args.output)
