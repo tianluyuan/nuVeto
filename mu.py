@@ -3,10 +3,10 @@
 import os
 from collections import namedtuple
 import pickle
+import argparse
 import utils
 import numpy as np
 import pandas as pd
-import argparse
 from scipy import interpolate
 from matplotlib import pyplot as plt
 import pl
