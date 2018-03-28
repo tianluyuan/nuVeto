@@ -193,6 +193,7 @@ class SelfVeto(object):
         res = np.zeros(self.mceq.d)
         ref = self.mceq.pname2pref
         sol = None
+        p_pdg = ParticleProperties.pdg_id[particle_name]
         if grid_idx is None:
             sol = self.mceq.grid_sol[-1]
         elif grid_idx >= len(self.mceq.grid_sol):
@@ -201,13 +202,13 @@ class SelfVeto(object):
             sol = self.mceq.grid_sol[grid_idx]
 
         res = np.zeros(len(self.mceq.e_grid))
-        part_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[particle_name])
+        part_xs = self.mceq.cs.get_cs(p_pdg)
         xv = self.x_vec[grid_idx]
         rho_air = self.mceq.density_model.X2rho(xv)
         # meson decay length
         decayl = (self.mceq.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
         # meson interaction length
-        interactionl = 1/(self.mceq.cs.get_cs(ParticleProperties.pdg_id[particle_name])*rho_air*Units.Na/Units.mol_air)
+        interactionl = 1/(self.mceq.cs.get_cs(p_pdg)*rho_air*Units.Na/Units.mol_air)
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in self.projectiles():
@@ -217,7 +218,7 @@ class SelfVeto(object):
             try:
                 int_yields = self.mceq.y.get_y_matrix(
                     ParticleProperties.pdg_id[prim],
-                    ParticleProperties.pdg_id[particle_name])
+                    p_pdg)
                 res += np.dot(int_yields,
                               prim_flux*prim_xs*ndens)
             except KeyError as e:
@@ -233,13 +234,17 @@ class SelfVeto(object):
             for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
                 res += sol[ref[_].lidx():
                            ref[_].uidx()]
-
-        # if particle_name == 'K0L' or particle_name == 'K0S':
-        #     for _ in ['D+', 'D-', 'D0', 'D0-bar', 'Ds+', 'Ds-']:
-        #         res+=np.dot(self.mceq.decays.get_d_matrix(
-        #             ParticleProperties.pdg_id[_],
-        #             ParticleProperties.pdg_id[particle_name]).T,
-        #             self.get_solution(_, grid_idx=grid_idx))
+        elif particle_name.startswith('K'):
+            for _ in self.mceq.decays.mothers:
+                if _%1e3 == 7:
+                    continue
+                if self.mceq.decays.is_daughter(_,p_pdg):
+                    namer = ParticleProperties.modtab.pdg2modname
+                    direct = sol[ref[namer[_]].lidx():
+                                 ref[namer[_]].uidx()]
+                    res+=np.dot(self.mceq.decays.get_d_matrix(_,
+                                                              p_pdg).T,
+                                self.get_solution(namer[_], grid_idx=grid_idx)-direct)
 
         res *= self.mceq.e_grid ** mag
 
