@@ -228,7 +228,19 @@ class SelfVeto(object):
         direct = sol[ref[particle_name].lidx():
                      ref[particle_name].uidx()]
         res = np.concatenate((res[direct==0], direct[direct!=0]))
-        
+
+        if particle_name[:-1] == 'mu':            
+            for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
+                res += sol[ref[_].lidx():
+                           ref[_].uidx()]
+
+        # if particle_name == 'K0L' or particle_name == 'K0S':
+        #     for _ in ['D+', 'D-', 'D0', 'D0-bar', 'Ds+', 'Ds-']:
+        #         res+=np.dot(self.mceq.decays.get_d_matrix(
+        #             ParticleProperties.pdg_id[_],
+        #             ParticleProperties.pdg_id[particle_name]).T,
+        #             self.get_solution(_, grid_idx=grid_idx))
+
         res *= self.mceq.e_grid ** mag
 
         if not integrate:
