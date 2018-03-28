@@ -243,7 +243,7 @@ class SelfVeto(object):
                     direct = sol[ref[namer[_]].lidx():
                                  ref[namer[_]].uidx()]
                     res+=np.dot(self.mceq.decays.get_d_matrix(_,
-                                                              p_pdg).T,
+                                                              p_pdg),
                                 self.get_solution(namer[_], grid_idx=grid_idx)-direct)
 
         res *= self.mceq.e_grid ** mag
