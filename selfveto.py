@@ -236,21 +236,6 @@ class SelfVeto(object):
             for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
                 res += sol[ref[_].lidx():
                            ref[_].uidx()]
-        # elif particle_name.startswith('K'):
-        # if True:
-        #     for _ in self.mceq.decays.mothers:
-        #         if _%1e3 == 7:
-        #             continue
-        #         if self.mceq.decays.is_daughter(_,p_pdg):
-        #             name_ = ParticleProperties.modtab.pdg2modname[_]
-        #             dh = self.dh_vec[grid_idx]
-        #             inv_decay_ = (ParticleProperties.mass_dict[name_] / (self.mceq.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[name_])
-        #             interactionl_ = 1/(self.mceq.cs.get_cs(_)*rho_air*Units.Na/Units.mol_air)
-        #             direct = sol[ref[name_].lidx():
-        #                          ref[name_].uidx()]
-        #             res+=np.dot(self.mceq.decays.get_d_matrix(_,
-        #                                                       p_pdg),
-        #                         self.get_solution(name_, grid_idx=grid_idx)*inv_decay_*self.mceq.e_widths)/self.mceq.e_widths
 
         res *= self.mceq.e_grid ** mag
 
