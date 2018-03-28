@@ -29,8 +29,10 @@ class SelfVeto(object):
             primary_model=pmodel,
             # zenith angle \theta in degrees, measured positively from vertical direction
             theta_deg = theta,
+            # need to ensure this is set in mceq_config.py
+            compact_mode = False,
             # expand the rest of the options from mceq_config.py
-            **config)
+            **mceq_config_without(['compact_mode']))
 
         x_vec = np.logspace(np.log10(1e-4),
                             np.log10(self.mceq.density_model.max_X), 11)
@@ -54,7 +56,7 @@ class SelfVeto(object):
             else:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
-            mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+lbar]# 'LambdaC+'+bar
+            mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+lbar, 'LambdaC+'+bar]
         else:
             mothers = [categ,]
         return mothers
