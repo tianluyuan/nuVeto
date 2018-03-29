@@ -18,6 +18,7 @@ class SelfVeto(object):
         use mceq.pm_params and mceq.yields_params
         """
         self.costh = costh
+        self.pmodel = pmodel[0](pmodel[1])
         self.geom = Geometry(1950*Units.m)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
@@ -29,10 +30,7 @@ class SelfVeto(object):
             primary_model=pmodel,
             # zenith angle \theta in degrees, measured positively from vertical direction
             theta_deg = theta,
-            # need to ensure this is set in mceq_config.py
-            compact_mode = False,
-            # expand the rest of the options from mceq_config.py
-            **mceq_config_without(['compact_mode']))
+            **config)
 
         x_vec = np.logspace(np.log10(1e-4),
                             np.log10(self.mceq.density_model.max_X), 11)
@@ -56,7 +54,7 @@ class SelfVeto(object):
             else:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
-            mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+lbar, 'LambdaC+'+bar]
+            mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
         else:
             mothers = [categ,]
         return mothers
@@ -261,6 +259,22 @@ class SelfVeto(object):
             ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn(esamp)
 
         return ys
+
+
+    def prob_nomu(self, ecr, ep, particle, prpl='step_1'):
+        # only subtract if it matters
+        if ep > 0.01*ecr:
+            ecr -= ep
+
+        self.mceq.set_single_primary_particle(ecr, particle)
+        self.mceq.solve()
+        l_ice = GEOM.overburden(cos_theta)
+        mu = self.mceq.get_solution('total_mu-') + self.mceq.get_solution('total_mu+')
+
+        fn = MuonProb(prpl)
+        coords = zip(mu.info.e_grid*Units.GeV, [l_ice]*len(mu.info.e_grid))
+        return np.exp(-np.trapz(mu.yields*fn.prpl(coords),
+                                mu.info.e_grid))
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=4, prpl='step_1'):
