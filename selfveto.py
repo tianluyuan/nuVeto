@@ -39,6 +39,7 @@ class SelfVeto(object):
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
         self.dh_vec = np.diff(lengths)
         self.x_vec = x_vec[:-1]
+        # self.mceq.set_single_primary_particle(1e6, 14)
         self.mceq.solve(int_grid=self.x_vec, grid_var="X")
 
 
@@ -252,7 +253,7 @@ class SelfVeto(object):
         for particle in self.pmodel.nucleus_ids[-1:]:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-            ecrs = amu(particle)*np.logspace(3, 10, accuracy)
+            ecrs = amu(particle)*np.logspace(3, 10, 10)
             nums = []
             dens = []
             for ecr in ecrs[ecrs>enu]:
