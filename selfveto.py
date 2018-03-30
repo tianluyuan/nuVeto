@@ -198,7 +198,7 @@ class SelfVeto(object):
         return ys
 
 
-    @lru_cache(maxsize=2**12)
+    @lru_cache(maxsize=2**10)
     def prob_nomu(self, ecr, particle, prpl='step_1'):
         self.mceq.set_single_primary_particle(ecr, particle)
         self.mceq.solve()
@@ -210,7 +210,7 @@ class SelfVeto(object):
         return np.exp(-np.trapz(mu*fn.prpl(coords),
                                 self.mceq.e_grid))
 
-    
+
     def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1'):
         categ, daughter = kind.split('_')
 
@@ -253,7 +253,7 @@ class SelfVeto(object):
         for particle in self.pmodel.nucleus_ids[-1:]:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-            ecrs = amu(particle)*np.logspace(3, 10, 10)
+            ecrs = amu(particle)*np.logspace(3, 10, 10*accuracy)
             nums = []
             dens = []
             for ecr in ecrs[ecrs>enu]:
@@ -281,13 +281,14 @@ class SelfVeto(object):
                     num_ecr += integrate.trapz(
                         self.get_integrand(
                             categ, daughter, idx,
-                            reaching, esamp, enu)*pnmarr*cr_flux, esamp)
+                            reaching, esamp, enu)*pnmarr, esamp)
                     den_ecr += integrate.trapz(
                         self.get_integrand(
                             categ, daughter, idx,
-                            identity, esamp, enu)*cr_flux, esamp)
-                nums.append(num_ecr)
-                dens.append(den_ecr)
+                            identity, esamp, enu), esamp)
+
+                nums.append(num_ecr*cr_flux)
+                dens.append(den_ecr*cr_flux)
             # dEcr
             passed += integrate.trapz(nums, ecrs[ecrs>enu])
             total += integrate.trapz(dens, ecrs[ecrs>enu])
