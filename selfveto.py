@@ -1,5 +1,5 @@
-from functools32 import lru_cache
 import pickle
+from functools32 import lru_cache
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -101,76 +101,6 @@ class SelfVeto(object):
             np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='quadratic',
             bounds_error=False, fill_value=(lower, 0.0))
         return x_range, dNdEE, dNdEE_interp
-
-
-    def get_solution_orig(self,
-                          particle_name,
-                          mag=0.,
-                          grid_idx=None,
-                          integrate=False):
-        """Retrieves solution of the calculation on the energy grid.
-
-        Some special prefixes are accepted for lepton names:
-
-        - the total flux of muons, muon neutrinos etc. from all sources/mothers
-          can be retrieved by the prefix ``total_``, i.e. ``total_numu``
-        - the conventional flux of muons, muon neutrinos etc. from all sources
-          can be retrieved by the prefix ``conv_``, i.e. ``conv_numu``
-        - correspondigly, the flux of leptons which originated from the decay
-          of a charged pion carries the prefix ``pi_`` and from a kaon ``k_``
-        - conventional leptons originating neither from pion nor from kaon
-          decay are collected in a category without any prefix, e.g. ``numu`` or
-          ``mu+``
-
-        Args:
-          particle_name (str): The name of the particle such, e.g.
-            ``total_mu+`` for the total flux spectrum of positive muons or
-            ``pr_antinumu`` for the flux spectrum of prompt anti muon neutrinos
-          mag (float, optional): 'magnification factor': the solution is
-            multiplied by ``sol`` :math:`= \\Phi \\cdot E^{mag}`
-          grid_idx (int, optional): if the integrator has been configured to save
-            intermediate solutions on a depth grid, then ``grid_idx`` specifies
-            the index of the depth grid for which the solution is retrieved. If
-            not specified the flux at the surface is returned
-          integrate (bool, optional): return averge particle number instead of
-          flux (multiply by bin width)
-
-        Returns:
-          (numpy.array): flux of particles on energy grid :attr:`e_grid`
-        """
-        res = np.zeros(self.mceq.d)
-        ref = self.mceq.pname2pref
-        sol = None
-        if grid_idx is None:
-            sol = self.mceq.grid_sol[-1]
-        elif grid_idx >= len(self.mceq.grid_sol):
-            sol = self.mceq.grid_sol[-1]
-        else:
-            sol = self.mceq.grid_sol[grid_idx]
-
-        if particle_name.startswith('total'):
-            lep_str = particle_name.split('_')[1]
-            for prefix in ('pr_', 'pi_', 'k_', ''):
-                particle_name = prefix + lep_str
-                res += sol[ref[particle_name].lidx():
-                           ref[particle_name].uidx()] * \
-                    self.mceq.e_grid ** mag
-        elif particle_name.startswith('conv'):
-            lep_str = particle_name.split('_')[1]
-            for prefix in ('pi_', 'k_', ''):
-                particle_name = prefix + lep_str
-                res += sol[ref[particle_name].lidx():
-                           ref[particle_name].uidx()] * \
-                    self.mceq.e_grid ** mag
-        else:
-            res = sol[ref[particle_name].lidx():
-                      ref[particle_name].uidx()] * \
-                self.mceq.e_grid ** mag
-
-        if not integrate:
-            return res
-        else:
-            return res * self.mceq.e_widths
 
 
     def get_solution(self,

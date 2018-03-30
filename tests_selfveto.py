@@ -196,7 +196,7 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
     sv = SelfVeto(cos_theta, pmodel, hadr)
     dh_vec, x_vec = sv.dh_vec, sv.x_vec
     for idx, x_val in enumerate(x_vec):
-        mceq = sv.get_solution_orig(parent, mag, grid_idx=idx)
+        mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)
         calc = sv.get_solution(parent, mag, grid_idx=idx)
         pout = plt.loglog(sv.mceq.e_grid, mceq,
                           label='h={:.3g} km'.format(
