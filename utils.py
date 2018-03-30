@@ -76,7 +76,7 @@ class MuonProb(object):
         if pklfile is None:
             self.mu_int = self.median_approx
         else:
-            self.mu_int = pickle.load(open(os.path.join('data', pklfile+'.pkl')))
+            self.mu_int = pickle.load(open(os.path.join('data', 'prpl', pklfile+'.pkl')))
 
 
     def median_emui(self, distance):

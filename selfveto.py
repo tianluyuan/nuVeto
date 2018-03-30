@@ -1,4 +1,5 @@
 from functools32 import lru_cache
+import pickle
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -38,10 +39,14 @@ class SelfVeto(object):
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
         self.dh_vec = np.diff(lengths)
         self.x_vec = x_vec[:-1]
-        # self.mceq.set_single_primary_particle(1e6,14)
         self.mceq.solve(int_grid=self.x_vec, grid_var="X")
 
 
+    @staticmethod
+    def is_prompt(categ):
+        return categ == 'pr' or categ[0] in ['D', 'L']
+
+    
     @staticmethod
     def categ_to_mothers(categ, daughter):
         charge = '-' if 'anti' in daughter else '+'
@@ -257,7 +262,7 @@ class SelfVeto(object):
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, idx)
-            ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn(esamp)
+            ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn
 
         return ys
 
@@ -275,83 +280,46 @@ class SelfVeto(object):
                                 self.mceq.e_grid))
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=20, prpl='step_1'):
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1'):
         categ, daughter = kind.split('_')
 
         ice_distance = self.geom.overburden(self.costh)
-        identity = lambda Ep: 1
+
+        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), 10**accuracy)
+        identity = np.ones(len(esamp))
         if 'numu' not in daughter:
             # muon accompanies numu only
             reaching = identity
         else:
             fn = MuonProb(prpl)
-            reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
-                                                   [ice_distance]*len(Ep)))
+            if not self.is_prompt(categ):
+                reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
+                                                       [ice_distance]*len(esamp)))
+            else:
+                ddec = pickle.load(open(os.path.join('data', 'd', 'D_1e4.pkl')))
 
-        eps = self.mceq.e_grid
-        passed = 0
-        total = 0
-        for particle in self.pmodel.nucleus_ids[-1:]:
-            # A continuous input energy range is allowed between
-            # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-            ecrs = amu(particle)*np.logspace(3, 10, accuracy)
-            nums = []
-            dens = []
-            for ecr in ecrs[ecrs>enu]:
-                cr_flux = self.pmodel.nucleus_flux(particle, ecr)
-                pnmarr = []
-                # poisson exp(-Nmu)
-                for ep in eps:
-                    if ep > ecr:
-                        pnmarr.append(1.)
-                    # only subtract if it matters
-                    elif ep > 0.1*ecr:
-                        pnmarr.append(self.prob_nomu(ecr-ep, particle, prpl))
-                    else:
-                        pnmarr.append(self.prob_nomu(ecr, particle, prpl))
+                vals = []
+                for _ in sorted(ddec.keys()):
+                    vals.append(ddec[_][1])
+                # edge case when enu/ep = 1
+                xnu1 = np.zeros(len(ddec))
+                xnu1[0] = 1
+                vals.append(xnu1)
+                xmus = centers(ddec[_][0])
+                xnus = np.concatenate((centers(ddec[_][0]), [1]))
 
-                pnmarr = np.asarray(pnmarr)
-                print pnmarr
-                self.mceq.set_single_primary_particle(ecr, particle)
-                self.mceq.solve(int_grid=self.x_vec, grid_var="X")
-                num_ecr = 0
-                den_ecr = 0
-                # dh
-                for idx in xrange(len(self.x_vec)):
-                    # dEp
-                    num_ecr += integrate.trapz(
-                        self.get_integrand(
-                            categ, daughter, idx,
-                            reaching, eps, enu)*pnmarr*cr_flux, eps)
-                    den_ecr += integrate.trapz(
-                        self.get_integrand(
-                            categ, daughter, idx,
-                            identity, eps, enu)*cr_flux, eps)
-                nums.append(num_ecr)
-                dens.append(den_ecr)
-            # dEcr
-            passed += integrate.trapz(nums, ecrs[ecrs>enu])
-            total += integrate.trapz(dens, ecrs[ecrs>enu])
+                ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
+                                                           bounds_error=False, fill_value=None)
+                reaching = np.zeros(len(esamp))
+                for i, enufrac in enumerate(enu/esamp):
+                    emu = xmus*esamp[i]
+                    pmu = ddec(zip([enufrac]*len(emu), xmus))
+                    reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
+                                                              [ice_distance]*len(emu))))
 
-        return passed, total
-    
-
-    def get_fluxes_corr(self, enu, kind='conv_numu', accuracy=4, prpl='step_1'):
-        categ, daughter = kind.split('_')
-
-        ice_distance = self.geom.overburden(self.costh)
-        identity = lambda Ep: 1
-        if 'numu' not in daughter:
-            # muon accompanies numu only
-            reaching = identity
-        else:
-            fn = MuonProb(prpl)
-            reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
-                                                   [ice_distance]*len(Ep)))
 
         numerator = 0
         denominator = 0
-        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), int(80))
         for idx in xrange(len(self.x_vec)):
             numerator += integrate.trapz(
                 self.get_integrand(categ, daughter, idx, reaching, esamp, enu), esamp)
