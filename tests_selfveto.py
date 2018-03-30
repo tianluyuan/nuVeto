@@ -94,7 +94,7 @@ def test_prpls(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), h
 
 
 def test_elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1'):
-    hadrs=['DPMJET-III']
+    hadrs=['DPMJET-III', 'SIBYLL2.3c']
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
