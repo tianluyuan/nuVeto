@@ -280,7 +280,7 @@ class SelfVeto(object):
                                 self.mceq.e_grid))
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=4, prpl='step_1'):
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1'):
         categ, daughter = kind.split('_')
 
         ice_distance = self.geom.overburden(self.costh)
@@ -297,12 +297,23 @@ class SelfVeto(object):
                                                        [ice_distance]*len(esamp)))
             else:
                 ddec = pickle.load(open(os.path.join('data', 'd', 'D_1e4.pkl')))
+
+                vals = []
+                for _ in sorted(ddec.keys()):
+                    vals.append(ddec[_][1])
+                # edge case when enu/ep = 1
+                xnu1 = np.zeros(len(ddec))
+                xnu1[0] = 1
+                vals.append(xnu1)
+                xmus = centers(ddec[_][0])
+                xnus = np.concatenate((centers(ddec[_][0]), [1]))
+
+                ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
+                                                           bounds_error=False, fill_value=None)
                 reaching = np.zeros(len(esamp))
-                sort_x = sorted(ddec.keys())
-                idxs = np.round(enu/esamp*(len(sort_x)-1)).astype(int)
-                for i in idxs:
-                    emu = centers(ddec[sort_x[i]][0])*esamp[i]
-                    pmu = ddec[sort_x[i]][1]
+                for i, enufrac in enumerate(enu/esamp):
+                    emu = xmus*esamp[i]
+                    pmu = ddec(zip([enufrac]*len(emu), xmus))
                     reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
                                                               [ice_distance]*len(emu))))
 
