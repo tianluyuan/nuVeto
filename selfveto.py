@@ -38,8 +38,8 @@ class SelfVeto(object):
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
         self.dh_vec = np.diff(lengths)
         self.x_vec = x_vec[:-1]
-        # self.mceq.set_single_primary_particle(1e6, 14)
-        # self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+        # self.mceq.set_single_primary_particle(1e6,14)
+        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
 
 
     @staticmethod
@@ -229,9 +229,7 @@ class SelfVeto(object):
         # combine with direct
         direct = sol[ref[particle_name].lidx():
                      ref[particle_name].uidx()]
-        # TODO: better way to find first nonzero
-        upto = np.nonzero(direct)[0][0]
-        res = np.concatenate((res[:upto], direct[upto:]))
+        res[direct!=0] = direct[direct!=0]
 
         if particle_name[:-1] == 'mu':            
             for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
@@ -273,7 +271,8 @@ class SelfVeto(object):
 
         fn = MuonProb(prpl)
         coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
-        return np.exp(-(mu*fn.prpl(coords)*self.mceq.e_widths).sum())
+        return np.exp(-np.trapz(mu*fn.prpl(coords),
+                                self.mceq.e_grid))
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=20, prpl='step_1'):
@@ -290,18 +289,18 @@ class SelfVeto(object):
                                                    [ice_distance]*len(Ep)))
 
         eps = self.mceq.e_grid
-        ews = self.mceq.e_widths
         passed = 0
         total = 0
         for particle in self.pmodel.nucleus_ids[-1:]:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-            ecrs = amu(particle)*np.logspace(2, 10, accuracy)
+            ecrs = amu(particle)*np.logspace(3, 10, accuracy)
             nums = []
             dens = []
             for ecr in ecrs[ecrs>enu]:
                 cr_flux = self.pmodel.nucleus_flux(particle, ecr)
                 pnmarr = []
+                # poisson exp(-Nmu)
                 for ep in eps:
                     if ep > ecr:
                         pnmarr.append(1.)
@@ -317,15 +316,22 @@ class SelfVeto(object):
                 self.mceq.solve(int_grid=self.x_vec, grid_var="X")
                 num_ecr = 0
                 den_ecr = 0
+                # dh
                 for idx in xrange(len(self.x_vec)):
-                    num_ecr += np.sum(self.get_integrand(categ, daughter, idx,
-                                                         reaching, eps, enu)*pnmarr*ews)*cr_flux
-                    den_ecr += np.sum(self.get_integrand(categ, daughter, idx,
-                                                         identity, eps, enu)*ews)*cr_flux
+                    # dEp
+                    num_ecr += integrate.trapz(
+                        self.get_integrand(
+                            categ, daughter, idx,
+                            reaching, eps, enu)*pnmarr*cr_flux, eps)
+                    den_ecr += integrate.trapz(
+                        self.get_integrand(
+                            categ, daughter, idx,
+                            identity, eps, enu)*cr_flux, eps)
                 nums.append(num_ecr)
                 dens.append(den_ecr)
-            passed += np.trapz(nums, ecrs[ecrs>enu])
-            total += np.trapz(dens, ecrs[ecrs>enu])
+            # dEcr
+            passed += integrate.trapz(nums, ecrs[ecrs>enu])
+            total += integrate.trapz(dens, ecrs[ecrs>enu])
 
         return passed, total
     
@@ -345,7 +351,7 @@ class SelfVeto(object):
 
         numerator = 0
         denominator = 0
-        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), int(10**accuracy))
+        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), int(80))
         for idx in xrange(len(self.x_vec)):
             numerator += integrate.trapz(
                 self.get_integrand(categ, daughter, idx, reaching, esamp, enu), esamp)
