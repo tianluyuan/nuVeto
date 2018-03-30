@@ -108,7 +108,7 @@ if __name__ == '__main__':
     parser.add_argument('--plight', default='pl_heaviside',
                         choices=[fn for fn in dir(pl) if fn.startswith('pl_')],
                         help='choice of a plight function to apply as defined in pl.py')
-    parser.add_argument('-o', dest='output', default='data/step_1.pkl',
+    parser.add_argument('-o', dest='output', default='step_1.pkl',
                         help='output file')
 
     args = parser.parse_args()
