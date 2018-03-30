@@ -17,7 +17,7 @@ def test_fn(slice_val):
 def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, prpl='step_1', **kwargs):
     """ plot the passing rate (flux or fraction)
     """
-    ens = np.logspace(3,7,50)
+    ens = np.logspace(3,7,10)
     prs = plt.plot(ens, [passing_rate(
         en, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl) for en in ens], **kwargs)
     plt.xlim(10**3, 10**7)
@@ -140,7 +140,7 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
     emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
     plt.plot(ens, elbert.passrates(kind)(ens, emu, cos_theta), 'k--',
              label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
-    pr = test_pr_mult(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,
