@@ -38,7 +38,8 @@ class SelfVeto(object):
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
         self.dh_vec = np.diff(lengths)
         self.x_vec = x_vec[:-1]
-        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+        # self.mceq.set_single_primary_particle(1e6, 14)
+        # self.mceq.solve(int_grid=self.x_vec, grid_var="X")
 
 
     @staticmethod
@@ -228,7 +229,9 @@ class SelfVeto(object):
         # combine with direct
         direct = sol[ref[particle_name].lidx():
                      ref[particle_name].uidx()]
-        res = np.concatenate((res[direct==0], direct[direct!=0]))
+        # TODO: better way to find first nonzero
+        upto = np.nonzero(direct)[0][0]
+        res = np.concatenate((res[:upto], direct[upto:]))
 
         if particle_name[:-1] == 'mu':            
             for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
@@ -261,23 +264,19 @@ class SelfVeto(object):
         return ys
 
 
-    def prob_nomu(self, ecr, ep, particle, prpl='step_1'):
-        # only subtract if it matters
-        if ep > 0.01*ecr:
-            ecr -= ep
-
+    @lru_cache(maxsize=2**12)
+    def prob_nomu(self, ecr, particle, prpl='step_1'):
         self.mceq.set_single_primary_particle(ecr, particle)
         self.mceq.solve()
-        l_ice = GEOM.overburden(cos_theta)
+        l_ice = self.geom.overburden(self.costh)
         mu = self.mceq.get_solution('total_mu-') + self.mceq.get_solution('total_mu+')
 
         fn = MuonProb(prpl)
-        coords = zip(mu.info.e_grid*Units.GeV, [l_ice]*len(mu.info.e_grid))
-        return np.exp(-np.trapz(mu.yields*fn.prpl(coords),
-                                mu.info.e_grid))
+        coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
+        return np.exp(-(mu*fn.prpl(coords)*self.mceq.e_widths).sum())
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=4, prpl='step_1'):
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=20, prpl='step_1'):
         categ, daughter = kind.split('_')
 
         ice_distance = self.geom.overburden(self.costh)
@@ -290,16 +289,70 @@ class SelfVeto(object):
             reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
                                                    [ice_distance]*len(Ep)))
 
-        passing_numerator = 0
-        passing_denominator = 0
+        eps = self.mceq.e_grid
+        ews = self.mceq.e_widths
+        passed = 0
+        total = 0
+        for particle in self.pmodel.nucleus_ids[-1:]:
+            # A continuous input energy range is allowed between
+            # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
+            ecrs = amu(particle)*np.logspace(2, 10, accuracy)
+            nums = []
+            dens = []
+            for ecr in ecrs[ecrs>enu]:
+                cr_flux = self.pmodel.nucleus_flux(particle, ecr)
+                pnmarr = []
+                for ep in eps:
+                    if ep > ecr:
+                        pnmarr.append(1.)
+                    # only subtract if it matters
+                    elif ep > 0.1*ecr:
+                        pnmarr.append(self.prob_nomu(ecr-ep, particle, prpl))
+                    else:
+                        pnmarr.append(self.prob_nomu(ecr, particle, prpl))
+
+                pnmarr = np.asarray(pnmarr)
+                print pnmarr
+                self.mceq.set_single_primary_particle(ecr, particle)
+                self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+                num_ecr = 0
+                den_ecr = 0
+                for idx in xrange(len(self.x_vec)):
+                    num_ecr += np.sum(self.get_integrand(categ, daughter, idx,
+                                                         reaching, eps, enu)*pnmarr*ews)*cr_flux
+                    den_ecr += np.sum(self.get_integrand(categ, daughter, idx,
+                                                         identity, eps, enu)*ews)*cr_flux
+                nums.append(num_ecr)
+                dens.append(den_ecr)
+            passed += np.trapz(nums, ecrs[ecrs>enu])
+            total += np.trapz(dens, ecrs[ecrs>enu])
+
+        return passed, total
+    
+
+    def get_fluxes_corr(self, enu, kind='conv_numu', accuracy=4, prpl='step_1'):
+        categ, daughter = kind.split('_')
+
+        ice_distance = self.geom.overburden(self.costh)
+        identity = lambda Ep: 1
+        if 'numu' not in daughter:
+            # muon accompanies numu only
+            reaching = identity
+        else:
+            fn = MuonProb(prpl)
+            reaching = lambda Ep: 1. - fn.prpl(zip((Ep-enu)*Units.GeV,
+                                                   [ice_distance]*len(Ep)))
+
+        numerator = 0
+        denominator = 0
         esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), int(10**accuracy))
         for idx in xrange(len(self.x_vec)):
-            passing_numerator += integrate.trapz(
+            numerator += integrate.trapz(
                 self.get_integrand(categ, daughter, idx, reaching, esamp, enu), esamp)
-            passing_denominator += integrate.trapz(
+            denominator += integrate.trapz(
                 self.get_integrand(categ, daughter, idx, identity, esamp, enu), esamp)
-            # print passing_numerator, passing_denominator
-        return passing_numerator, passing_denominator
+            # print numerator, denominator
+        return numerator, denominator
 
 
 SVS = {}
