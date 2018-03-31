@@ -20,6 +20,8 @@ class Units(object):
     TeV = 1.e3*GeV
     PeV = 1.e3*TeV
     mol_air = config['A_target']
+    phim2 = (m**2*GeV*sec)**-1
+    phicm2 = (cm**2*GeV*sec)**-1
 
 
 class ParticleProperties(object):

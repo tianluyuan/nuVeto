@@ -89,7 +89,8 @@ def flux(primary_energy, particle, pmodel):
     """ Primary flux
     """
     pmod = pmodel[0](pmodel[1])
-    return pmod.nucleus_flux(particle, primary_energy)
+    # convert to m^-2 to cm^-2
+    return pmod.nucleus_flux(particle, primary_energy)*Units.phim2
 
 
 def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
@@ -98,7 +99,7 @@ def response_function(primary_energy, cos_theta, particle, elep, kind='mu', pmod
     sol = mceq_yield(primary_energy, cos_theta, particle, kind, pmods, pmodel, hadr)
     fnsol = interp1d(sol.info.e_grid, sol.yields, kind='quadratic',
                      assume_sorted=True)
-    return flux(primary_energy, particle, pmodel)*fnsol(elep)
+    return flux(primary_energy, particle, pmodel)/Units.phicm2*fnsol(elep)
 
 
 def prob_nomu(primary_energy, cos_theta, particle, enu, pmods=(), pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', nenu=2, prpl='step_1'):
@@ -134,4 +135,5 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser
 
         passed += np.trapz(numer, eprimaries[istart:])
         total += np.trapz(denom, eprimaries[istart:])
+    print enu, passed, total
     return passed/total if fraction else passed
