@@ -32,28 +32,6 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3.5, fraction=True, prpl='step_1', nenu=0, **kwargs):
-    """ plot the corr*uncorr passing rate (flux or fraction)
-    """
-    import uncorrelated_selfveto as usv
-    ens = np.logspace(3,7,50)
-    corr = np.asarray([passing_rate(en, cos_theta, kind, pmodel,
-                                    hadr, accuracy, fraction, prpl) for en in ens])
-    uncorr = np.asarray([usv.passing_rate(en, cos_theta, kind, pmodel=pmodel,
-                                          hadr=hadr, fraction=fraction, nenu=nenu, prpl=prpl) for en in ens])
-    prs = plt.plot(ens, corr*uncorr, **kwargs)
-    plt.xlim(10**3, 10**7)
-    plt.xscale('log')
-    plt.xlabel(r'$E_\nu$')
-    if fraction:
-        plt.ylim(-0.05, 1.05)
-        plt.ylabel(r'Passing fraction')
-    else:
-        plt.yscale('log')
-        plt.ylabel(r'Passing flux')
-    return prs[0]
-
-
 def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3.5, fraction=True, prpl='step_1', **kwargs):
     """ plot the passing rate (flux or fraction)
     """
@@ -157,8 +135,8 @@ def test_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
                (pm.GaisserHonda, None, 'GH')]
     ens = np.logspace(2,9, 50)
     for pmodel in pmodels:
-        pr = test_pr_mult(cos_theta, kind, pmodel=pmodel[:2], hadr=hadr,
-                          label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
+        pr = test_pr(cos_theta, kind, pmodel=pmodel[:2], hadr=hadr,
+                     label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
     plt.legend()
         
 
