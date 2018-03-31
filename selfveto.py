@@ -223,7 +223,7 @@ class SelfVeto(object):
                                 self.mceq.e_grid))
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1', uncorr=False):
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1', corr_only=False):
         categ, daughter = kind.split('_')
 
         ice_distance = self.geom.overburden(self.costh)
@@ -263,7 +263,7 @@ class SelfVeto(object):
 
         passed = 0
         total = 0
-        if not uncorr:
+        if corr_only:
             grid_sol = self.grid_sol()
             for idx in xrange(len(self.x_vec)):
                 passed += integrate.trapz(
