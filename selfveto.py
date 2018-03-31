@@ -257,7 +257,7 @@ class SelfVeto(object):
             nums = []
             dens = []
             for ecr in ecrs[ecrs>enu]:
-                cr_flux = self.pmodel.nucleus_flux(particle, ecr)
+                cr_flux = self.pmodel.nucleus_flux(particle, ecr)*Units.phim2
                 pnmarr = []
                 # poisson exp(-Nmu)
                 for ep in esamp:
@@ -265,7 +265,7 @@ class SelfVeto(object):
                         pnmarr.append(1.)
                     # only subtract if it matters
                     elif ep > 0.1*ecr:
-                        pnmarr.append(self.prob_nomu(ecr-ep, particle, prpl))
+                        pnmarr.append(self.prob_nomu(ecr, particle, prpl))
                     else:
                         pnmarr.append(self.prob_nomu(ecr, particle, prpl))
 
@@ -287,8 +287,8 @@ class SelfVeto(object):
                             categ, daughter, idx,
                             identity, esamp, enu), esamp)
 
-                nums.append(num_ecr*cr_flux)
-                dens.append(den_ecr*cr_flux)
+                nums.append(num_ecr*cr_flux/Units.phicm2)
+                dens.append(den_ecr*cr_flux/Units.phicm2)
             # dEcr
             passed += integrate.trapz(nums, ecrs[ecrs>enu])
             total += integrate.trapz(dens, ecrs[ecrs>enu])
