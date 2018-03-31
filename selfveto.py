@@ -281,7 +281,7 @@ class SelfVeto(object):
                         pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
                     else:
                         pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
-                print pnmarr
+                # print pnmarr
                 grid_sol = self.grid_sol(ecr, particle)
                 num_ecr = 0
                 den_ecr = 0
