@@ -194,10 +194,11 @@ def test_plot_prpl(int_prpl, include_mean=False):
 def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):
     plt.figure()
     sv = SelfVeto(cos_theta, pmodel, hadr)
+    gsol = sv.grid_sol()
     dh_vec, x_vec = sv.dh_vec, sv.x_vec
     for idx, x_val in enumerate(x_vec):
         mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)
-        calc = sv.get_solution(parent, mag, grid_idx=idx)
+        calc = sv.get_solution(parent, gsol, mag, grid_idx=idx)
         pout = plt.loglog(sv.mceq.e_grid, mceq,
                           label='h={:.3g} km'.format(
                               float(sv.mceq.density_model.X2h(x_val))/1e5))
@@ -214,6 +215,7 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
 
 def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7)):
     sv = SelfVeto(cos_theta, pmodel, hadr)
+    sv.grid_sol()
     fig, axs = plt.subplots(2,1)
     for kind in kinds.split():
         plt.sca(axs[0])

@@ -19,7 +19,7 @@ class SelfVeto(object):
         use mceq.pm_params and mceq.yields_params
         """
         self.costh = costh
-        self.pmodel = pmodel[0](pmodel[1])
+        self.pmodel = pmodel
         self.geom = Geometry(1950*Units.m)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
@@ -40,7 +40,7 @@ class SelfVeto(object):
         self.dh_vec = np.diff(lengths)
         self.x_vec = x_vec[:-1]
         # self.mceq.set_single_primary_particle(1e6, 14)
-        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+        # self.mceq.solve(int_grid=self.x_vec, grid_var="X")
 
 
     @staticmethod
@@ -106,6 +106,7 @@ class SelfVeto(object):
 
     def get_solution(self,
                      particle_name,
+                     grid_sol,
                      mag=0.,
                      grid_idx=None,
                      integrate=False):
@@ -132,15 +133,17 @@ class SelfVeto(object):
         sol = None
         p_pdg = ParticleProperties.pdg_id[particle_name]
         if grid_idx is None:
-            sol = self.mceq.grid_sol[-1]
+            sol = grid_sol[-1]
+            xv = self.x_vec[-1]
         elif grid_idx >= len(self.mceq.grid_sol):
-            sol = self.mceq.grid_sol[-1]
+            sol = grid_sol[-1]
+            xv = self.x_vec[-1]
         else:
-            sol = self.mceq.grid_sol[grid_idx]
+            sol = grid_sol[grid_idx]
+            xv = self.x_vec[grid_idx]
 
         res = np.zeros(len(self.mceq.e_grid))
         part_xs = self.mceq.cs.get_cs(p_pdg)
-        xv = self.x_vec[grid_idx]
         rho_air = self.mceq.density_model.X2rho(xv)
         # meson decay length
         decayl = (self.mceq.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
@@ -199,11 +202,19 @@ class SelfVeto(object):
 
 
     @lru_cache(maxsize=2**10)
+    def grid_sol(self, ecr=None, particle=None):
+        if ecr is not None:
+            self.mceq.set_single_primary_particle(ecr, particle)
+        else:
+            self.mceq.set_primary_model(*self.pmodel)
+        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+        return self.mceq.grid_sol
+
+    
     def prob_nomu(self, ecr, particle, prpl='step_1'):
-        self.mceq.set_single_primary_particle(ecr, particle)
-        self.mceq.solve()
+        gsol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
-        mu = self.mceq.get_solution('total_mu-') + self.mceq.get_solution('total_mu+')
+        mu = self.get_solution('mu-', gsol) + self.get_solution('mu+', gsol)
 
         fn = MuonProb(prpl)
         coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
@@ -250,14 +261,15 @@ class SelfVeto(object):
 
         passed = 0
         total = 0
-        for particle in self.pmodel.nucleus_ids:
+        pmodel = self.pmodel[0](self.pmodel[1])
+        for particle in pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
             ecrs = amu(particle)*np.logspace(3, 10, 10)
             nums = []
             dens = []
             for ecr in ecrs[ecrs>enu]:
-                cr_flux = self.pmodel.nucleus_flux(particle, ecr)*Units.phim2
+                cr_flux = pmodel.nucleus_flux(particle, ecr)*Units.phim2
                 pnmarr = np.ones(len(esamp))
                 # poisson exp(-Nmu)
                 for i, ep in enumerate(esamp):
@@ -269,8 +281,7 @@ class SelfVeto(object):
                     else:
                         pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
                 print pnmarr
-                self.mceq.set_single_primary_particle(ecr, particle)
-                self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+                gsol = self.grid_sol(ecr, particle)
                 num_ecr = 0
                 den_ecr = 0
                 # dh
