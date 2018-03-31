@@ -183,19 +183,19 @@ class SelfVeto(object):
             return res * self.mceq.e_widths
 
 
-    def get_rescale_phi(self, mother, idx):
+    def get_rescale_phi(self, mother, grid_sol, idx):
         dh = self.dh_vec[idx]
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[mother])
-        rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_idx=idx)
+        rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=idx)
         return interpolate.interp1d(self.mceq.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 
     
-    def get_integrand(self, categ, daughter, idx, weight_fn, esamp, enu):
+    def get_integrand(self, categ, daughter, grid_sol, idx, weight_fn, esamp, enu):
         mothers = self.categ_to_mothers(categ, daughter)
         ys = np.zeros(len(esamp))
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
-            rescale_phi = self.get_rescale_phi(mother, idx)
+            rescale_phi = self.get_rescale_phi(mother, grid_sol, idx)
             ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn
 
         return ys
@@ -212,9 +212,9 @@ class SelfVeto(object):
 
     
     def prob_nomu(self, ecr, particle, prpl='step_1'):
-        gsol = self.grid_sol(ecr, particle)
+        grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
-        mu = self.get_solution('mu-', gsol) + self.get_solution('mu+', gsol)
+        mu = self.get_solution('mu-', grid_sol) + self.get_solution('mu+', grid_sol)
 
         fn = MuonProb(prpl)
         coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
@@ -265,7 +265,7 @@ class SelfVeto(object):
         for particle in pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-            ecrs = amu(particle)*np.logspace(3, 10, 10)
+            ecrs = amu(particle)*np.logspace(3, 10, 20)
             nums = []
             dens = []
             for ecr in ecrs[ecrs>enu]:
@@ -281,7 +281,7 @@ class SelfVeto(object):
                     else:
                         pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
                 print pnmarr
-                gsol = self.grid_sol(ecr, particle)
+                grid_sol = self.grid_sol(ecr, particle)
                 num_ecr = 0
                 den_ecr = 0
                 # dh
@@ -289,11 +289,11 @@ class SelfVeto(object):
                     # dEp
                     num_ecr += integrate.trapz(
                         self.get_integrand(
-                            categ, daughter, idx,
+                            categ, daughter, grid_sol, idx,
                             reaching, esamp, enu)*pnmarr, esamp)
                     den_ecr += integrate.trapz(
                         self.get_integrand(
-                            categ, daughter, idx,
+                            categ, daughter, grid_sol, idx,
                             identity, esamp, enu), esamp)
 
                 nums.append(num_ecr*cr_flux/Units.phicm2)
