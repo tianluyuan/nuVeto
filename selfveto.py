@@ -278,7 +278,7 @@ class SelfVeto(object):
                         break
                     # only subtract if it matters
                     elif ep > 0.1*ecr:
-                        pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
+                        pnmarr[i] = self.prob_nomu(ecr-ep, particle, prpl)
                     else:
                         pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
                 # print pnmarr
