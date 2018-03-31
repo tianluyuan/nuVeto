@@ -223,12 +223,12 @@ class SelfVeto(object):
                                 self.mceq.e_grid))
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1'):
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1', uncorr=False):
         categ, daughter = kind.split('_')
 
         ice_distance = self.geom.overburden(self.costh)
 
-        esamp = np.logspace(np.log10(self.mceq.e_grid[0]), np.log10(self.mceq.e_grid[-1]), 10**accuracy)
+        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), 10**accuracy)
         esamp = esamp[esamp>enu]
         identity = np.ones(len(esamp))
         if 'numu' not in daughter:
@@ -263,6 +263,15 @@ class SelfVeto(object):
 
         passed = 0
         total = 0
+        if not uncorr:
+            grid_sol = self.grid_sol()
+            for idx in xrange(len(self.x_vec)):
+                passed += integrate.trapz(
+                    self.get_integrand(categ, daughter, grid_sol, idx, reaching, esamp, enu), esamp)
+                total += integrate.trapz(
+                    self.get_integrand(categ, daughter, grid_sol, idx, identity, esamp, enu), esamp)
+            return passed, total
+                
         pmodel = self.pmodel[0](self.pmodel[1])
         for particle in pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
@@ -305,55 +314,6 @@ class SelfVeto(object):
             total += integrate.trapz(dens, ecrs[ecrs>enu])
 
         return passed, total
-
-    
-    def get_fluxes_corr(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1'):
-        categ, daughter = kind.split('_')
-
-        ice_distance = self.geom.overburden(self.costh)
-
-        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), 10**accuracy)
-        identity = np.ones(len(esamp))
-        if 'numu' not in daughter:
-            # muon accompanies numu only
-            reaching = identity
-        else:
-            fn = MuonProb(prpl)
-            if not self.is_prompt(categ):
-                reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
-                                                       [ice_distance]*len(esamp)))
-            else:
-                ddec = pickle.load(open(os.path.join('data', 'd', 'D_1e4.pkl')))
-
-                vals = []
-                for _ in sorted(ddec.keys()):
-                    vals.append(ddec[_][1])
-                # edge case when enu/ep = 1
-                xnu1 = np.zeros(len(ddec))
-                xnu1[0] = 1
-                vals.append(xnu1)
-                xmus = centers(ddec[_][0])
-                xnus = np.concatenate((centers(ddec[_][0]), [1]))
-
-                ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
-                                                           bounds_error=False, fill_value=None)
-                reaching = np.zeros(len(esamp))
-                for i, enufrac in enumerate(enu/esamp):
-                    emu = xmus*esamp[i]
-                    pmu = ddec(zip([enufrac]*len(emu), xmus))
-                    reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
-                                                              [ice_distance]*len(emu))))
-
-
-        numerator = 0
-        denominator = 0
-        for idx in xrange(len(self.x_vec)):
-            numerator += integrate.trapz(
-                self.get_integrand(categ, daughter, idx, reaching, esamp, enu), esamp)
-            denominator += integrate.trapz(
-                self.get_integrand(categ, daughter, idx, identity, esamp, enu), esamp)
-            # print numerator, denominator
-        return numerator, denominator
 
 
 SVS = {}
