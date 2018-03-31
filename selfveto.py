@@ -211,7 +211,7 @@ class SelfVeto(object):
         return self.mceq.grid_sol
 
 
-    @lru_cache(maxsize=2e10)
+    @lru_cache(maxsize=2**10)
     def prob_nomu(self, ecr, particle, prpl='step_1'):
         grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
