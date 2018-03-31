@@ -250,7 +250,7 @@ class SelfVeto(object):
 
         passed = 0
         total = 0
-        for particle in self.pmodel.nucleus_ids[-1:]:
+        for particle in self.pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
             ecrs = amu(particle)*np.logspace(3, 10, 10)
@@ -258,18 +258,16 @@ class SelfVeto(object):
             dens = []
             for ecr in ecrs[ecrs>enu]:
                 cr_flux = self.pmodel.nucleus_flux(particle, ecr)*Units.phim2
-                pnmarr = []
+                pnmarr = np.ones(len(esamp))
                 # poisson exp(-Nmu)
-                for ep in esamp:
+                for i, ep in enumerate(esamp):
                     if ep > ecr:
-                        pnmarr.append(1.)
+                        break
                     # only subtract if it matters
                     elif ep > 0.1*ecr:
-                        pnmarr.append(self.prob_nomu(ecr, particle, prpl))
+                        pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
                     else:
-                        pnmarr.append(self.prob_nomu(ecr, particle, prpl))
-
-                pnmarr = np.asarray(pnmarr)
+                        pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
                 print pnmarr
                 self.mceq.set_single_primary_particle(ecr, particle)
                 self.mceq.solve(int_grid=self.x_vec, grid_var="X")
