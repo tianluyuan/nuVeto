@@ -275,14 +275,15 @@ class SelfVeto(object):
         for particle in pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-            ecrs = amu(particle)*np.logspace(3, 10, 10*accuracy)
+            ecrs = amu(particle)*np.logspace(2, 10, 10*accuracy)
             pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
             pnmfn = interpolate.interp1d(ecrs, pnm, kind='linear',
                                          assume_sorted=True, bounds_error=False,
                                          fill_value=(1,np.nan))
             nums = []
             dens = []
-            for ecr in ecrs[ecrs>enu]:
+            istart = max(0, np.argmax(ecrs > enu) - 1)
+            for ecr in ecrs[istart:]:
                 cr_flux = pmodel.nucleus_flux(particle, ecr)*Units.phim2
                 # poisson exp(-Nmu)
                 pnmarr = pnmfn(ecr-esamp)
@@ -305,8 +306,8 @@ class SelfVeto(object):
                 nums.append(num_ecr*cr_flux/Units.phicm2)
                 dens.append(den_ecr*cr_flux/Units.phicm2)
             # dEcr
-            passed += integrate.trapz(nums, ecrs[ecrs>enu])
-            total += integrate.trapz(dens, ecrs[ecrs>enu])
+            passed += integrate.trapz(nums, ecrs[istart:])
+            total += integrate.trapz(dens, ecrs[istart:])
 
         return passed, total
 
