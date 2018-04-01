@@ -17,7 +17,7 @@ def test_fn(slice_val):
 def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3.5, fraction=True, prpl='step_1', **kwargs):
     """ plot the passing rate (flux or fraction)
     """
-    ens = np.logspace(3,7,50)
+    ens = np.logspace(3,7,20)
     prs = plt.plot(ens, [passing_rate(
         en, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl) for en in ens], **kwargs)
     plt.xlim(10**3, 10**7)

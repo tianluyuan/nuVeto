@@ -229,7 +229,6 @@ class SelfVeto(object):
         ice_distance = self.geom.overburden(self.costh)
 
         esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), 10**accuracy)
-        esamp = esamp[esamp>enu]
         identity = np.ones(len(esamp))
         if 'numu' not in daughter:
             # muon accompanies numu only
@@ -278,7 +277,7 @@ class SelfVeto(object):
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
             ecrs = amu(particle)*np.logspace(3, 10, 20)
             pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
-            pnmfn = interpolate.interp1d(ecrs, pnm, kind='quadratic',
+            pnmfn = interpolate.interp1d(ecrs, pnm, kind='linear',
                                          assume_sorted=True, bounds_error=False,
                                          fill_value=(1,np.nan))
             nums = []
