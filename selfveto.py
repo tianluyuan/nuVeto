@@ -277,20 +277,16 @@ class SelfVeto(object):
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
             ecrs = amu(particle)*np.logspace(3, 10, 20)
+            pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
+            pnmfn = interpolate.interp1d(ecrs, pnm, kind='quadratic',
+                                         assume_sorted=True, bounds_error=False,
+                                         fill_value=(1,np.nan))
             nums = []
             dens = []
             for ecr in ecrs[ecrs>enu]:
                 cr_flux = pmodel.nucleus_flux(particle, ecr)*Units.phim2
-                pnmarr = np.ones(len(esamp))
                 # poisson exp(-Nmu)
-                for i, ep in enumerate(esamp):
-                    if ep > ecr:
-                        break
-                    # only subtract if it matters
-                    elif ep > ecr/accuracy:
-                        pnmarr[i] = self.prob_nomu(ecr-ep, particle, prpl)
-                    else:
-                        pnmarr[i] = self.prob_nomu(ecr, particle, prpl)
+                pnmarr = pnmfn(ecr-esamp)
                 # print pnmarr
                 grid_sol = self.grid_sol(ecr, particle)
                 num_ecr = 0
