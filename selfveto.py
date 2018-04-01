@@ -223,12 +223,12 @@ class SelfVeto(object):
                                 self.mceq.e_grid))
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='step_1', corr_only=False):
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='step_1', corr_only=False):
         categ, daughter = kind.split('_')
 
         ice_distance = self.geom.overburden(self.costh)
 
-        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), 10**accuracy)
+        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), 1000*accuracy)
         identity = np.ones(len(esamp))
         if 'numu' not in daughter:
             # muon accompanies numu only
@@ -275,7 +275,7 @@ class SelfVeto(object):
         for particle in pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
-            ecrs = amu(particle)*np.logspace(3, 10, 20)
+            ecrs = amu(particle)*np.logspace(3, 10, 10*accuracy)
             pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
             pnmfn = interpolate.interp1d(ecrs, pnm, kind='linear',
                                          assume_sorted=True, bounds_error=False,
@@ -314,7 +314,7 @@ class SelfVeto(object):
 SVS = {}
 
 
-def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3.5, fraction=True, prpl='step_1'):
+def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, fraction=True, prpl='step_1'):
     try:
         sv = SVS[(cos_theta, pmodel, hadr)]
     except KeyError:        
@@ -325,7 +325,7 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
     return num/den if fraction else num
 
 
-def total_flux(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3.5, prpl='step_1'):
+def total_flux(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, prpl='step_1'):
     try:
         sv = SVS[(cos_theta, pmodel, hadr)]
     except KeyError:        
