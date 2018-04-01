@@ -315,7 +315,7 @@ class SelfVeto(object):
 SVS = {}
 
 
-def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, fraction=True, prpl='step_1'):
+def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3.5, fraction=True, prpl='step_1'):
     try:
         sv = SVS[(cos_theta, pmodel, hadr)]
     except KeyError:        
@@ -326,7 +326,7 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
     return num/den if fraction else num
 
 
-def total_flux(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=4, prpl='step_1'):
+def total_flux(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3.5, prpl='step_1'):
     try:
         sv = SVS[(cos_theta, pmodel, hadr)]
     except KeyError:        
