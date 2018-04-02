@@ -239,17 +239,10 @@ class SelfVeto(object):
                 reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
                                                        [ice_distance]*len(esamp)))
             else:
-                ddec = pickle.load(open(os.path.join('data', 'd', 'D_1e4.pkl')))
-
-                vals = []
-                for _ in sorted(ddec.keys()):
-                    vals.append(ddec[_][1])
-                # edge case when enu/ep = 1
-                xnu1 = np.zeros(len(ddec))
-                xnu1[0] = 1
-                vals.append(xnu1)
-                xmus = centers(ddec[_][0])
-                xnus = np.concatenate((centers(ddec[_][0]), [1]))
+                with np.load('data/d/D.npz') as dfile:
+                    xmus = centers(dfile['xedges'])
+                    xnus = np.concatenate([xmus, [1]])
+                    vals = dfile['histograms']
 
                 ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
                                                            bounds_error=False, fill_value=None)
