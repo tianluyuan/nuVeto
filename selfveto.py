@@ -235,23 +235,21 @@ class SelfVeto(object):
             reaching = identity
         else:
             fn = MuonProb(prpl)
-            if not self.is_prompt(categ):
-                reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
-                                                       [ice_distance]*len(esamp)))
-            else:
-                with np.load('data/d/D0_numu.npz') as dfile:
+            reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
+                                        [ice_distance]*len(esamp)))
+            if self.is_prompt(categ):
+                with np.load('data/d/D+_numu.npz') as dfile:
                     xmus = centers(dfile['xedges'])
                     xnus = np.concatenate([xmus, [1]])
                     vals = dfile['histograms']
 
-                ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
-                                                           bounds_error=False, fill_value=None)
-                reaching = np.zeros(len(esamp))
-                for i, enufrac in enumerate(enu/esamp):
-                    emu = xmus*esamp[i]
-                    pmu = ddec(zip([enufrac]*len(emu), xmus))
-                    reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
-                                                              [ice_distance]*len(emu))))
+                    ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
+                                                               bounds_error=False, fill_value=None)
+                    for i, enufrac in enumerate(enu/esamp):
+                        emu = xmus*esamp[i]
+                        pmu = ddec(zip([enufrac]*len(emu), xmus))
+                        reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
+                                                                  [ice_distance]*len(emu))))
 
         passed = 0
         total = 0

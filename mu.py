@@ -97,7 +97,7 @@ def interp(preach, plight):
     intg = int_ef(preach, plight)
     df = pd.DataFrame(intg, columns='ei l prpl'.split())
     df = df.pivot_table(index='ei', columns='l', values='prpl').fillna(0)
-    return interpolate.RegularGridInterpolator((df.index,df.columns), df.values, bounds_error=False, fill_value=0)
+    return interpolate.RegularGridInterpolator((df.index,df.columns), df.values, bounds_error=False, fill_value=None)
 
 
 if __name__ == '__main__':

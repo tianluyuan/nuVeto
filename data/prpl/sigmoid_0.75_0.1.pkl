@@ -53,8 +53,7 @@ p21
 tp22
 bsS'fill_value'
 p23
-I0
-sS'grid'
+NsS'grid'
 p24
 (g8
 (g9
