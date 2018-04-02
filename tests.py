@@ -263,5 +263,5 @@ def test_unified(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, '
                  label='Post-unification, {} {:.2g}'.format(kind, cos_theta))
     test_pr_mult(cos_theta, kind, pmodel, hadr, prpl=prpl,
                  label='Pre-unification, {} {:.2g}'.format(kind, cos_theta),
-                 linstyle='--', color=pr.get_color())
+                 linestyle='--', color=pr.get_color())
     plt.legend()
