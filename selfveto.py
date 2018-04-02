@@ -228,7 +228,8 @@ class SelfVeto(object):
 
         ice_distance = self.geom.overburden(self.costh)
 
-        esamp = np.logspace(np.log10(enu), np.log10(self.mceq.e_grid[-1]), 1000*accuracy)
+        esamp = np.logspace(np.log10(enu),
+                            min(np.log10(self.mceq.e_grid[-1]), np.log10(enu+1e8)), 1000*accuracy)
         identity = np.ones(len(esamp))
         if 'numu' not in daughter:
             # muon accompanies numu only
@@ -251,6 +252,11 @@ class SelfVeto(object):
                         reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
                                                                   [ice_distance]*len(emu))))
 
+        # DEBUG
+        # plt.figure()
+        # print ice_distance
+        # plt.semilogx(esamp-enu, reaching)
+        # return reaching
         passed = 0
         total = 0
         if corr_only:
