@@ -239,7 +239,7 @@ class SelfVeto(object):
                 reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
                                                        [ice_distance]*len(esamp)))
             else:
-                with np.load('data/d/D.npz') as dfile:
+                with np.load('data/d/D+_numu.npz') as dfile:
                     xmus = centers(dfile['xedges'])
                     xnus = np.concatenate([xmus, [1]])
                     vals = dfile['histograms']
