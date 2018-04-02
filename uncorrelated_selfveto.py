@@ -135,5 +135,4 @@ def passing_rate(enu, cos_theta, kind='numu', pmods=(), pmodel=(pm.HillasGaisser
 
         passed += np.trapz(numer, eprimaries[istart:])
         total += np.trapz(denom, eprimaries[istart:])
-    print enu, passed, total
     return passed/total if fraction else passed

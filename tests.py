@@ -19,7 +19,7 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     """
     ens = np.logspace(3,7,20)
     prs = plt.plot(ens, [passing_rate(
-        en, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl) for en in ens], **kwargs)
+        en, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl, corr_only) for en in ens], **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
@@ -32,12 +32,12 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, fraction=True, prpl='step_1', **kwargs):
+def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,21)
     prs = plt.plot(cths, [passing_rate(
-        enu, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl) for cos_theta in cths], **kwargs)
+        enu, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl, corr_only) for cos_theta in cths], **kwargs)
     plt.xlim(0, 1)
     plt.xscale('linear')
     plt.xlabel(r'$\cos \theta$')
@@ -70,6 +70,7 @@ def test_pr_mult(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, '
         plt.yscale('log')
         plt.ylabel(r'Passing flux')
     return prs[0]
+
 
 def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
     plt.clf()
