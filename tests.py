@@ -256,3 +256,12 @@ def test_prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'),
     plt.xlabel(r'$E_{CR}$')
     plt.ylabel(r'$e^{-N_\mu}$')
     plt.legend()
+
+
+def test_unified(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1'):
+    pr = test_pr(cos_theta, kind, pmodel, hadr, prpl=prpl,
+                 label='Post-unification, {} {:.2g}'.format(kind, cos_theta))
+    test_pr_mult(cos_theta, kind, pmodel, hadr, prpl=prpl,
+                 label='Pre-unification, {} {:.2g}'.format(kind, cos_theta),
+                 linstyle='--', color=pr.get_color())
+    plt.legend()
