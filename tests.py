@@ -165,10 +165,11 @@ def test_plot_prpl(int_prpl, include_mean=False):
         plt.legend()
 
 
-def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3):
+def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
+                     ecr=None, particle=None):
     plt.figure()
     sv = SelfVeto(cos_theta, pmodel, hadr)
-    gsol = sv.grid_sol()
+    gsol = sv.grid_sol(ecr, particle)
     dh_vec, x_vec = sv.dh_vec, sv.x_vec
     for idx, x_val in enumerate(x_vec):
         mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)
