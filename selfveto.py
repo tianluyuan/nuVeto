@@ -284,6 +284,9 @@ class SelfVeto(object):
                 cr_flux = pmodel.nucleus_flux(particle, ecr)*Units.phim2
                 # poisson exp(-Nmu)
                 pnmarr = pnmfn(ecr-esamp)
+                # cubic splining doesn't enforce 0-1 bounds
+                pnmarr[pnmarr>1] = 1
+                pnmarr[pnmarr<0] = 0
                 # print pnmarr
                 grid_sol = self.grid_sol(ecr, particle)
                 num_ecr = 0
