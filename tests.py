@@ -210,13 +210,13 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
     # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
 
-def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7)):
+def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7), corr_only=False):
     sv = SelfVeto(cos_theta, pmodel, hadr)
     sv.grid_sol()
     fig, axs = plt.subplots(2,1)
     for kind in kinds.split():
         plt.sca(axs[0])
-        mine = np.asarray([total_flux(en, cos_theta, kind, pmodel, hadr) for en in sv.mceq.e_grid])
+        mine = np.asarray([total_flux(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only) for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
                       label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))

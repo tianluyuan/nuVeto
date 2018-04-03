@@ -323,11 +323,11 @@ def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012,
     return num/den if fraction else num
 
 
-def total_flux(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, prpl='step_1', corr_only=False):
+def total_flux(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, corr_only=False):
     try:
         sv = SVS[(cos_theta, pmodel, hadr)]
     except KeyError:        
         sv = SelfVeto(cos_theta, pmodel, hadr)
         SVS[(cos_theta, pmodel, hadr)] = sv
 
-    return sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)[1]
+    return sv.get_fluxes(enu, kind, accuracy, corr_only=corr_only)[1]
