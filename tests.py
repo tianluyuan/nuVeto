@@ -249,7 +249,7 @@ def test_prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'),
     ecrs_fine = amu(particle)*np.logspace(3, 10, 1000)
     sv = SelfVeto(cos_theta, pmodel, hadr)
     pnm = [sv.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
-    pnmfn = interpolate.interp1d(ecrs, pnm, kind='quadratic',
+    pnmfn = interpolate.interp1d(ecrs, pnm, kind='cubic',
                                  assume_sorted=True, fill_value=(1,np.nan))
     plt.semilogx(ecrs_fine, pnmfn(ecrs_fine), label='interpolated')
     plt.semilogx(ecrs, pnm, 'ko')

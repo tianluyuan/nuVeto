@@ -274,7 +274,7 @@ class SelfVeto(object):
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
             ecrs = amu(particle)*np.logspace(2, 10, 10*accuracy)
             pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
-            pnmfn = interpolate.interp1d(ecrs, pnm, kind='linear',
+            pnmfn = interpolate.interp1d(ecrs, pnm, kind='cubic',
                                          assume_sorted=True, bounds_error=False,
                                          fill_value=(1,np.nan))
             nums = []
