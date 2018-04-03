@@ -125,7 +125,7 @@ def test_elbert_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
 
 def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1', corsika_file='nu_all_maxmu'):
     if isinstance(cos_theta_bin, list):
-        [test_corsika(cth, kind) for cth in cos_theta_bin]
+        [test_corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
         return
 
     corsika = pickle.load(open(os.path.join('external/corsika', corsika_file+'.pkl')))
