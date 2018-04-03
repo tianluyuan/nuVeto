@@ -81,6 +81,7 @@ class SelfVeto(object):
         return allowed
 
 
+    @lru_cache(2**10)
     def get_dNdEE(self, mother, daughter):
         ihijo = 20
         e_grid = self.mceq.e_grid
@@ -102,6 +103,28 @@ class SelfVeto(object):
             np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='quadratic',
             bounds_error=False, fill_value=(lower, 0.0))
         return x_range, dNdEE, dNdEE_interp
+
+
+    @lru_cache(maxsize=2**10)
+    def grid_sol(self, ecr=None, particle=None):
+        if ecr is not None:
+            self.mceq.set_single_primary_particle(ecr, particle)
+        else:
+            self.mceq.set_primary_model(*self.pmodel)
+        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+        return self.mceq.grid_sol
+
+
+    @lru_cache(maxsize=2**10)
+    def prob_nomu(self, ecr, particle, prpl='step_1'):
+        grid_sol = self.grid_sol(ecr, particle)
+        l_ice = self.geom.overburden(self.costh)
+        mu = self.get_solution('mu-', grid_sol) + self.get_solution('mu+', grid_sol)
+
+        fn = MuonProb(prpl)
+        coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
+        return np.exp(-np.trapz(mu*fn.prpl(coords),
+                                self.mceq.e_grid))
 
 
     def get_solution(self,
@@ -199,28 +222,6 @@ class SelfVeto(object):
             ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn
 
         return ys
-
-
-    @lru_cache(maxsize=2**10)
-    def grid_sol(self, ecr=None, particle=None):
-        if ecr is not None:
-            self.mceq.set_single_primary_particle(ecr, particle)
-        else:
-            self.mceq.set_primary_model(*self.pmodel)
-        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
-        return self.mceq.grid_sol
-
-
-    @lru_cache(maxsize=2**10)
-    def prob_nomu(self, ecr, particle, prpl='step_1'):
-        grid_sol = self.grid_sol(ecr, particle)
-        l_ice = self.geom.overburden(self.costh)
-        mu = self.get_solution('mu-', grid_sol) + self.get_solution('mu+', grid_sol)
-
-        fn = MuonProb(prpl)
-        coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
-        return np.exp(-np.trapz(mu*fn.prpl(coords),
-                                self.mceq.e_grid))
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='step_1', corr_only=False):
