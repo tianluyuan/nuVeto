@@ -98,8 +98,6 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
 
 def test_prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     prpls = [None, 'step_1', 'sigmoid_0.75_0.1']
-
-    ens = np.logspace(2,9, 100)
     for prpl in prpls:
         test_fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
                 label='{} {} {:.2g}'.format(prpl, kind, slice_val))
