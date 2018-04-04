@@ -51,6 +51,16 @@ def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     return prs[0]
 
 
+def test_depth(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
+    depths = np.asarray([1450, 1950, 2450], 'f')*Units.m
+    for depth in depths:
+        test_fn(slice_val)(slice_val, kind, pmodel, hadr,
+                           depth=depth, fraction=fraction,
+                           label='depth {} m'.format(depth))
+    plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
+    plt.legend()
+        
+
 def test_brackets(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
     uppers = [BARR[param].error for param in params]
@@ -86,7 +96,7 @@ def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 
     plt.legend()
 
 
-def test_prpls(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), hadr='SIBYLL2.3c'):
+def test_prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     prpls = [None, 'step_1', 'sigmoid_0.75_0.1']
 
     ens = np.logspace(2,9, 100)
@@ -113,15 +123,20 @@ def test_elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), 
     plt.legend()
 
 
-def test_elbert_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
+def test_elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c'):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
-    ens = np.logspace(2,9, 100)
-    emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
-    plt.plot(ens, elbert.corr(kind)(ens, emu, cos_theta), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
+    if slice_val > 1:
+        cths = np.linspace(0,1, 100)
+        emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
+        plt.plot(cths, elbert.corr(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+    else:
+        ens = np.logspace(2,9, 100)
+        emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
+        plt.plot(ens, elbert.corr(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     for pmodel in pmodels:
-        pr = test_pr(cos_theta, kind, pmodel=pmodel[:2], hadr=hadr,
+        pr = test_fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr,
                      label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
     plt.legend()
 
@@ -149,17 +164,6 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
                  fmt='.', color=pr.get_color())
     plt.legend()
 
-
-def test_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
-    pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
-               (pm.PolyGonato, False, 'poly-gonato'),
-               (pm.GaisserHonda, None, 'GH')]
-    ens = np.logspace(2,9, 50)
-    for pmodel in pmodels:
-        pr = test_pr(cos_theta, kind, pmodel=pmodel[:2], hadr=hadr,
-                     label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
-    plt.legend()
-        
 
 # intermediate tests
 def test_dndee(mother, daughter):
