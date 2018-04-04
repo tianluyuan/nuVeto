@@ -104,37 +104,39 @@ def test_prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
     plt.legend()
 
 
-def test_elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1'):
+def test_elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1', corr_only=False):
     hadrs=['DPMJET-III', 'SIBYLL2.3c']
+    echoice = elbert.corr if corr_only else elbert.passrates
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
-        plt.plot(cths, elbert.corr(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+        plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     else:
         ens = np.logspace(2,9, 100)
         emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
-        plt.plot(ens, elbert.corr(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+        plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
 
     for hadr in hadrs:
-        test_fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
+        test_fn(slice_val)(slice_val, kind, pmodel, hadr, prpl=prpl, corr_only=corr_only,
                 label='{} {} {:.2g}'.format(hadr, kind, slice_val))
     plt.legend()
 
 
-def test_elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c'):
+def test_elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', corr_only=False):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
+    echoice = elbert.corr if corr_only else elbert.passrates
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
-        plt.plot(cths, elbert.corr(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+        plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     else:
         ens = np.logspace(2,9, 100)
         emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
-        plt.plot(ens, elbert.corr(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+        plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     for pmodel in pmodels:
-        pr = test_fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr,
+        pr = test_fn(slice_val)(slice_val, kind, pmodel, hadr, prpl=prpl, corr_only=corr_only,
                      label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
     plt.legend()
 
