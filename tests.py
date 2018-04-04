@@ -56,7 +56,7 @@ def test_depth(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
     for depth in depths:
         test_fn(slice_val)(slice_val, kind, pmodel, hadr,
                            depth=depth, fraction=fraction,
-                           label='depth {} m'.format(depth/Units.m))
+                           label='depth {:.0f} m'.format(depth/Units.m))
     plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
     plt.legend()
         
