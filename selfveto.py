@@ -61,7 +61,7 @@ class SelfVeto(object):
             else:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
-            mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
+            mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar]#, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
         else:
             mothers = [categ,]
         return mothers
