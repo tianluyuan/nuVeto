@@ -156,7 +156,3 @@ def amu(particle):
 
 def centers(x):
     return (x[:-1]+x[1:])*0.5
-
-
-def ice_column_density(costh, depth = 1950.*Units.m):
-    return (overburden(costh, depth/Units.m, elevation=2400)*Units.m)*MaterialProperties.density["ice"]

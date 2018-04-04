@@ -13,14 +13,14 @@ from utils import *
 class SelfVeto(object):
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012,'H3a'),
-                 hadr='SIBYLL2.3c'):
+                 hadr='SIBYLL2.3c', depth=1950*Units.m):
         """A separate MCEq instance needs to be created for each
         combination of __init__'s arguments. To access pmodel and hadr,
         use mceq.pm_params and mceq.yields_params
         """
         self.costh = costh
         self.pmodel = pmodel
-        self.geom = Geometry(1950*Units.m)
+        self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
         self.mceq = MCEqRun(
