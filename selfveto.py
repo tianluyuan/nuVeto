@@ -38,9 +38,7 @@ class SelfVeto(object):
         heights = self.mceq.density_model.X2h(x_vec)
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
         self.dh_vec = np.diff(lengths)
-        self.x_vec = x_vec[:-1]
-        # self.mceq.set_single_primary_particle(1e6, 14)
-        # self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+        self.x_vec = centers(x_vec)
 
 
     @staticmethod
