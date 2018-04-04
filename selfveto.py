@@ -233,8 +233,9 @@ class SelfVeto(object):
 
         ice_distance = self.geom.overburden(self.costh)
 
+        # TODO: replace 1e8 with MMC-prpl interpolated bounds
         esamp = np.logspace(np.log10(enu),
-                            min(np.log10(self.mceq.e_grid[-1]), np.log10(enu+1e8)), 1000*accuracy)
+                            np.log10(enu+1e8), 1000*accuracy)
         identity = np.ones(len(esamp))
         if 'numu' not in daughter:
             # muon accompanies numu only
