@@ -8,12 +8,13 @@ from MCEq.core import MCEqRun
 import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 from utils import *
+from barr_uncertainties import *
 
 
 class SelfVeto(object):
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012,'H3a'),
-                 hadr='SIBYLL2.3c', depth=1950*Units.m):
+                 hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m):
         """A separate MCEq instance needs to be created for each
         combination of __init__'s arguments. To access pmodel and hadr,
         use mceq.pm_params and mceq.yields_params
@@ -32,6 +33,11 @@ class SelfVeto(object):
             # zenith angle \theta in degrees, measured positively from vertical direction
             theta_deg = theta,
             **config)
+        for barr_mod in barr_mods:
+            # Modify proton-air -> mod[0]
+            self.mceq.set_mod_pprod(2212,BARR[barr_mod[0]].pdg,barr_unc,barr_mod)
+        # Populate the modifications to the matrices by re-filling the interaction matrix
+        self.mceq._init_default_matrices(skip_D_matrix=True)
 
         x_vec = np.logspace(np.log10(1e-4),
                             np.log10(self.mceq.density_model.max_X), 11)
@@ -311,25 +317,17 @@ class SelfVeto(object):
         return passed, total
 
 
-SVS = {}
+@lru_cache(maxsize=2**10)
+def builder(cos_theta, pmodel, hadr, barr_mods, depth):
+    return SelfVeto(cos_theta, pmodel, hadr, barr_mods, depth)
 
 
-def passing_rate(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, fraction=True, prpl='step_1', corr_only=False):
-    try:
-        sv = SVS[(cos_theta, pmodel, hadr)]
-    except KeyError:        
-        sv = SelfVeto(cos_theta, pmodel, hadr)
-        SVS[(cos_theta, pmodel, hadr)] = sv
-
+def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False):
+    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num/den if fraction else num
 
 
-def total_flux(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, corr_only=False):
-    try:
-        sv = SVS[(cos_theta, pmodel, hadr)]
-    except KeyError:        
-        sv = SelfVeto(cos_theta, pmodel, hadr)
-        SVS[(cos_theta, pmodel, hadr)] = sv
-
+def total(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, corr_only=False):
+    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth)
     return sv.get_fluxes(enu, kind, accuracy, corr_only=corr_only)[1]

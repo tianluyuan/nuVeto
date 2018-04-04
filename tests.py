@@ -8,18 +8,19 @@ from matplotlib import pyplot as plt
 import CRFluxModels as pm
 
 
+# passing fraction tests
 def test_fn(slice_val):
     """ decide which fn to run depending on slice_val
     """
     return test_pr if slice_val <=1 else test_pr_cth
 
 
-def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
+def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,20)
-    prs = plt.plot(ens, [passing_rate(
-        en, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl, corr_only) for en in ens], **kwargs)
+    prs = plt.plot(ens, [passing(
+        en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens], **kwargs)
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
@@ -32,12 +33,12 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
+def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,21)
-    prs = plt.plot(cths, [passing_rate(
-        enu, cos_theta, kind, pmodel, hadr, accuracy, fraction, prpl, corr_only) for cos_theta in cths], **kwargs)
+    prs = plt.plot(cths, [passing(
+        enu, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for cos_theta in cths], **kwargs)
     plt.xlim(0, 1)
     plt.xscale('linear')
     plt.xlabel(r'$\cos \theta$')
@@ -48,6 +49,30 @@ def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
         plt.yscale('log')
         plt.ylabel(r'Passing flux')
     return prs[0]
+
+
+def test_brackets(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
+    params = params.split(' ')
+    uppers = [BARR[param].error for param in params]
+    lowers = [-BARR[param].error for param in params]
+    all_barr_mods = [tuple(zip(params, uppers)), tuple(zip(params, lowers))]
+    pr = test_fn(slice_val)(slice_val, kind, pmodel, hadr, label='{} {:.2g}'.format(kind, slice_val))
+    for barr_mods in all_barr_mods:
+        test_fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, fraction=fraction,
+                color=pr.get_color(), alpha=1-abs(barr_mods[0][-1]))
+
+
+def test_samples(slice_val=1, kind='numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
+                 seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
+    params = params.split(' ')
+    pr = test_fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label='{} {:.2g}'.format(kind, slice_val))
+    np.random.seed(seed)
+    for i in xrange(nsamples-1):
+        # max(-1, throw) prevents throws that dip below -100%
+        errors = [max(-1, np.random.normal(scale=BARR[param].error)) for param in params]
+        barr_mods = tuple(zip(params, errors))
+        test_fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, color=pr.get_color(),
+                           alpha=1-min(np.mean(np.abs(errors)), 0.9))
 
 
 def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
@@ -136,6 +161,7 @@ def test_pmodels(cos_theta=1, kind='conv_numu', hadr='SIBYLL2.3c'):
     plt.legend()
         
 
+# intermediate tests
 def test_dndee(mother, daughter):
     sv = SelfVeto(0)
     x_range, dNdEE, dNdEE_interp = sv.get_dNdEE(mother, daughter)
@@ -194,7 +220,7 @@ def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
     fig, axs = plt.subplots(2,1)
     for kind in kinds.split():
         plt.sca(axs[0])
-        mine = np.asarray([total_flux(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only) for en in sv.mceq.e_grid])
+        mine = np.asarray([total(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only) for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
                       label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
