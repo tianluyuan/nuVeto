@@ -12,6 +12,6 @@ def pl_heaviside(emu):
 
 
 def pl_smeared(emu):
-    """ sigmoid centered at 500 GeV
+    """ sigmoid centered at 750 GeV
     """
     return sigmoid(emu, 750, 100)
