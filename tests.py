@@ -136,8 +136,8 @@ def test_elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl=
         emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     for pmodel in pmodels:
-        pr = test_fn(slice_val)(slice_val, kind, pmodel, hadr, prpl=prpl, corr_only=corr_only,
-                     label='{} {} {:.2g}'.format(pmodel[2], kind, cos_theta))
+        pr = test_fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
+                     label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
     plt.legend()
 
 
