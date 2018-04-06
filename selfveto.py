@@ -54,18 +54,18 @@ class SelfVeto(object):
     
     @staticmethod
     def categ_to_mothers(categ, daughter):
-        charge = '-' if 'anti' in daughter else '+'
+        rcharge = '-' if 'anti' in daughter else '+'
         lcharge = '+' if 'anti' in daughter else '-'
-        bar = '-bar' if 'anti' in daughter else ''
+        rbar = '-bar' if 'anti' in daughter else ''
         lbar = '' if 'anti' in daughter else '-bar'
         if categ == 'conv':
-            mothers = ['pi'+charge, 'K'+charge, 'K0L']
+            mothers = ['pi'+rcharge, 'K'+rcharge, 'K0L']
             if 'nue' in daughter:
-                mothers.extend(['K0S', 'mu'+charge])
+                mothers.extend(['K0S', 'mu'+rcharge])
             else:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
-            mothers = ['D'+charge, 'Ds'+charge, 'D0'+bar]#, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
+            mothers = ['D'+rcharge, 'Ds'+rcharge, 'D0'+rbar]#, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
         else:
             mothers = [categ,]
         return mothers
