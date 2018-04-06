@@ -105,7 +105,7 @@ def test_prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
 
 
 def test_elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1', corr_only=False):
-    hadrs=['DPMJET-III', 'SIBYLL2.3c']
+    hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
     echoice = elbert.corr if corr_only else elbert.passrates
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
