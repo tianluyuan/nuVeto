@@ -141,20 +141,23 @@ def test_elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl=
     plt.legend()
 
 
-def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1', corsika_file='nu_all_maxmu'):
+def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1', corsika_file='eff_maxmu'):
     if isinstance(cos_theta_bin, list):
         [test_corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
         return
 
     corsika = pickle.load(open(os.path.join('external/corsika', corsika_file+'.pkl')))
+    fraction = 'eff' in corsika_file
     eff, elow, eup, xedges, yedges = corsika[kind]
     cos_theta = centers(yedges)[cos_theta_bin]
 
-    ens = np.logspace(2,9, 100)
-    emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
-    plt.plot(ens, elbert.passrates(kind)(ens, emu, cos_theta), 'k--',
-             label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
-    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    if fraction:
+        ens = np.logspace(2,9, 100)
+        emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
+        plt.plot(ens, elbert.passrates(kind)(ens, emu, cos_theta), 'k--',
+                 label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
+    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
+                 fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,
