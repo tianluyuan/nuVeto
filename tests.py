@@ -18,7 +18,7 @@ def test_fn(slice_val):
 def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
-    ens = np.logspace(3,7,20)
+    ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,20)
     passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens]
     if fraction:
         prs = plt.plot(ens, passed, **kwargs)        
@@ -278,4 +278,26 @@ def test_prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'),
     plt.semilogx(ecrs, pnm, 'ko')
     plt.xlabel(r'$E_{CR}$')
     plt.ylabel(r'$e^{-N_\mu}$')
+    plt.legend()
+
+
+def test_elbert_only(slice_val=1., kind='conv_numu'):
+    echoices = [elbert.corr, elbert.passrates]
+    names = ['corr.', 'corr.*uncorr']
+    if slice_val > 1:
+        cths = np.linspace(0,1, 100)
+        emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
+        for echoice, name in zip(echoices,names):
+            plt.plot(cths, echoice(kind)(slice_val, emu, cths), '--', label='{} {} {:.2g}'.format(name, kind, slice_val))
+    else:
+        ens = np.logspace(2,9, 100)
+        emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
+        for echoice, name in zip(echoices,names):
+            plt.plot(ens, echoice(kind)(ens, emu, slice_val), '--', label='{} {} {:.2g}'.format(name, kind, slice_val))
+
+    plt.ylim(-0.05, 1.05)
+    plt.ylabel(r'Passing fraction')
+    plt.xlim(10**3, 10**7)
+    plt.xscale('log')
+    plt.xlabel(r'$E_\nu$')
     plt.legend()
