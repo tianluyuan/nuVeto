@@ -19,17 +19,18 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,20)
-    prs = plt.plot(ens, [passing(
-        en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens], **kwargs)
-    plt.xlim(10**3, 10**7)
-    plt.xscale('log')
-    plt.xlabel(r'$E_\nu$')
+    passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens]
     if fraction:
+        prs = plt.plot(ens, passed, **kwargs)        
         plt.ylim(-0.05, 1.05)
         plt.ylabel(r'Passing fraction')
     else:
+        prs = plt.plot(ens, np.asarray(passed)*ens**3, **kwargs)
         plt.yscale('log')
-        plt.ylabel(r'Passing flux')
+        plt.ylabel(r'$E_\nu^3 \Phi_\nu [GeV^2 cm^-2 s^-1 st^-1]$')
+    plt.xlim(10**3, 10**7)
+    plt.xscale('log')
+    plt.xlabel(r'$E_\nu$')
     return prs[0]
 
 
@@ -37,17 +38,18 @@ def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,21)
-    prs = plt.plot(cths, [passing(
-        enu, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for cos_theta in cths], **kwargs)
-    plt.xlim(0, 1)
-    plt.xscale('linear')
-    plt.xlabel(r'$\cos \theta$')
+    passed = [passing(enu, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for cos_theta in cths]
     if fraction:
+        prs = plt.plot(cths, passed, **kwargs)
         plt.ylim(-0.05, 1.05)
         plt.ylabel(r'Passing fraction')
     else:
+        prs = plt.plot(cths, np.asarray(passed)*enu**3, **kwargs)
         plt.yscale('log')
-        plt.ylabel(r'Passing flux')
+        plt.ylabel(r'$E_\nu^3 \Phi_\nu [GeV^2 cm^-2 s^-1 st^-1]$')
+    plt.xlim(0, 1)
+    plt.xscale('linear')
+    plt.xlabel(r'$\cos \theta$')
     return prs[0]
 
 
@@ -137,6 +139,16 @@ def test_elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl=
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     for pmodel in pmodels:
         pr = test_fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
+                     label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
+    plt.legend()
+
+
+def test_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', fraction=True):
+    pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
+               (pm.PolyGonato, False, 'poly-gonato'),
+               (pm.GaisserHonda, None, 'GH')]
+    for pmodel in pmodels:
+        pr = test_fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
                      label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
     plt.legend()
 
