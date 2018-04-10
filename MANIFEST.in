@@ -1,0 +1,3 @@
+recursive-include nuVeto/data *.npz
+recursive-include nuVeto/data *.pkl
+recursive-include nuVeto/data *.dat
