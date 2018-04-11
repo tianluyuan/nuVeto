@@ -9,22 +9,15 @@ import MCEq.density_profiles
 import MCEq.data
 
 from MCEq.core import MCEqRun
-import CRFluxModels.CRFluxModels as pm
+try:
+    import CRFluxModels.CRFluxModels as pm
+except ImportError:
+    import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 from utils import *
 from barr_uncertainties import *
 
 class SelfVeto(object):
-    def MCEqReconfig(self,config_):
-        config_['enable_muon_energy_loss']=False
-        config_['debug_level'] = 0
-        MCEq.core.dbg = 0
-        MCEq.kernels.dbg = 0
-        MCEq.density_profiles.dbg = 0
-        MCEq.data.dbg = 0
-        return config_
-
-
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012,'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m):
@@ -32,13 +25,15 @@ class SelfVeto(object):
         combination of __init__'s arguments. To access pmodel and hadr,
         use mceq.pm_params and mceq.yields_params
         """
-
-
         self.costh = costh
         self.pmodel = pmodel
         self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
+        MCEq.core.dbg = 0
+        MCEq.kernels.dbg = 0
+        MCEq.density_profiles.dbg = 0
+        MCEq.data.dbg = 0
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
@@ -47,7 +42,9 @@ class SelfVeto(object):
             primary_model=pmodel,
             # zenith angle \theta in degrees, measured positively from vertical direction
             theta_deg = theta,
-            **self.MCEqReconfig(config))
+            enable_muon_energy_loss = False,
+            **mceq_config_without(['enable_muon_energy_loss']))
+
         for barr_mod in barr_mods:
             # Modify proton-air -> mod[0]
             self.mceq.set_mod_pprod(2212,BARR[barr_mod[0]].pdg,barr_unc,barr_mod)
@@ -260,7 +257,7 @@ class SelfVeto(object):
             reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
                                         [ice_distance]*len(esamp)))
             if self.is_prompt(categ):
-                with np.load(nuVeto.__path__[0]+'/data/decay_distributions/D+_numu.npz') as dfile:
+                with np.load(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz')) as dfile:
                     xmus = centers(dfile['xedges'])
                     xnus = np.concatenate([xmus, [1]])
                     vals = dfile['histograms']

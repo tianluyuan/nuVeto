@@ -1,11 +1,13 @@
 import pickle
-from external import elbert
-from external import selfveto as jvssv
-import mu
-from selfveto import *
-from utils import *
+from nuVeto.external import elbert
+from nuVeto.external import selfveto as jvssv
+from nuVeto.selfveto import *
+from nuVeto.utils import *
 from matplotlib import pyplot as plt
-import CRFluxModels as pm
+try:
+    import CRFluxModels.CRFluxModels as pm
+except ImportError:
+    import CRFluxModels as pm
 
 
 # passing fraction tests
@@ -158,7 +160,7 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
         [test_corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
         return
 
-    corsika = pickle.load(open(os.path.join('external/corsika', corsika_file+'.pkl')))
+    corsika = pickle.load(open(os.path.join('../nuVeto/data/corsika', corsika_file+'.pkl')))
     fraction = 'eff' in corsika_file
     eff, elow, eup, xedges, yedges = corsika[kind]
     cos_theta = centers(yedges)[cos_theta_bin]

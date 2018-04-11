@@ -1,11 +1,12 @@
 import os
 import pickle
+from pkg_resources import resource_filename
 from MCEq.geometry import EarthGeometry
 from mceq_config import config
 import numpy as np
 from scipy import stats
 import ParticleDataTool
-import nuVeto
+
 
 class Units(object):
     # units
@@ -78,7 +79,7 @@ class MuonProb(object):
         if pklfile is None:
             self.mu_int = self.median_approx
         else:
-            self.mu_int = pickle.load(open(os.path.join(nuVeto.__path__[0],'data', 'prpl', pklfile+'.pkl')))
+            self.mu_int = pickle.load(open(resource_filename('nuVeto', os.path.join('data', 'prpl', pklfile+'.pkl'))))
 
 
     def median_emui(self, distance):
