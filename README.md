@@ -48,7 +48,7 @@ cd resources/mu
 ./mu.py -o ../../nuVeto/data/prpl/mymudet.pkl mmc/ice.pklz
 ```
 
-To use the newly generated file, pass it as a string to the `prpl` argument in `passing(..., prpr='mymudet.pkl')`.
+To use the newly generated file, pass it as a string to the `prpl` argument in `passing(..., prpr='mymudet')`.
 
 ## Contributers
 _Carlos Arguelles, Sergio Palomares-Ruiz, Austin Schneider, Logan Wille, Tianlu Yuan_
