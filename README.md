@@ -12,7 +12,7 @@ The package relies on [MCEq](https://github.com/afedynitch/MCEq/) which in turn 
 
 To install directly
 ```bash
-pip install git+ssh://git@github.com/arguelles/nuVeto#egg=nuVeto
+pip install git+git://git@github.com/arguelles/nuVeto#egg=nuVeto
 ```
 
 Or if you prefer to clone the repository
