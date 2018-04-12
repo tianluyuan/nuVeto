@@ -1,6 +1,6 @@
 import pickle
-from nuVeto.external import elbert
-from nuVeto.external import selfveto as jvssv
+from nuVeto.external import helper as exthp
+from nuVeto.external import selfveto as extsv
 from nuVeto.selfveto import *
 from nuVeto.utils import *
 from matplotlib import pyplot as plt
@@ -110,14 +110,14 @@ def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
 
 def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1', corr_only=False):
     hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
-    echoice = elbert.corr if corr_only else elbert.passrates
+    echoice = exthp.corr if corr_only else exthp.passrates
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
-        emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
+        emu = extsv.minimum_muon_energy(extsv.overburden(cths))
         plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     else:
         ens = np.logspace(2,9, 100)
-        emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
+        emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
 
     for hadr in hadrs:
@@ -130,14 +130,14 @@ def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
-    echoice = elbert.corr if corr_only else elbert.passrates
+    echoice = exthp.corr if corr_only else exthp.passrates
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
-        emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
+        emu = extsv.minimum_muon_energy(extsv.overburden(cths))
         plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     else:
         ens = np.logspace(2,9, 100)
-        emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
+        emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     for pmodel in pmodels:
         pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
@@ -167,8 +167,8 @@ def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H
 
     if fraction:
         ens = np.logspace(2,9, 100)
-        emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
-        plt.plot(ens, elbert.passrates(kind)(ens, emu, cos_theta), 'k--',
+        emu = extsv.minimum_muon_energy(extsv.overburden(cos_theta))
+        plt.plot(ens, exthp.passrates(kind)(ens, emu, cos_theta), 'k--',
                  label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
     pr = pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
             fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
@@ -208,7 +208,7 @@ def plot_prpl(int_prpl, include_mean=False):
     if include_mean:
         l_ice = np.unique(int_prpl[:,1])
         small_ice = l_ice[l_ice<2.7e4]
-        plt.plot(jvssv.minimum_muon_energy(small_ice), small_ice, 'k--', label=r'Mean $E_\mu^i$')
+        plt.plot(extsv.minimum_muon_energy(small_ice), small_ice, 'k--', label=r'Mean $E_\mu^i$')
         plt.legend()
 
 
@@ -284,16 +284,16 @@ def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
 
 
 def elbert_only(slice_val=1., kind='conv_numu'):
-    echoices = [elbert.corr, elbert.passrates]
+    echoices = [exthp.corr, exthp.passrates]
     names = ['corr.', 'corr.*uncorr']
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
-        emu = jvssv.minimum_muon_energy(jvssv.overburden(cths))
+        emu = extsv.minimum_muon_energy(extsv.overburden(cths))
         for echoice, name in zip(echoices,names):
             plt.plot(cths, echoice(kind)(slice_val, emu, cths), '--', label='{} {} {:.2g}'.format(name, kind, slice_val))
     else:
         ens = np.logspace(2,9, 100)
-        emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
+        emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
         for echoice, name in zip(echoices,names):
             plt.plot(ens, echoice(kind)(ens, emu, slice_val), '--', label='{} {} {:.2g}'.format(name, kind, slice_val))
 

@@ -1,6 +1,6 @@
 import numpy as np
 from functools import partial
-import selfveto
+from nuVeto.external import selfveto
 
 
 def joint_passing_rate(enu, emu, cth, kind='numu'):
