@@ -19,11 +19,17 @@ def test_categ():
 
 def test_costh_effective():
     geom = Geometry(1950*Units.m)
-    cosths = np.linspace(0,1,100)
+    cosths = np.linspace(-1,1,100)
     assert np.all(geom.cos_theta_eff(cosths)>=cosths)
+
+    center = Geometry(geom.r_E)
+    assert np.all(center.cos_theta_eff(cosths) == np.ones(100))
 
 
 def test_overburden():
     geom = Geometry(1950*Units.m)
-    cosths = np.linspace(0,1,100)
+    cosths = np.linspace(-1,1,100)
     assert np.all(np.diff(geom.overburden(cosths)) < 0)
+
+    center = Geometry(geom.r_E)
+    assert np.all(center.overburden(cosths) == geom.r_E/Units.m)
