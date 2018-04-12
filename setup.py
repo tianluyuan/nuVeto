@@ -14,10 +14,12 @@ setup(
     },
     install_requires=['numpy',
                       'scipy',
+                      'collections',
                       'functools32',
                       'MCeq'],        
     extras_require={
         'plotting':  ['matplotlib', 'pandas'],
+        'resources':  ['pythia8', 'matplotlib', 'argparse'],
     },
     setup_requires=['pytest-runner'],
     tests_require=['pytest']
