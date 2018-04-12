@@ -11,7 +11,7 @@ import pl
 from nuVeto.utils import calc_bins, centers
 
 
-def hist_preach(infile, plotdir=None):
+def hist_preach(infile):
     """ Builds histograms of P_reach based on MMC output text
     """
     Hist = namedtuple('Hist', 'counts edges')
@@ -34,7 +34,10 @@ def int_ef(preach, plight):
     """ integate p_reach*p_light over e_f to reduce dimensionality for interpolator
     """
     if isinstance(preach, str) and os.path.isfile(preach):
-        preach = hist_preach(preach)
+        try:
+            preach = pickle.load(open(preach))
+        except IndexError:
+            preach = hist_preach(preach)
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
     for (ei, l), sdf in df.groupby(['ei', 'l']):
@@ -54,7 +57,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Generate muon detection probability')
     parser.add_argument('mmc', metavar='MMC',
-                    help='text file containing MMC simulated data')
+                    help='text file or pickled histogram containing MMC simulated data')
     parser.add_argument('--plight', default='pl_heaviside',
                         choices=[fn for fn in dir(pl) if fn.startswith('pl_')],
                         help='choice of a plight function to apply as defined in pl.py')
