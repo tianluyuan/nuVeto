@@ -284,8 +284,12 @@ def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
 
 
 def elbert_only(slice_val=1., kind='conv_numu'):
-    echoices = [exthp.corr, exthp.passrates]
-    names = ['corr.', 'corr.*uncorr']
+    if 'nue' in kind:
+        echoices = [exthp.passrates]
+        names = ['uncorr']
+    else:
+        echoices = [exthp.corr, exthp.passrates]
+        names = ['corr.', 'corr.*uncorr']
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
