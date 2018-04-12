@@ -11,12 +11,12 @@ The package relies on [MCEq](https://github.com/afedynitch/MCEq/) which in turn 
 ### Installing
 
 To install directly
-```
+```bash
 pip install git+ssh://git@github.com/arguelles/nuVeto#egg=nuVeto
 ```
 
 Or if you prefer to clone the repository
-```
+```bash
 git clone https://github.com/arguelles/nuVeto
 cd nuVeto
 pip install -e .
@@ -26,7 +26,7 @@ pip install -e .
 
 Some examples are in the `tests/` and `examples/` directories. The simplest way to run is
 
-```
+```python
 from nuVeto.selfveto import *
 enu = 1e6
 cos_theta = 0.5
@@ -36,3 +36,4 @@ pf = passing(enu, cos_theta, kind='conv_numu',
 ```
 
 ## Tests
+Running the tests
