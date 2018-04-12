@@ -37,5 +37,5 @@ pf = passing(enu, cos_theta, kind='conv_numu',
 
 See the `examples/` directory for more detailed examples.
 
-## Tests
-Running the tests
+## Contributers
+_Carlos Arguelles, Sergio Palomares-Ruiz, Austin Schneider, Logan Wille, Tianlu Yuan_
