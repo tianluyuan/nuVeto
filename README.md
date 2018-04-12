@@ -24,7 +24,7 @@ pip install -e .
 
 ### Usage
 
-Some examples are in the `tests/` and `examples/` directories. The simplest way to run is
+Some examples are in the `examples/` directories. The simplest way to run is
 
 ```python
 from nuVeto.selfveto import *
