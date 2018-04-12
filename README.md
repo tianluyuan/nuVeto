@@ -24,7 +24,7 @@ pip install -e .
 
 ### Usage
 
-Some examples are in the `examples/` directories. The simplest way to run is
+The simplest way to run is
 
 ```python
 from nuVeto.selfveto import *
@@ -34,6 +34,8 @@ pf = passing(enu, cos_theta, kind='conv_numu',
              pmodel=(pm.HillasGaisser2012, 'H3a'),
              hadr='SIBYLL2.3c', depth=1950*Units.m)
 ```
+
+See the `examples/` directory for more detailed examples.
 
 ## Tests
 Running the tests
