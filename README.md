@@ -39,5 +39,16 @@ pf = passing(enu, cos_theta, kind='conv_numu',
 
 See the `examples/` directory for more detailed examples.
 
+## Building muon detection probabilities
+
+To calculate the passing fraction requires knowing the muon detection pdf as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice in `resources/mu/mmc/ice.pklz`. The detector response probability must be defined in `resources/mu/pl.py` as a function of the muon energy (at detector). Then, to construct the overall muon detection pdf do,
+
+```bash
+cd resources/mu
+./mu.py -o ../../nuVeto/data/prpl/mymudet.pkl mmc/ice.pklz
+```
+
+To use the newly generated file, pass it as a string to the `prpl` argument in `passing(..., prpr='mymudet.pkl')`.
+
 ## Contributers
 _Carlos Arguelles, Sergio Palomares-Ruiz, Austin Schneider, Logan Wille, Tianlu Yuan_
