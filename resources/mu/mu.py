@@ -37,7 +37,7 @@ def int_ef(preach, plight):
     if isinstance(preach, str) and os.path.isfile(preach):
         try:
             preach = pickle.load(gzip.open(preach, 'rb'))
-        except IndexError:
+        except IOError:
             preach = hist_preach(preach)
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
@@ -62,10 +62,16 @@ if __name__ == '__main__':
     parser.add_argument('--plight', default='pl_heaviside',
                         choices=[fn for fn in dir(pl) if fn.startswith('pl_')],
                         help='choice of a plight function to apply as defined in pl.py')
+    parser.add_argument('--noconvolution', default=False, action='store_true',
+                        help='Generate pdfs of preach from raw MMC output and save to pklz')
     parser.add_argument('-o', dest='output', default='mu.pkl',
                         help='output file. To be read in this needs to be in "nuVeto/data/prpl/"')
 
     args = parser.parse_args()
-    intp = interp(args.mmc, getattr(pl, args.plight))
-    pickle.dump(intp, open(args.output, 'w'))
+    if args.noconvolution:
+        hpr = hist_preach(args.mmc)
+        pickle.dump(hpr, gzip.open(args.output, 'wb'))
+    else:
+        intp = interp(args.mmc, getattr(pl, args.plight))
+        pickle.dump(intp, open(args.output, 'w'))
     print 'Output pickled into {}'.format(args.output)
