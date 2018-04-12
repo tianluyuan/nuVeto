@@ -11,13 +11,13 @@ except ImportError:
 
 
 # passing fraction tests
-def test_fn(slice_val):
+def fn(slice_val):
     """ decide which fn to run depending on slice_val
     """
-    return test_pr if slice_val <=1 else test_pr_cth
+    return pr if slice_val <=1 else pr_cth
 
 
-def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
+def pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,20)
@@ -36,7 +36,7 @@ def test_pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
+def pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,21)
@@ -55,60 +55,60 @@ def test_pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     return prs[0]
 
 
-def test_depth(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
+def depth(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
     depths = np.asarray([1450, 1950, 2450], 'f')*Units.m
     for depth in depths:
-        test_fn(slice_val)(slice_val, kind, pmodel, hadr,
-                           depth=depth, fraction=fraction,
-                           label='depth {:.0f} m'.format(depth/Units.m))
+        fn(slice_val)(slice_val, kind, pmodel, hadr,
+                      depth=depth, fraction=fraction,
+                      label='depth {:.0f} m'.format(depth/Units.m))
     plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
     plt.legend()
         
 
-def test_brackets(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
+def brackets(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
     uppers = [BARR[param].error for param in params]
     lowers = [-BARR[param].error for param in params]
     all_barr_mods = [tuple(zip(params, uppers)), tuple(zip(params, lowers))]
-    pr = test_fn(slice_val)(slice_val, kind, pmodel, hadr, label='{} {:.2g}'.format(kind, slice_val))
+    pr = fn(slice_val)(slice_val, kind, pmodel, hadr, label='{} {:.2g}'.format(kind, slice_val))
     for barr_mods in all_barr_mods:
-        test_fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, fraction=fraction,
-                color=pr.get_color(), alpha=1-abs(barr_mods[0][-1]))
+        fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, fraction=fraction,
+                      color=pr.get_color(), alpha=1-abs(barr_mods[0][-1]))
 
 
-def test_samples(slice_val=1, kind='numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
+def samples(slice_val=1, kind='numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
                  seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
-    pr = test_fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label='{} {:.2g}'.format(kind, slice_val))
+    pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label='{} {:.2g}'.format(kind, slice_val))
     np.random.seed(seed)
     for i in xrange(nsamples-1):
         # max(-1, throw) prevents throws that dip below -100%
         errors = [max(-1, np.random.normal(scale=BARR[param].error)) for param in params]
         barr_mods = tuple(zip(params, errors))
-        test_fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, color=pr.get_color(),
-                           alpha=1-min(np.mean(np.abs(errors)), 0.9))
+        fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, color=pr.get_color(),
+                      alpha=1-min(np.mean(np.abs(errors)), 0.9))
 
 
-def test_accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
+def accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
     plt.clf()
     accuracies = [2,3,4]
     for accuracy in accuracies:
-        test_fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr,
-                           accuracy=accuracy, fraction=fraction,
-                           label='accuracy {}'.format(accuracy))
+        fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr,
+                      accuracy=accuracy, fraction=fraction,
+                      label='accuracy {}'.format(accuracy))
     plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
     plt.legend()
 
 
-def test_prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
+def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
     prpls = [None, 'step_1', 'sigmoid_0.75_0.1']
     for prpl in prpls:
-        test_fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
-                label='{} {} {:.2g}'.format(prpl, kind, slice_val))
+        fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
+                      label='{} {} {:.2g}'.format(prpl, kind, slice_val))
     plt.legend()
 
 
-def test_elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1', corr_only=False):
+def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1', corr_only=False):
     hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
     echoice = elbert.corr if corr_only else elbert.passrates
     if slice_val > 1:
@@ -121,12 +121,12 @@ def test_elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), 
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
 
     for hadr in hadrs:
-        test_fn(slice_val)(slice_val, kind, pmodel, hadr, prpl=prpl, corr_only=corr_only,
-                label='{} {} {:.2g}'.format(hadr, kind, slice_val))
+        fn(slice_val)(slice_val, kind, pmodel, hadr, prpl=prpl, corr_only=corr_only,
+                      label='{} {} {:.2g}'.format(hadr, kind, slice_val))
     plt.legend()
 
 
-def test_elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', corr_only=False):
+def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', corr_only=False):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
@@ -140,24 +140,24 @@ def test_elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl=
         emu = jvssv.minimum_muon_energy(jvssv.overburden(slice_val))
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
     for pmodel in pmodels:
-        pr = test_fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
+        pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
                      label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
     plt.legend()
 
 
-def test_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', fraction=True):
+def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', fraction=True):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
     for pmodel in pmodels:
-        pr = test_fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
-                     label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
+        pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
+                           label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
     plt.legend()
 
 
-def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1', corsika_file='eff_maxmu'):
+def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1', corsika_file='eff_maxmu'):
     if isinstance(cos_theta_bin, list):
-        [test_corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
+        [corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
         return
 
     corsika = pickle.load(open(resource_filename('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl'))))
@@ -170,8 +170,8 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
         emu = jvssv.minimum_muon_energy(jvssv.overburden(cos_theta))
         plt.plot(ens, elbert.passrates(kind)(ens, emu, cos_theta), 'k--',
                  label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
-    pr = test_pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
-                 fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    pr = pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
+            fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,
@@ -183,7 +183,7 @@ def test_corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser201
 
 
 # intermediate tests
-def test_dndee(mother, daughter):
+def dndee(mother, daughter):
     sv = SelfVeto(0)
     x_range, dNdEE, dNdEE_interp = sv.get_dNdEE(mother, daughter)
 
@@ -199,7 +199,7 @@ def test_dndee(mother, daughter):
     plt.legend()
 
 
-def test_plot_prpl(int_prpl, include_mean=False):
+def plot_prpl(int_prpl, include_mean=False):
     plt.scatter(int_prpl[:,0], int_prpl[:,1], c=int_prpl[:,2])
     plt.xlabel(r'$E_\mu^i$ [GeV]')
     plt.ylabel(r'$l_{ice}$ [m]')
@@ -212,7 +212,7 @@ def test_plot_prpl(int_prpl, include_mean=False):
         plt.legend()
 
 
-def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
+def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
                      ecr=None, particle=None):
     plt.figure()
     sv = SelfVeto(cos_theta, pmodel, hadr)
@@ -235,7 +235,7 @@ def test_parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'
     # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
 
-def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7), corr_only=False):
+def nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7), corr_only=False):
     sv = SelfVeto(cos_theta, pmodel, hadr)
     sv.grid_sol()
     fig, axs = plt.subplots(2,1)
@@ -267,7 +267,7 @@ def test_nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3
             plt.xlim(*np.power(10,logxlim))
 
 
-def test_prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', prpl='step_1'):
+def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', prpl='step_1'):
     """ plot prob_nomu as fn of ecr
     """
     ecrs = amu(particle)*np.logspace(3, 10, 20)
@@ -283,7 +283,7 @@ def test_prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'),
     plt.legend()
 
 
-def test_elbert_only(slice_val=1., kind='conv_numu'):
+def elbert_only(slice_val=1., kind='conv_numu'):
     echoices = [elbert.corr, elbert.passrates]
     names = ['corr.', 'corr.*uncorr']
     if slice_val > 1:
