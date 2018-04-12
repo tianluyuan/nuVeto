@@ -3,6 +3,7 @@
 import os
 from collections import namedtuple
 import pickle
+import gzip
 import argparse
 import numpy as np
 import pandas as pd
@@ -35,7 +36,7 @@ def int_ef(preach, plight):
     """
     if isinstance(preach, str) and os.path.isfile(preach):
         try:
-            preach = pickle.load(open(preach))
+            preach = pickle.load(gzip.open(preach, 'rb'))
         except IndexError:
             preach = hist_preach(preach)
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
