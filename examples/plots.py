@@ -14,10 +14,10 @@ except ImportError:
 def fn(slice_val):
     """ decide which fn to run depending on slice_val
     """
-    return pr if slice_val <=1 else pr_cth
+    return pr_enu if slice_val <=1 else pr_cth
 
 
-def pr(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
+def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,20)
@@ -170,7 +170,7 @@ def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H
         emu = extsv.minimum_muon_energy(extsv.overburden(cos_theta))
         plt.plot(ens, exthp.passrates(kind)(ens, emu, cos_theta), 'k--',
                  label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
-    pr = pr(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
+    pr = pr_enu(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
             fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
