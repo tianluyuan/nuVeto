@@ -28,7 +28,7 @@ Some examples are in the `tests/` and `examples/` directories. The simplest way 
 
 ```python
 from nuVeto.selfveto import *
-enu = 1e6
+enu = 1e5*Units.GeV
 cos_theta = 0.5
 pf = passing(enu, cos_theta, kind='conv_numu',
              pmodel=(pm.HillasGaisser2012, 'H3a'),
