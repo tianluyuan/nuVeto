@@ -2,8 +2,8 @@ import pickle
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.selfveto import *
-from nuVeto.utils import *
 from matplotlib import pyplot as plt
+import pandas as pd
 try:
     import CRFluxModels.CRFluxModels as pm
 except ImportError:
@@ -307,3 +307,38 @@ def elbert_only(slice_val=1., kind='conv_numu'):
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$')
     plt.legend()
+
+
+def hist_preach(infile, plotdir=None):
+    napf = 36
+    df = pd.read_csv(infile, delim_whitespace=True, header=None,
+                     names='ei l ef'.split())
+    # If the muon doesn't reach, MMC saves ef as -distance traveled
+    df[df<0] = 0
+    for idx, (ei, sdf) in enumerate(df.groupby('ei')):
+        if idx % napf == 0:
+            if idx > 0:
+                # plt.legend(fontsize=6)
+                plt.tight_layout()
+                if plotdir is not None:
+                    plt.savefig(os.path.join(
+                        os.path.expanduser(plotdir), '{}.png'.format((idx-1)/napf)))
+            fig, axs = plt.subplots(6, 6, figsize=(10,10))
+            # fig.text(0.5, 0.04, r'$E_f$', ha='center', va='center')
+            # fig.text(0.06, 0.5, r'$P(E_f|E_i, l)$', ha='center', va='center', rotation='vertical')
+            axs = axs.flatten()
+        ax = axs[idx%napf]
+        ax.set_prop_cycle('color',plt.cm.Blues(np.linspace(0.3,1,100)))
+        plt.sca(ax)
+        plt.title(r'${:.2g}$ GeV'.format(ei), fontdict={'fontsize':8})
+        for l, efs in sdf.groupby('l'):
+            bins = calc_bins(efs['ef'])
+            counts, edges = np.histogram(efs['ef'], bins=bins, density=True)
+            plt.plot(centers(edges), counts, label='{:.3g} km'.format(l/1e3))
+        plt.yscale('log')
+        # plt.xlim(sdf['ef'].min(), sdf['ef'].max()*1.1)
+    # plt.legend(fontsize=6)
+    plt.tight_layout()
+    if plotdir is not None:
+        plt.savefig(os.path.join(
+            os.path.expanduser(plotdir), '{}.png'.format((idx-1)/napf)))

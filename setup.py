@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from setuptools import setup, find_packages
 
 setup(
@@ -14,12 +12,12 @@ setup(
     package_data={
         'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl']
     },
-    install_requires=[ 'numpy',
-                       'scipy',
-                       'functools32',
-                       'MCeq'],        
+    install_requires=['numpy',
+                      'scipy',
+                      'functools32',
+                      'MCeq'],        
     extras_require={
-        'plotting':  ['matplotlib'],
+        'plotting':  ['matplotlib', 'pandas'],
     },
     setup_requires=['pytest-runner'],
     tests_require=['pytest']

@@ -157,3 +157,20 @@ def amu(particle):
 
 def centers(x):
     return (x[:-1]+x[1:])*0.5
+
+
+def calc_nbins(x):
+    ptile = np.percentile(x, 75) - np.percentile(x, 25)
+    if ptile == 0:
+        return 10
+    n =  (np.max(x) - np.min(x)) / (2 * len(x)**(-1./3) * ptile)
+    return np.floor(n)
+
+
+def calc_bins(x):
+    nbins = calc_nbins(x)
+    edges = np.linspace(np.min(x), np.max(x)+2, num=nbins+1)
+    # force a bin for 0 efs
+    if edges[0] == 0 and edges[1]>1:
+        edges = np.concatenate((np.asarray([0., 1.]),edges[1:]))
+    return edges
