@@ -45,5 +45,4 @@ def test_elbert():
                      pmodel=(pm.GaisserHonda, None), prpl=None, corr_only=True) for en in ens])
         emu = extsv.minimum_muon_energy(extsv.overburden(cth))
         theirs = exthp.corr('conv_numu')(ens, emu, cth)
-
-        assert np.all(np.abs(theirs-mine)<0.01)
+        assert np.all(np.abs(theirs-mine)<0.02)
