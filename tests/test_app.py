@@ -33,3 +33,17 @@ def test_overburden():
 
     center = Geometry(geom.r_E)
     assert np.all(center.overburden(cosths) == geom.r_E/Units.m)
+
+
+def test_elbert():
+    echoice = exthp.corr
+    ens = np.logspace(2,9,50)
+    cths = [0.1,0.3,0.8]
+    for cth in cths:
+        mine = np.asarray(
+            [passing(en, cth, kind='conv_numu', hadr='DPMJET-III',
+                     pmodel=(pm.GaisserHonda, None), prpl=None, corr_only=True) for en in ens])
+        emu = extsv.minimum_muon_energy(extsv.overburden(cth))
+        theirs = exthp.corr('conv_numu')(ens, emu, cth)
+
+        assert np.all(np.abs(theirs-mine)<0.01)
