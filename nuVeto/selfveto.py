@@ -182,12 +182,9 @@ class SelfVeto(object):
             xv = self.x_vec[grid_idx]
 
         res = np.zeros(len(self.mceq.e_grid))
-        part_xs = self.mceq.cs.get_cs(p_pdg)
         rho_air = self.mceq.density_model.X2rho(xv)
         # meson decay length
         decayl = (self.mceq.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
-        # meson interaction length
-        interactionl = 1/(self.mceq.cs.get_cs(p_pdg)*rho_air*Units.Na/Units.mol_air)
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in self.projectiles():
