@@ -5,7 +5,7 @@ import CRFluxModels.CRFluxModels as pm
 import nuVeto.selfveto as sv
 import numpy as np
 
-from nuVeto.external import elbert
+from nuVeto.external import helper
 from nuVeto.external import selfveto as jvssv
 
 def PlotNuMuConventionalPassingFraction(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', prpl='step_1'):
