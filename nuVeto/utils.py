@@ -65,15 +65,6 @@ class ParticleProperties(object):
         return brs
 
 
-class MaterialProperties(object):
-    a = {}; b = {}; density = {};
-    a['ice']=0.249*Units.GeV/Units.m # GeV/mwe
-    a['rock']=0.221*Units.GeV/Units.m # GeV/mwe
-    b['ice']=0.422e-3/Units.m # 1/mwe
-    b['rock']=0.531e-3/Units.m # 1/mwe
-    density['ice'] = 0.9167*Units.gr/Units.cm**3 # g/cm^3
-
-
 class MuonProb(object):
     def __init__(self, pklfile):
         if pklfile is None:
