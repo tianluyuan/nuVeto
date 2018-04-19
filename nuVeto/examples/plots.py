@@ -199,12 +199,13 @@ def dndee(mother, daughter):
     plt.legend()
 
 
-def plot_prpl(int_prpl, include_mean=False):
+def plot_prpl(int_prpl, include_mean=False, include_cbar=True):
     plt.scatter(int_prpl[:,0], int_prpl[:,1], c=int_prpl[:,2])
     plt.xlabel(r'$E_\mu^i$ [GeV]')
     plt.ylabel(r'$l_{ice}$ [m]')
     plt.loglog()
-    plt.colorbar()
+    if include_cbar:
+        plt.colorbar()
     if include_mean:
         l_ice = np.unique(int_prpl[:,1])
         small_ice = l_ice[l_ice<2.7e4]
