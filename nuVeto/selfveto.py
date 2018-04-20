@@ -284,7 +284,7 @@ class SelfVeto(object):
                     xmus = centers(dfile['xedges'])
                     xnus = np.concatenate([xmus, [1]])
                     vals = dfile['histograms']
-p
+
                     ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
                                                                bounds_error=False, fill_value=None)
                     for i, enufrac in enumerate(enu/esamp):
