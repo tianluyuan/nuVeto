@@ -8,6 +8,7 @@ given depth.
 """
 
 from functools32 import lru_cache
+from pkg_resources import resource_filename
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
