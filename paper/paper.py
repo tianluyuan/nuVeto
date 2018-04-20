@@ -44,3 +44,16 @@ def compare_prpls():
             plt.tight_layout()
             plt.savefig('fig/prpls_{}_{}.eps'.format(kind, cos_th))
 
+
+def compare_hadrs():
+    kinds = ['conv_nue']
+    hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
+    cos_ths = [0.3]
+    for kind in kinds:
+        for cos_th in cos_ths:
+            plt.figure()
+            for hadr in hadrs:
+                plots.fn(cos_th)(cos_th, kind, hadr=hadr, label=hadr)
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig('fig/hadrs_{}_{}.eps'.format(kind, cos_th))
