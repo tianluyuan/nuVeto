@@ -1,4 +1,4 @@
-import pickle
+import pickle, os
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.selfveto import *
