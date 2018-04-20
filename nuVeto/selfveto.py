@@ -40,7 +40,7 @@ class SelfVeto(object):
             use mceq.pm_params and mceq.yields_params
         Args:
             costh (float): Cos(theta), the cosine of the neutrino zenith at the detector
-            pmodel (obj): CR Flux
+            pmodel (tuple(CR model class, arguments)): CR Flux
             hadr (str): hadronic interaction model
             barr_mods: barr parameters
             depth (float): the depth at which the self veto probability is computed below the ice
@@ -145,6 +145,7 @@ class SelfVeto(object):
 
     @lru_cache(maxsize=2**10)
     def grid_sol(self, ecr=None, particle=None):
+        """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
         if ecr is not None:
             self.mceq.set_single_primary_particle(ecr, particle)
         else:
@@ -306,28 +307,42 @@ class SelfVeto(object):
         for particle in pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
+
+            # ecrs --> Energy of cosmic ray primaries
+            # amu --> atomic mass of primary
             ecrs = amu(particle)*np.logspace(2, 10, 10*accuracy)
+            # pnm --> probability of no muon (just a poisson probability)
             pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
+            # pnmfn --> fine grid interpolation of pnm
             pnmfn = interpolate.interp1d(ecrs, pnm, kind='cubic',
                                          assume_sorted=True, bounds_error=False,
                                          fill_value=(1,np.nan))
+            # nums --> numerator
             nums = []
+            # dens --> denominator
             dens = []
+            # istart --> integration starting point, the lowest energy index for the integral
             istart = max(0, np.argmax(ecrs > enu) - 1)
-            for ecr in ecrs[istart:]:
+            for ecr in ecrs[istart:]: # integral in primary energy (E_CR)
+                # cr_flux --> cosmic ray flux
+                # phim2 --> units of flux * m^2 (look it up in the units)
                 cr_flux = pmodel.nucleus_flux(particle, ecr.item())*Units.phim2
-                # poisson exp(-Nmu)
+                # poisson exp(-Nmu) [last term in eq 12]
                 pnmarr = pnmfn(ecr-esamp)
-                # cubic splining doesn't enforce 0-1 bounds
+                # cubic splining doesn't enforce 0-1 bounds ????
                 pnmarr[pnmarr>1] = 1
                 pnmarr[pnmarr<0] = 0
                 # print pnmarr
+
+                # Run MCEq to get the yield distribution of muons given some parent and neutrino energy
                 grid_sol = self.grid_sol(ecr, particle)
-                num_ecr = 0
-                den_ecr = 0
+
+                num_ecr = 0 # single entry in nums
+                den_ecr = 0 # single entry in dens
                 # dh
-                for idx in xrange(len(self.x_vec)):
+                for idx in xrange(len(self.x_vec)): # integral in height
                     # dEp
+                    # integral in Ep
                     num_ecr += integrate.trapz(
                         self.get_integrand(
                             categ, daughter, grid_sol, idx,
