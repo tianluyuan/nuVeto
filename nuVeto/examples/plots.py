@@ -1,4 +1,5 @@
-import pickle, os
+import pickle
+import os
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.selfveto import *
@@ -158,7 +159,7 @@ def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', fr
     plt.legend()
 
 
-def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1', corsika_file='eff_maxmu'):
+def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1', corsika_file='eff_maxmu', plot_nuveto_lines = False, plot_legacy_veto_lines = False):
     if isinstance(cos_theta_bin, list):
         [corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
         return
@@ -168,13 +169,14 @@ def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H
     eff, elow, eup, xedges, yedges = corsika[kind]
     cos_theta = centers(yedges)[cos_theta_bin]
 
-    if fraction:
+    if plot_legacy_veto_lines and fraction:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cos_theta))
         plt.plot(ens, exthp.passrates(kind)(ens, emu, cos_theta), 'k--',
                  label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
-    pr = pr_enu(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
-            fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+    if plot_nuveto_lines:
+        pr = pr_enu(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
+                fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
     plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
                  xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
                                      10**xedges[1:]-10**centers(xedges))).T,
