@@ -6,6 +6,7 @@ font.family: serif
 font.serif: Computer Modern, Latin Modern Roman, Bitstream Vera Serif
 text.usetex: True
 axes.prop_cycle: cycler('color', ['29A2C6','FF6D31','FFCB18','73B66B','EF597B', '333333'])
+axes.grid: False
 
 lines.linewidth: 2
 xtick.minor.visible: True   # visibility of minor ticks on x-axis

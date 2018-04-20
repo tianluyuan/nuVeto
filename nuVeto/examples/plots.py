@@ -36,7 +36,7 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
         plt.ylabel(r'$E_\nu^3 \Phi_\nu [GeV^2 cm^-2 s^-1 st^-1]$')
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
-    plt.xlabel(r'$E_\nu$')
+    plt.xlabel(r'$E_\nu$ [GeV]')
     return prs[0]
 
 
