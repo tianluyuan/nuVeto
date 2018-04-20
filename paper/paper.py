@@ -14,7 +14,7 @@ def prpl():
     sigmoid = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_smeared)
     plt.figure()
     plots.plot_prpl(heaviside, True, False)
-    plt.legend(fontsize=12)
+    plt.legend()
     plt.tight_layout()
     plt.savefig('fig/prpl_heaviside.png')
     plt.figure()

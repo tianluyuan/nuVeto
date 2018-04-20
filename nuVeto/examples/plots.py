@@ -28,7 +28,7 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     ens_plot = np.logspace(3,7,100)
     if fraction:
         prs = plt.plot(ens_plot, passed_fn(ens_plot), **kwargs)
-        plt.ylim(-0.05, 1.05)
+        plt.ylim(0., 1.)
         plt.ylabel(r'Passing fraction')
     else:
         prs = plt.plot(ens_plot, passed_fn(ens_plot)*ens_plot**3, **kwargs)
@@ -47,7 +47,7 @@ def pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
     passed = [passing(enu, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for cos_theta in cths]
     if fraction:
         prs = plt.plot(cths, passed, **kwargs)
-        plt.ylim(-0.05, 1.05)
+        plt.ylim(0., 1.)
         plt.ylabel(r'Passing fraction')
     else:
         prs = plt.plot(cths, np.asarray(passed)*enu**3, **kwargs)
@@ -206,9 +206,6 @@ def dndee(mother, daughter):
 
 def plot_prpl(int_prpl, include_mean=False, include_cbar=True):
     plt.scatter(int_prpl[:,0], int_prpl[:,1], c=int_prpl[:,2])
-    plt.xlabel(r'$E_\mu^i$ [GeV]')
-    plt.ylabel(r'$l_{ice}$ [m]')
-    plt.loglog()
     if include_cbar:
         plt.colorbar()
     if include_mean:
@@ -216,6 +213,10 @@ def plot_prpl(int_prpl, include_mean=False, include_cbar=True):
         small_ice = l_ice[l_ice<2.7e4]
         plt.plot(extsv.minimum_muon_energy(small_ice), small_ice, 'k--', label=r'Mean $E_\mu^i$')
         plt.legend()
+    plt.xlabel(r'$E_\mu^i$ [GeV]')
+    plt.ylabel(r'$l_{ice}$ [m]')
+    plt.yscale('log')
+    plt.xscale('log')
 
 
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
@@ -307,7 +308,7 @@ def elbert_only(slice_val=1., kind='conv_numu'):
         for echoice, name in zip(echoices,names):
             plt.plot(ens, echoice(kind)(ens, emu, slice_val), '--', label='{} {} {:.2g}'.format(name, kind, slice_val))
 
-    plt.ylim(-0.05, 1.05)
+    plt.ylim(0., 1.)
     plt.ylabel(r'Passing fraction')
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
