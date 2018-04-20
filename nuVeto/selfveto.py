@@ -31,7 +31,7 @@ class SelfVeto(object):
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m):
-        """Initializes the SelvVeto object for a particular costheta, CR Flux,
+        """Initializes the SelfVeto object for a particular costheta, CR Flux,
         hadronic model, barr parameters, and depth
 
         Note:
@@ -284,7 +284,7 @@ class SelfVeto(object):
                     xmus = centers(dfile['xedges'])
                     xnus = np.concatenate([xmus, [1]])
                     vals = dfile['histograms']
-
+p
                     ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
                                                                bounds_error=False, fill_value=None)
                     for i, enufrac in enumerate(enu/esamp):
