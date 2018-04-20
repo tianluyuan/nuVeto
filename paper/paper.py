@@ -46,7 +46,7 @@ def compare_prpls():
 
 
 def compare_hadrs():
-    kinds = ['conv_nue']
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
     cos_ths = [0.3]
     for kind in kinds:
