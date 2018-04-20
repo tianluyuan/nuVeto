@@ -38,7 +38,7 @@ class SelfVeto(object):
             combination of __init__'s arguments. To access pmodel and hadr,
             use mceq.pm_params and mceq.yields_params
         Args:
-            costh (float): Cos(theta), the cosine of the neutrino zenith
+            costh (float): Cos(theta), the cosine of the neutrino zenith at the detector
             pmodel (obj): CR Flux
             hadr (str): hadronic interaction model
             barr_mods: barr parameters

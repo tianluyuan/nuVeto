@@ -3,6 +3,7 @@ from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.selfveto import *
 from matplotlib import pyplot as plt
+from scipy import interpolate
 import pandas as pd
 try:
     import CRFluxModels.CRFluxModels as pm
@@ -22,12 +23,14 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     """
     ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,20)
     passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens]
+    passed_fn = interpolate.interp1d(ens, passed, kind='quadratic')
+    ens_plot = np.logspace(3,7,100)
     if fraction:
-        prs = plt.plot(ens, passed, **kwargs)        
+        prs = plt.plot(ens_plot, passed_fn(ens_plot), **kwargs)
         plt.ylim(-0.05, 1.05)
         plt.ylabel(r'Passing fraction')
     else:
-        prs = plt.plot(ens, np.asarray(passed)*ens**3, **kwargs)
+        prs = plt.plot(ens_plot, passed_fn(ens_plot)*ens_plot**3, **kwargs)
         plt.yscale('log')
         plt.ylabel(r'$E_\nu^3 \Phi_\nu [GeV^2 cm^-2 s^-1 st^-1]$')
     plt.xlim(10**3, 10**7)
@@ -100,9 +103,8 @@ def accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'
     plt.legend()
 
 
-def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c'):
-    prpls = [None, 'step_1', 'sigmoid_0.75_0.1']
-    for prpl in prpls:
+def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', compare=(None, 'step_1', 'sigmoid_0.75_0.1')):
+    for prpl in compare:
         fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
                       label='{} {} {:.2g}'.format(prpl, kind, slice_val))
     plt.legend()

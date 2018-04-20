@@ -31,3 +31,16 @@ def prpl_cbar():
                                    norm=norm, orientation='horizontal')
     plt.tight_layout(0.8)
     plt.savefig('fig/prpl_cbar.png')
+
+
+def compare_prpls():
+    # kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv_nue']
+    cos_ths = [0.3]
+    for kind in kinds:
+        for cos_th in cos_ths:
+            plt.figure()
+            plots.prpls(cos_th, kind, compare=('step_1', 'sigmoid_0.75_0.1'))
+            plt.legend(['Heaviside', 'Sigmoid'])
+            plt.savefig('fig/prpls_{}_{}'.format(kind, cos_th))
+
