@@ -57,3 +57,20 @@ def compare_hadrs():
             plt.legend()
             plt.tight_layout()
             plt.savefig('fig/hadrs_{}_{}.eps'.format(kind, cos_th))
+
+
+def compare_pmodels():
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
+               (pm.PolyGonato, False, 'poly-gonato'),
+               (pm.GaisserHonda, None, 'GH'),
+               (pm.ZatsepinSokolskaya, 'default', 'ZS')]
+    cos_ths = [0.3]
+    for kind in kinds:
+        for cos_th in cos_ths:
+            plt.figure()
+            for pmodel in pmodels:
+                plots.fn(cos_th)(cos_th, kind, pmodel=pmodel[:-1], label=pmodel[-1])
+            plt.legend()
+            plt.tight_layout()
+            plt.savefig('fig/pmodels_{}_{}.eps'.format(kind, cos_th))

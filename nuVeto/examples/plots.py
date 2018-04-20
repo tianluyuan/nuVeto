@@ -150,7 +150,8 @@ def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step
 def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', fraction=True):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
-               (pm.GaisserHonda, None, 'GH')]
+               (pm.GaisserHonda, None, 'GH'),
+               (pm.ZatsepinSokolskaya, 'default', 'ZS')]
     for pmodel in pmodels:
         pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
                            label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
