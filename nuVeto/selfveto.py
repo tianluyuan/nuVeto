@@ -1,5 +1,14 @@
-import pickle
+"""SelfVeto calculation [ref.]
+
+This module computes the probability that an atmospheric neutrino will be
+accompanied by a sibling muon produced in the same cosmic ray airshower at a
+given depth.
+
+
+"""
+
 from functools32 import lru_cache
+from pkg_resources import resource_filename
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -14,16 +23,27 @@ try:
 except ImportError:
     import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
-from utils import *
-from barr_uncertainties import *
+from nuVeto.utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
+from nuVeto.barr_uncertainties import BARR, barr_unc
 
 class SelfVeto(object):
+    """Class for computing the neutrino passing fraction i.e. (1-(Self veto probability))"""
     def __init__(self, costh,
-                 pmodel=(pm.HillasGaisser2012,'H3a'),
+                 pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m):
-        """A separate MCEq instance needs to be created for each
-        combination of __init__'s arguments. To access pmodel and hadr,
-        use mceq.pm_params and mceq.yields_params
+        """Initializes the SelvVeto object for a particular costheta, CR Flux,
+        hadronic model, barr parameters, and depth
+
+        Note:
+            A separate MCEq instance needs to be created for each
+            combination of __init__'s arguments. To access pmodel and hadr,
+            use mceq.pm_params and mceq.yields_params
+        Args:
+            costh (float): Cos(theta), the cosine of the neutrino zenith at the detector
+            pmodel (obj): CR Flux
+            hadr (str): hadronic interaction model
+            barr_mods: barr parameters
+            depth (float): the depth at which the self veto probability is computed below the ice
         """
         self.costh = costh
         self.pmodel = pmodel
@@ -41,13 +61,13 @@ class SelfVeto(object):
             # support a tuple (primary model class (not instance!), arguments)
             primary_model=pmodel,
             # zenith angle \theta in degrees, measured positively from vertical direction
-            theta_deg = theta,
-            enable_muon_energy_loss = False,
+            theta_deg=theta,
+            enable_muon_energy_loss=False,
             **mceq_config_without(['enable_muon_energy_loss']))
 
         for barr_mod in barr_mods:
             # Modify proton-air -> mod[0]
-            self.mceq.set_mod_pprod(2212,BARR[barr_mod[0]].pdg,barr_unc,barr_mod)
+            self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
         # Populate the modifications to the matrices by re-filling the interaction matrix
         self.mceq._init_default_matrices(skip_D_matrix=True)
 
@@ -61,15 +81,16 @@ class SelfVeto(object):
 
     @staticmethod
     def is_prompt(categ):
+        """Is this category prompt?"""
         return categ == 'pr' or categ[0] in ['D', 'L']
 
-    
     @staticmethod
     def categ_to_mothers(categ, daughter):
+        """Get the parents for this category"""
         rcharge = '-' if 'anti' in daughter else '+'
         lcharge = '+' if 'anti' in daughter else '-'
         rbar = '-bar' if 'anti' in daughter else ''
-        lbar = '' if 'anti' in daughter else '-bar'
+        #lbar = '' if 'anti' in daughter else '-bar'
         if categ == 'conv':
             mothers = ['pi'+rcharge, 'K'+rcharge, 'K0L']
             if 'nue' in daughter:
@@ -85,6 +106,7 @@ class SelfVeto(object):
 
     @staticmethod
     def projectiles():
+        """"""
         pdg_ids = config['adv_set']['allowed_projectiles']
         namer = ParticleProperties.modtab.pdg2modname
         allowed = []
@@ -238,6 +260,8 @@ class SelfVeto(object):
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='step_1', corr_only=False):
+        # prpl = probability of reaching * probability of light
+        # prpl -> None ==> median for muon reaching
         categ, daughter = kind.split('_')
 
         ice_distance = self.geom.overburden(self.costh)
@@ -291,7 +315,7 @@ class SelfVeto(object):
             dens = []
             istart = max(0, np.argmax(ecrs > enu) - 1)
             for ecr in ecrs[istart:]:
-                cr_flux = pmodel.nucleus_flux(particle, ecr)*Units.phim2
+                cr_flux = pmodel.nucleus_flux(particle, ecr.item())*Units.phim2
                 # poisson exp(-Nmu)
                 pnmarr = pnmfn(ecr-esamp)
                 # cubic splining doesn't enforce 0-1 bounds
