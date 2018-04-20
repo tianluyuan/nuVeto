@@ -1,6 +1,7 @@
 from nuVeto.examples import plots
 from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
+from nuVeto.selfveto import pm
 import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
