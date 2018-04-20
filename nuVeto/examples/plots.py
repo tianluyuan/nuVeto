@@ -5,7 +5,6 @@ from nuVeto.external import selfveto as extsv
 from nuVeto.selfveto import *
 from matplotlib import pyplot as plt
 from scipy import interpolate
-import pandas as pd
 try:
     import CRFluxModels.CRFluxModels as pm
 except ImportError:
@@ -23,8 +22,7 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,20)
-    passed = np.linspace(0,1,20)*cos_theta
-    # passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens]
+    passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens]
     passed_fn = interpolate.interp1d(ens, passed, kind='quadratic')
     ens_plot = np.logspace(3,7,100)
     if fraction:
@@ -318,6 +316,7 @@ def elbert_only(slice_val=1., kind='conv_numu'):
 
 
 def hist_preach(infile, plotdir=None):
+    import pandas as pd
     napf = 36
     df = pd.read_csv(infile, delim_whitespace=True, header=None,
                      names='ei l ef'.split())
