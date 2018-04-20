@@ -269,7 +269,7 @@ def nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
             plt.ylabel(r'ratio MCEq/Calc')
             plt.xscale('log')
             plt.ylim(0.5, 1.9)
-            plt.xlabel(r'$E_\nu$')
+            plt.xlabel(r'$E_\nu$ [GeV]')
             plt.xlim(*np.power(10,logxlim))
 
 
@@ -284,7 +284,7 @@ def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
                                  assume_sorted=True, fill_value=(1,np.nan))
     plt.semilogx(ecrs_fine, pnmfn(ecrs_fine), label='interpolated')
     plt.semilogx(ecrs, pnm, 'ko')
-    plt.xlabel(r'$E_{CR}$')
+    plt.xlabel(r'$E_{CR} [GeV]$')
     plt.ylabel(r'$e^{-N_\mu}$')
     plt.legend()
 
@@ -311,7 +311,7 @@ def elbert_only(slice_val=1., kind='conv_numu'):
     plt.ylabel(r'Passing fraction')
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
-    plt.xlabel(r'$E_\nu$')
+    plt.xlabel(r'$E_\nu$ [GeV]')
     plt.legend()
 
 
