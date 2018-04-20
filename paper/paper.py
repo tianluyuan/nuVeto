@@ -1,7 +1,7 @@
 from nuVeto.examples import plots
 from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
-from nuVeto.selfveto import *
+import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
@@ -15,7 +15,7 @@ titling = {'conv_numu':r'Conventional $\nu_\mu$',
            'pr_nue':r'Prompt $\nu_e$'}
 
 
-def prpl():
+def fig_prpl():
     heaviside = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_heaviside)
     sigmoid = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_smeared)
     plt.figure()
@@ -34,7 +34,7 @@ def prpl():
     plt.savefig('fig/prpl_sigmoid.png')
 
     
-def prpl_cbar():
+def fig_prpl_cbar():
     plt.figure(figsize=(5,1.5))
     norm = mpl.colors.Normalize(vmin=0, vmax=1)
     cb = mpl.colorbar.ColorbarBase(plt.gca(),
@@ -44,7 +44,7 @@ def prpl_cbar():
     plt.savefig('fig/prpl_cbar.png')
 
 
-def compare_prpls():
+def fig_prpls():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     cos_ths = [0.3, 0.5]
     prpls = ['step_1', 'sigmoid_0.75_0.3']
@@ -66,7 +66,7 @@ def compare_prpls():
         plt.savefig('fig/prpls_{}.eps'.format(kind))
 
 
-def compare_hadrs():
+def fig_hadrs():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
     cos_ths = [0.3]
@@ -87,7 +87,7 @@ def compare_hadrs():
         plt.savefig('fig/hadrs_{}.eps'.format(kind))
 
 
-def compare_pmodels():
+def fig_pmodels():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
