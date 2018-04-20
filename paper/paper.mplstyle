@@ -20,3 +20,4 @@ ytick.major.width: 1
 ytick.minor.width: 1
 
 legend.frameon: False
+legend.fontsize: 12

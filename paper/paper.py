@@ -19,7 +19,7 @@ def prpl():
     plt.savefig('fig/prpl_heaviside.png')
     plt.figure()
     plots.plot_prpl(sigmoid, True, False)
-    plt.legend(fontsize=12)
+    plt.legend()
     plt.tight_layout()
     plt.savefig('fig/prpl_sigmoid.png')
 
@@ -34,13 +34,13 @@ def prpl_cbar():
 
 
 def compare_prpls():
-    # kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    kinds = ['conv_nue']
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     cos_ths = [0.3]
     for kind in kinds:
         for cos_th in cos_ths:
             plt.figure()
             plots.prpls(cos_th, kind, compare=('step_1', 'sigmoid_0.75_0.1'))
             plt.legend(['Heaviside', 'Sigmoid'])
-            plt.savefig('fig/prpls_{}_{}'.format(kind, cos_th))
+            plt.tight_layout()
+            plt.savefig('fig/prpls_{}_{}.eps'.format(kind, cos_th))
 

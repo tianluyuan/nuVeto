@@ -314,7 +314,7 @@ class SelfVeto(object):
             dens = []
             istart = max(0, np.argmax(ecrs > enu) - 1)
             for ecr in ecrs[istart:]:
-                cr_flux = pmodel.nucleus_flux(particle, ecr)*Units.phim2
+                cr_flux = pmodel.nucleus_flux(particle, ecr.item())*Units.phim2
                 # poisson exp(-Nmu)
                 pnmarr = pnmfn(ecr-esamp)
                 # cubic splining doesn't enforce 0-1 bounds
