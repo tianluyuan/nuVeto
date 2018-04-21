@@ -57,8 +57,8 @@ def fig_prpl_cbar():
 
 def fig_prpls():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    cos_ths = [0.3, 0.5]
-    prpls = ['step_1', 'sigmoid_0.75_0.3']
+    cos_ths = [0.2, 0.8]
+    prpls = ['step_1', 'sigmoid_0.75_0.1']
     labels = ['Heaviside', 'Sigmoid']
     for kind in kinds:
         plt.figure()
@@ -80,7 +80,7 @@ def fig_prpls():
 def fig_hadrs():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
-    cos_ths = [0.3]
+    cos_ths = [0.2, 0.8]
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
@@ -104,7 +104,7 @@ def fig_pmodels():
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH'),
                (pm.ZatsepinSokolskaya, 'default', 'ZS')]
-    cos_ths = [0.3]
+    cos_ths = [0.2, 0.8]
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
