@@ -1,3 +1,5 @@
+import os
+from pkg_resources import resource_filename
 from nuVeto.examples import plots
 from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
@@ -16,6 +18,14 @@ titling = {'conv_numu':r'Conventional $\nu_\mu$',
            'pr_nue':r'Prompt $\nu_e$'}
 
 
+def save(fname):
+    try:
+        os.makedirs('fig')
+        plt.savefig(fname)
+    except OSError as e:
+        plt.savefig(fname)
+
+    
 def fig_prpl():
     heaviside = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_heaviside)
     sigmoid = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_smeared)
@@ -32,7 +42,7 @@ def fig_prpl():
     plt.xlim(1e2, 1e8)
     plt.ylim(1e3, 2e5)
     plt.tight_layout(0.3)
-    plt.savefig('fig/prpl_sigmoid.png')
+    save('fig/prpl_sigmoid.png')
 
     
 def fig_prpl_cbar():
@@ -42,7 +52,7 @@ def fig_prpl_cbar():
                                    norm=norm, orientation='horizontal')
     cb.set_label(r'${\cal P}_{\rm det}$')
     plt.tight_layout(1)
-    plt.savefig('fig/prpl_cbar.png')
+    save('fig/prpl_cbar.png')
 
 
 def fig_prpls():
@@ -64,7 +74,7 @@ def fig_prpls():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        plt.savefig('fig/prpls_{}.eps'.format(kind))
+        save('fig/prpls_{}.eps'.format(kind))
 
 
 def fig_hadrs():
@@ -85,7 +95,7 @@ def fig_hadrs():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        plt.savefig('fig/hadrs_{}.eps'.format(kind))
+        save('fig/hadrs_{}.eps'.format(kind))
 
 
 def fig_pmodels():
@@ -109,4 +119,4 @@ def fig_pmodels():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        plt.savefig('fig/pmodels_{}.eps'.format(kind, cos_th))
+        save('fig/pmodels_{}.eps'.format(kind, cos_th))

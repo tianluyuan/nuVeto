@@ -11,6 +11,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.choice is None:
+        print('Making all figures... this will take awhile')
         for fig in figs:
             getattr(paper, fig)()
     else:
