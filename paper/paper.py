@@ -79,11 +79,13 @@ def fig_prpls():
 
 def fig_hadrs():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    hadrs=['SIBYLL2.3c', 'SIBYLL2.3', 'DPMJET-III']
+    hadrs_prompt = ['SIBYLL2.3c', 'DPMJET-III']
+    hadrs_conv = ['SIBYLL2.3c', 'QGSJET-II-04', 'EPOS-LHC']
     cos_ths = [0.2, 0.8]
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
+        hadrs = hadrs_conv if kind.split('_')[0] == 'conv' else hadrs_prompt
         for idx, hadr in enumerate(hadrs):
             for cos_th in cos_ths:
                 clabel = r'$\cos \theta_z = {}$'.format(cos_th) if idx == 0 else None
