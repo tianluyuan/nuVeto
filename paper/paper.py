@@ -79,7 +79,7 @@ def fig_prpls():
 
 def fig_hadrs():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    hadrs=['SIBYLL2.3c', 'QGSJET-II-04', 'EPOS-LHC']
+    hadrs=['SIBYLL2.3c', 'SIBYLL2.3', 'DPMJET-III']
     cos_ths = [0.2, 0.8]
     for kind in kinds:
         plt.figure()
