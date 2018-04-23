@@ -3,6 +3,7 @@ from pkg_resources import resource_filename
 from nuVeto.examples import plots
 from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
+from nuVeto.external import helper as exthp
 from nuVeto.selfveto import pm
 import numpy as np
 import matplotlib as mpl
@@ -79,9 +80,9 @@ def fig_prpls():
 
 def fig_hadrs():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    hadrs_prompt = ['SIBYLL2.3c', 'DPMJET-III']
-    hadrs_conv = ['SIBYLL2.3c', 'QGSJET-II-04', 'EPOS-LHC']
-    cos_ths = [0.2, 0.8]
+    hadrs_prompt = ['SIBYLL2.3c', 'SIBYLL2.3', 'DPMJET-III']
+    hadrs_conv = ['SIBYLL2.3c', 'SIBYLL2.3', 'QGSJET-II-04', 'EPOS-LHC']
+    cos_ths = [0.25, 0.85]
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
@@ -106,7 +107,7 @@ def fig_pmodels():
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH'),
                (pm.ZatsepinSokolskaya, 'default', 'ZS')]
-    cos_ths = [0.2, 0.8]
+    cos_ths = [0.25, 0.85]
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
@@ -122,3 +123,29 @@ def fig_pmodels():
         plt.legend()
         plt.tight_layout(0.3)
         save('fig/pmodels_{}.eps'.format(kind, cos_th))
+
+
+def fig_extsv():
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    cos_ths = [0.25, 0.85]
+    ens = np.logspace(2,9, 100)
+    useexts = [False, True]
+    labels = ['New', 'Previous']
+    for kind in kinds:
+        plt.figure()
+        plt.title(titling[kind])
+        for idx, useext in enumerate(useexts):
+            for cos_th in cos_ths:
+                if useext:
+                    emu = extsv.minimum_muon_energy(extsv.overburden(cos_th))
+                    plt.plot(ens, exthp.passrates(kind)(ens, emu, cos_th), linestyles[idx])
+                else:
+                    clabel = r'$\cos \theta_z = {}$'.format(cos_th) if idx == 0 else None
+                    plots.fn(cos_th)(cos_th, kind, label=clabel)
+
+            plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
+                        label=labels[idx])
+            plt.gca().set_prop_cycle(None)
+        plt.legend()
+        plt.tight_layout(0.3)
+        save('fig/extsv_{}.eps'.format(kind))
