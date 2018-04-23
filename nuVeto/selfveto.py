@@ -196,18 +196,23 @@ class SelfVeto(object):
         ref = self.mceq.pname2pref
         sol = None
         p_pdg = ParticleProperties.pdg_id[particle_name]
+        reduce_res = True
         if grid_idx is None:
-            sol = grid_sol[-1]
-            xv = self.x_vec[-1]
+            sol = np.array([grid_sol[-1]])
+            xv = np.array([self.x_vec[-1]])
+        elif not grid_idx:
+            sol = grid_sol
+            xv = self.x_vec
+            reduce_res = False
         elif grid_idx >= len(self.mceq.grid_sol):
-            sol = grid_sol[-1]
-            xv = self.x_vec[-1]
+            sol = np.array([grid_sol[-1]])
+            xv = np.array([self.x_vec[-1]])
         else:
-            sol = grid_sol[grid_idx]
-            xv = self.x_vec[grid_idx]
+            sol = np.array([grid_sol[grid_idx]])
+            xv = np.array([self.x_vec[grid_idx]])
 
-        res = np.zeros(len(self.mceq.e_grid))
-        rho_air = self.mceq.density_model.X2rho(xv)
+        res = np.zeros((len(self.dh_vec), len(self.mceq.e_grid)))
+        rho_air = np.array([self.mceq.density_model.X2rho(xv_i) in xv])
         # meson decay length
         decayl = ((self.mceq.e_grid * Units.GeV)
                   / ParticleProperties.mass_dict[particle_name]
@@ -216,52 +221,57 @@ class SelfVeto(object):
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in self.projectiles():
-            prim_flux = sol[ref[prim].lidx():
+            prim_flux = sol[:,ref[prim].lidx():
                             ref[prim].uidx()]
             prim_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[prim])
             try:
                 int_yields = self.mceq.y.get_y_matrix(
                     ParticleProperties.pdg_id[prim],
                     p_pdg)
-                res += np.dot(int_yields,
-                              prim_flux*prim_xs*ndens)
+                res += np.sum(int_yields[None,:,:]*prim_flux[:,None,:]*prim_xs[None,None,:]*ndens[:,None,None], axis=2)
             except KeyError as e:
                 continue
 
-        res *= decayl
+        res *= decayl[None,:]
         # combine with direct
-        direct = sol[ref[particle_name].lidx():
+        direct = sol[:,ref[particle_name].lidx():
                      ref[particle_name].uidx()]
         res[direct != 0] = direct[direct != 0]
 
         if particle_name[:-1] == 'mu':
             for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
-                res += sol[ref[_].lidx():
+                res += sol[:,ref[_].lidx():
                            ref[_].uidx()]
 
-        res *= self.mceq.e_grid ** mag
+        res *= self.mceq.e_grid[None,:] ** mag
 
         if not integrate:
+            if reduce_res:
+                res = res[0]
             return res
 
-        return res * self.mceq.e_widths
+        res = res * self.mceq.e_widths[None,:]
+        if reduce_res:
+            res = res[0]
+        return res
 
 
-    def get_rescale_phi(self, mother, grid_sol, idx):
+    def get_rescale_phi(self, mother, grid_sol):
         """ """
-        dh = self.dh_vec[idx]
-        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[mother])
-        rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=idx)
-        return interpolate.interp1d(self.mceq.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
+        dh = self.dh_vec
+        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) * (dh[None,:] / ParticleProperties.lifetime_dict[mother])
+        rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
+        return rescale_phi
 
 
-    def get_integrand(self, categ, daughter, grid_sol, idx, esamp, enu):
+    def get_integrand(self, categ, daughter, grid_sol, esamp, enu):
         mothers = self.categ_to_mothers(categ, daughter)
-        ys = np.zeros(len(esamp))
+        ys = np.zeros((len(esamp),len(self.dh_vec)))
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
-            rescale_phi = self.get_rescale_phi(mother, grid_sol, idx)
-            ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)
+            rescale_phi = self.get_rescale_phi(mother, grid_sol)
+            rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
+            ys += dNdEE(enu/esamp)/esamp[:,None]*rescale_phi
 
         return ys
 
@@ -302,10 +312,9 @@ class SelfVeto(object):
         total = 0
         if corr_only:
             grid_sol = self.grid_sol()
-            for idx in xrange(len(self.x_vec)):
-                integrand = self.get_integrand(categ, daughter, grid_sol, idx, esamp, enu)
-                passed += integrate.trapz(integrand*reaching, esamp)
-                total += integrate.trapz(integrand, esamp)
+            integrand = np.sum(self.get_integrand(categ, daughter, grid_sol, esamp, enu), axis=1)
+            passed = integrate.trapz(integrand*reaching, esamp)
+            total = integrate.trapz(integrand, esamp)
             return passed, total
                 
         pmodel = self.pmodel[0](self.pmodel[1])
@@ -344,13 +353,12 @@ class SelfVeto(object):
 
                 num_ecr = 0 # single entry in nums
                 den_ecr = 0 # single entry in dens
-                # dh
-                for idx in xrange(len(self.x_vec)): # integral in height
-                    # dEp
-                    # integral in Ep
-                    integrand = self.get_integrand(categ, daughter, grid_sol, idx, esamp, enu)
-                    num_ecr += integrate.trapz(integrand*reaching*pnmarr, esamp)
-                    den_ecr += integrate.trapz(integrand, esamp)
+
+                # dEp
+                # integral in Ep
+                integrand = np.sum(self.get_integrand(categ, daughter, grid_sol, esamp, enu), axis=1)
+                num_ecr = integrate.trapz(integrand*reaching*pnmarr, esamp)
+                den_ecr = integrate.trapz(integrand, esamp)
 
                 nums.append(num_ecr*cr_flux/Units.phicm2)
                 dens.append(den_ecr*cr_flux/Units.phicm2)
