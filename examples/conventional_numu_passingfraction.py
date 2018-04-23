@@ -1,4 +1,6 @@
 import pickle
+import matplotlib
+matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from scipy.interpolate import interpolate as interpolate
 import CRFluxModels.CRFluxModels as pm
