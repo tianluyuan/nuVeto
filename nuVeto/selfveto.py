@@ -255,13 +255,13 @@ class SelfVeto(object):
         return interpolate.interp1d(self.mceq.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 
 
-    def get_integrand(self, categ, daughter, grid_sol, idx, weight_fn, esamp, enu):
+    def get_integrand(self, categ, daughter, grid_sol, idx, esamp, enu):
         mothers = self.categ_to_mothers(categ, daughter)
         ys = np.zeros(len(esamp))
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, grid_sol, idx)
-            ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)*weight_fn
+            ys += dNdEE(enu/esamp)/esamp*rescale_phi(esamp)
 
         return ys
 
@@ -303,10 +303,9 @@ class SelfVeto(object):
         if corr_only:
             grid_sol = self.grid_sol()
             for idx in xrange(len(self.x_vec)):
-                passed += integrate.trapz(
-                    self.get_integrand(categ, daughter, grid_sol, idx, reaching, esamp, enu), esamp)
-                total += integrate.trapz(
-                    self.get_integrand(categ, daughter, grid_sol, idx, identity, esamp, enu), esamp)
+                integrand = self.get_integrand(categ, daughter, grid_sol, idx, esamp, enu)
+                passed += integrate.trapz(integrand*reaching, esamp)
+                total += integrate.trapz(integrand, esamp)
             return passed, total
                 
         pmodel = self.pmodel[0](self.pmodel[1])
@@ -349,14 +348,9 @@ class SelfVeto(object):
                 for idx in xrange(len(self.x_vec)): # integral in height
                     # dEp
                     # integral in Ep
-                    num_ecr += integrate.trapz(
-                        self.get_integrand(
-                            categ, daughter, grid_sol, idx,
-                            reaching, esamp, enu)*pnmarr, esamp)
-                    den_ecr += integrate.trapz(
-                        self.get_integrand(
-                            categ, daughter, grid_sol, idx,
-                            identity, esamp, enu), esamp)
+                    integrand = self.get_integrand(categ, daughter, grid_sol, idx, esamp, enu)
+                    num_ecr += integrate.trapz(integrand*reaching*pnmarr, esamp)
+                    den_ecr += integrate.trapz(integrand, esamp)
 
                 nums.append(num_ecr*cr_flux/Units.phicm2)
                 dens.append(den_ecr*cr_flux/Units.phicm2)
