@@ -58,7 +58,7 @@ def fig_prpl_cbar():
 
 def fig_prpls():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    cos_ths = [0.2, 0.8]
+    cos_ths = [0.25, 0.85]
     prpls = ['step_1', 'sigmoid_0.75_0.1']
     labels = ['Heaviside', 'Sigmoid']
     for kind in kinds:
