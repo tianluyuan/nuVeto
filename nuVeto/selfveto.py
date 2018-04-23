@@ -121,7 +121,7 @@ class SelfVeto(object):
 
     @lru_cache(2**10)
     def get_dNdEE(self, mother, daughter):
-        """"""
+        """Differential parent-->neutrino (mother--daughter) yield"""
         ihijo = 20
         e_grid = self.mceq.e_grid
         delta = self.mceq.e_widths
@@ -157,6 +157,7 @@ class SelfVeto(object):
 
     @lru_cache(maxsize=2**10)
     def prob_nomu(self, ecr, particle, prpl='step_1'):
+        """Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
         mu = self.get_solution('mu-', grid_sol) + self.get_solution('mu+', grid_sol)
@@ -171,8 +172,7 @@ class SelfVeto(object):
                      particle_name,
                      grid_sol,
                      mag=0.,
-                     grid_idx=None,
-                     integrate=False):
+                     grid_idx=None):
         """Retrieves solution of the calculation on the energy grid.
 
         Args:
@@ -191,31 +191,38 @@ class SelfVeto(object):
         Returns:
           (numpy.array): flux of particles on energy grid :attr:`e_grid`
         """
+
+        # MCEq index conversion
         ref = self.mceq.pname2pref
-        sol = None
         p_pdg = ParticleProperties.pdg_id[particle_name]
         reduce_res = True
-        if grid_idx is None:
+
+        if grid_idx is None: # Surface only case
             sol = np.array([grid_sol[-1]])
             xv = np.array([self.x_vec[-1]])
-        elif not grid_idx:
+        elif not grid_idx: # Whole solution case
             sol = np.asarray(grid_sol)
             xv = np.asarray(self.x_vec)
             reduce_res = False
-        elif grid_idx >= len(self.mceq.grid_sol):
+        elif grid_idx >= len(self.mceq.grid_sol): # Surface only case
             sol = np.array([grid_sol[-1]])
             xv = np.array([self.x_vec[-1]])
-        else:
+        else: # Particular height case
             sol = np.array([grid_sol[grid_idx]])
             xv = np.array([self.x_vec[grid_idx]])
 
-        res = np.zeros(sol[:,ref[particle_name].lidx():ref[particle_name].uidx()].shape)
+        # MCEq solution for particle
+        direct = sol[:,ref[particle_name].lidx():
+                     ref[particle_name].uidx()]
+        res = np.zeros(direct.shape)
         rho_air = np.array([self.mceq.density_model.X2rho(xv_i) for xv_i in xv])
+
         # meson decay length
         decayl = ((self.mceq.e_grid * Units.GeV)
                   / ParticleProperties.mass_dict[particle_name]
                   * ParticleProperties.lifetime_dict[particle_name]
                   / Units.cm)
+
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in self.projectiles():
@@ -232,8 +239,6 @@ class SelfVeto(object):
 
         res *= decayl[None,:]
         # combine with direct
-        direct = sol[:,ref[particle_name].lidx():
-                     ref[particle_name].uidx()]
         res[direct != 0] = direct[direct != 0]
 
         if particle_name[:-1] == 'mu':
@@ -243,19 +248,13 @@ class SelfVeto(object):
 
         res *= self.mceq.e_grid[None,:] ** mag
 
-        if not integrate:
-            if reduce_res:
-                res = res[0]
-            return res
-
-        res = res * self.mceq.e_widths[None,:]
         if reduce_res:
             res = res[0]
         return res
 
 
     def get_rescale_phi(self, mother, grid_sol):
-        """ """
+        """Flux of the mother at all heights"""
         dh = self.dh_vec
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) * (dh[None,:] / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
@@ -263,6 +262,7 @@ class SelfVeto(object):
 
 
     def get_integrand(self, categ, daughter, grid_sol, esamp, enu):
+        """flux*yield"""
         mothers = self.categ_to_mothers(categ, daughter)
         ys = np.zeros((len(esamp),len(self.dh_vec)))
         for mother in mothers:
@@ -275,6 +275,9 @@ class SelfVeto(object):
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='step_1', corr_only=False):
+        """Returns the flux and passing fraction
+        for a particular neutrino energy, flux, and p_light
+        """
         # prpl = probability of reaching * probability of light
         # prpl -> None ==> median for muon reaching
         categ, daughter = kind.split('_')
@@ -284,14 +287,13 @@ class SelfVeto(object):
         # TODO: replace 1e8 with MMC-prpl interpolated bounds
         esamp = np.logspace(np.log10(enu),
                             np.log10(enu+1e8), 1000*accuracy)
-        identity = np.ones(len(esamp))
+
         if 'numu' not in daughter:
             # muon accompanies numu only
-            reaching = identity
+            reaching = np.ones(len(esamp))
         else:
             fn = MuonProb(prpl)
-            reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
-                                        [ice_distance]*len(esamp)))
+
             if self.is_prompt(categ):
                 with np.load(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz')) as dfile:
                     xmus = centers(dfile['xedges'])
@@ -305,26 +307,38 @@ class SelfVeto(object):
                         pmu = ddec(zip([enufrac]*len(emu), xmus))
                         reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
                                                                   [ice_distance]*len(emu))))
+            else:
+                # Assuming muon energy is E_parent - E_nu
+                reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
+                                        [ice_distance]*len(esamp)))
 
+        # Correlated only (no need for the unified calculation here) [really just for testing]
         passed = 0
         total = 0
         if corr_only:
-            grid_sol = self.grid_sol()
+            grid_sol = self.grid_sol() # MCEq solution (fluxes tabulated as a function of height)
+            # sum performs the dh integral
             integrand = np.sum(self.get_integrand(categ, daughter, grid_sol, esamp, enu), axis=1)
             passed = integrate.trapz(integrand*reaching, esamp)
             total = integrate.trapz(integrand, esamp)
             return passed, total
                 
         pmodel = self.pmodel[0](self.pmodel[1])
+
+        #loop over primary particles
         for particle in pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
 
             # ecrs --> Energy of cosmic ray primaries
             # amu --> atomic mass of primary
+
+            # evaluation points in E_CR
             ecrs = amu(particle)*np.logspace(2, 10, 10*accuracy)
+
             # pnm --> probability of no muon (just a poisson probability)
             pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
+
             # pnmfn --> fine grid interpolation of pnm
             pnmfn = interpolate.interp1d(ecrs, pnm, kind='cubic',
                                          assume_sorted=True, bounds_error=False,
