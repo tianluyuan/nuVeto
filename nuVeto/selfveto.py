@@ -106,7 +106,7 @@ class SelfVeto(object):
 
     @staticmethod
     def projectiles():
-        """"""
+        """Get allowed pimaries"""
         pdg_ids = config['adv_set']['allowed_projectiles']
         namer = ParticleProperties.modtab.pdg2modname
         allowed = []
@@ -121,6 +121,7 @@ class SelfVeto(object):
 
     @lru_cache(2**10)
     def get_dNdEE(self, mother, daughter):
+        """"""
         ihijo = 20
         e_grid = self.mceq.e_grid
         delta = self.mceq.e_widths
@@ -207,7 +208,10 @@ class SelfVeto(object):
         res = np.zeros(len(self.mceq.e_grid))
         rho_air = self.mceq.density_model.X2rho(xv)
         # meson decay length
-        decayl = (self.mceq.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
+        decayl = ((self.mceq.e_grid * Units.GeV)
+                  / ParticleProperties.mass_dict[particle_name]
+                  * ParticleProperties.lifetime_dict[particle_name]
+                  / Units.cm)
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in self.projectiles():
@@ -222,14 +226,14 @@ class SelfVeto(object):
                               prim_flux*prim_xs*ndens)
             except KeyError as e:
                 continue
-                
+
         res *= decayl
         # combine with direct
         direct = sol[ref[particle_name].lidx():
                      ref[particle_name].uidx()]
-        res[direct!=0] = direct[direct!=0]
+        res[direct != 0] = direct[direct != 0]
 
-        if particle_name[:-1] == 'mu':            
+        if particle_name[:-1] == 'mu':
             for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
                 res += sol[ref[_].lidx():
                            ref[_].uidx()]
@@ -238,17 +242,18 @@ class SelfVeto(object):
 
         if not integrate:
             return res
-        else:
-            return res * self.mceq.e_widths
+
+        return res * self.mceq.e_widths
 
 
     def get_rescale_phi(self, mother, grid_sol, idx):
+        """ """
         dh = self.dh_vec[idx]
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=idx)
         return interpolate.interp1d(self.mceq.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 
-    
+
     def get_integrand(self, categ, daughter, grid_sol, idx, weight_fn, esamp, enu):
         mothers = self.categ_to_mothers(categ, daughter)
         ys = np.zeros(len(esamp))
