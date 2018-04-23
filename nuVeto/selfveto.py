@@ -200,7 +200,7 @@ class SelfVeto(object):
         if grid_idx is None: # Surface only case
             sol = np.array([grid_sol[-1]])
             xv = np.array([self.x_vec[-1]])
-        elif not grid_idx: # Whole solution case
+        elif isinstance(grid_idx, bool) and not grid_idx: # Whole solution case
             sol = np.asarray(grid_sol)
             xv = np.asarray(self.x_vec)
             reduce_res = False
