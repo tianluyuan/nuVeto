@@ -84,7 +84,6 @@ class SelfVeto(object):
         """Is this category prompt?"""
         return categ == 'pr' or categ[0] in ['D', 'L']
 
-    
     @staticmethod
     def categ_to_mothers(categ, daughter):
         """Get the parents for this category"""
@@ -192,7 +191,6 @@ class SelfVeto(object):
         Returns:
           (numpy.array): flux of particles on energy grid :attr:`e_grid`
         """
-        res = np.zeros(self.mceq.d)
         ref = self.mceq.pname2pref
         sol = None
         p_pdg = ParticleProperties.pdg_id[particle_name]
@@ -201,8 +199,8 @@ class SelfVeto(object):
             sol = np.array([grid_sol[-1]])
             xv = np.array([self.x_vec[-1]])
         elif not grid_idx:
-            sol = grid_sol
-            xv = self.x_vec
+            sol = np.asarray(grid_sol)
+            xv = np.asarray(self.x_vec)
             reduce_res = False
         elif grid_idx >= len(self.mceq.grid_sol):
             sol = np.array([grid_sol[-1]])
@@ -211,8 +209,8 @@ class SelfVeto(object):
             sol = np.array([grid_sol[grid_idx]])
             xv = np.array([self.x_vec[grid_idx]])
 
-        res = np.zeros((len(self.dh_vec), len(self.mceq.e_grid)))
-        rho_air = np.array([self.mceq.density_model.X2rho(xv_i) in xv])
+        res = np.zeros(sol[:,ref[particle_name].lidx():ref[particle_name].uidx()].shape)
+        rho_air = np.array([self.mceq.density_model.X2rho(xv_i) for xv_i in xv])
         # meson decay length
         decayl = ((self.mceq.e_grid * Units.GeV)
                   / ParticleProperties.mass_dict[particle_name]
@@ -271,7 +269,7 @@ class SelfVeto(object):
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, grid_sol)
             rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
-            ys += dNdEE(enu/esamp)/esamp[:,None]*rescale_phi
+            ys += (dNdEE(enu/esamp)/esamp)[:,None]*rescale_phi
 
         return ys
 
