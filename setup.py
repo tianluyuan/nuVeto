@@ -10,12 +10,13 @@ setup(
     url='https://github.com/arguelles/nuVeto.git',
     packages=find_packages('./'),
     package_data={
-        'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl']
+        'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl'],
+        'nuVeto.resources.mu':['mmc/ice.pklz']
     },
     install_requires=['numpy',
                       'scipy',
                       'functools32',
-                      'MCeq'],        
+                      'MCeq'],
     extras_require={
         'plotting':  ['matplotlib', 'pandas'],
         'resources':  ['pythia8', 'matplotlib', 'argparse', 'pandas'],

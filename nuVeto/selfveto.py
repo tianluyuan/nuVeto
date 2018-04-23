@@ -1,5 +1,14 @@
-import pickle
+"""SelfVeto calculation [ref.]
+
+This module computes the probability that an atmospheric neutrino will be
+accompanied by a sibling muon produced in the same cosmic ray airshower at a
+given depth.
+
+
+"""
+
 from functools32 import lru_cache
+from pkg_resources import resource_filename
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -14,16 +23,27 @@ try:
 except ImportError:
     import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
-from utils import *
-from barr_uncertainties import *
+from nuVeto.utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
+from nuVeto.barr_uncertainties import BARR, barr_unc
 
 class SelfVeto(object):
+    """Class for computing the neutrino passing fraction i.e. (1-(Self veto probability))"""
     def __init__(self, costh,
-                 pmodel=(pm.HillasGaisser2012,'H3a'),
+                 pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m):
-        """A separate MCEq instance needs to be created for each
-        combination of __init__'s arguments. To access pmodel and hadr,
-        use mceq.pm_params and mceq.yields_params
+        """Initializes the SelfVeto object for a particular costheta, CR Flux,
+        hadronic model, barr parameters, and depth
+
+        Note:
+            A separate MCEq instance needs to be created for each
+            combination of __init__'s arguments. To access pmodel and hadr,
+            use mceq.pm_params and mceq.yields_params
+        Args:
+            costh (float): Cos(theta), the cosine of the neutrino zenith at the detector
+            pmodel (tuple(CR model class, arguments)): CR Flux
+            hadr (str): hadronic interaction model
+            barr_mods: barr parameters
+            depth (float): the depth at which the self veto probability is computed below the ice
         """
         self.costh = costh
         self.pmodel = pmodel
@@ -41,13 +61,13 @@ class SelfVeto(object):
             # support a tuple (primary model class (not instance!), arguments)
             primary_model=pmodel,
             # zenith angle \theta in degrees, measured positively from vertical direction
-            theta_deg = theta,
-            enable_muon_energy_loss = False,
+            theta_deg=theta,
+            enable_muon_energy_loss=False,
             **mceq_config_without(['enable_muon_energy_loss']))
 
         for barr_mod in barr_mods:
             # Modify proton-air -> mod[0]
-            self.mceq.set_mod_pprod(2212,BARR[barr_mod[0]].pdg,barr_unc,barr_mod)
+            self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
         # Populate the modifications to the matrices by re-filling the interaction matrix
         self.mceq._init_default_matrices(skip_D_matrix=True)
 
@@ -61,15 +81,17 @@ class SelfVeto(object):
 
     @staticmethod
     def is_prompt(categ):
+        """Is this category prompt?"""
         return categ == 'pr' or categ[0] in ['D', 'L']
 
     
     @staticmethod
     def categ_to_mothers(categ, daughter):
+        """Get the parents for this category"""
         rcharge = '-' if 'anti' in daughter else '+'
         lcharge = '+' if 'anti' in daughter else '-'
         rbar = '-bar' if 'anti' in daughter else ''
-        lbar = '' if 'anti' in daughter else '-bar'
+        #lbar = '' if 'anti' in daughter else '-bar'
         if categ == 'conv':
             mothers = ['pi'+rcharge, 'K'+rcharge, 'K0L']
             if 'nue' in daughter:
@@ -85,6 +107,7 @@ class SelfVeto(object):
 
     @staticmethod
     def projectiles():
+        """Get allowed pimaries"""
         pdg_ids = config['adv_set']['allowed_projectiles']
         namer = ParticleProperties.modtab.pdg2modname
         allowed = []
@@ -99,6 +122,7 @@ class SelfVeto(object):
 
     @lru_cache(2**10)
     def get_dNdEE(self, mother, daughter):
+        """"""
         ihijo = 20
         e_grid = self.mceq.e_grid
         delta = self.mceq.e_widths
@@ -123,6 +147,7 @@ class SelfVeto(object):
 
     @lru_cache(maxsize=2**10)
     def grid_sol(self, ecr=None, particle=None):
+        """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
         if ecr is not None:
             self.mceq.set_single_primary_particle(ecr, particle)
         else:
@@ -184,7 +209,10 @@ class SelfVeto(object):
         res = np.zeros(len(self.mceq.e_grid))
         rho_air = self.mceq.density_model.X2rho(xv)
         # meson decay length
-        decayl = (self.mceq.e_grid * Units.GeV)/ParticleProperties.mass_dict[particle_name] * ParticleProperties.lifetime_dict[particle_name] /Units.cm
+        decayl = ((self.mceq.e_grid * Units.GeV)
+                  / ParticleProperties.mass_dict[particle_name]
+                  * ParticleProperties.lifetime_dict[particle_name]
+                  / Units.cm)
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in self.projectiles():
@@ -199,14 +227,14 @@ class SelfVeto(object):
                               prim_flux*prim_xs*ndens)
             except KeyError as e:
                 continue
-                
+
         res *= decayl
         # combine with direct
         direct = sol[ref[particle_name].lidx():
                      ref[particle_name].uidx()]
-        res[direct!=0] = direct[direct!=0]
+        res[direct != 0] = direct[direct != 0]
 
-        if particle_name[:-1] == 'mu':            
+        if particle_name[:-1] == 'mu':
             for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
                 res += sol[ref[_].lidx():
                            ref[_].uidx()]
@@ -215,17 +243,18 @@ class SelfVeto(object):
 
         if not integrate:
             return res
-        else:
-            return res * self.mceq.e_widths
+
+        return res * self.mceq.e_widths
 
 
     def get_rescale_phi(self, mother, grid_sol, idx):
+        """ """
         dh = self.dh_vec[idx]
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid * Units.GeV)) *(dh / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=idx)
         return interpolate.interp1d(self.mceq.e_grid, rescale_phi, kind='quadratic', fill_value='extrapolate')
 
-    
+
     def get_integrand(self, categ, daughter, grid_sol, idx, weight_fn, esamp, enu):
         mothers = self.categ_to_mothers(categ, daughter)
         ys = np.zeros(len(esamp))
@@ -238,6 +267,8 @@ class SelfVeto(object):
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='step_1', corr_only=False):
+        # prpl = probability of reaching * probability of light
+        # prpl -> None ==> median for muon reaching
         categ, daughter = kind.split('_')
 
         ice_distance = self.geom.overburden(self.costh)
@@ -282,28 +313,42 @@ class SelfVeto(object):
         for particle in pmodel.nucleus_ids:
             # A continuous input energy range is allowed between
             # :math:`50*A~ \\text{GeV} < E_\\text{nucleus} < 10^{10}*A \\text{GeV}`.
+
+            # ecrs --> Energy of cosmic ray primaries
+            # amu --> atomic mass of primary
             ecrs = amu(particle)*np.logspace(2, 10, 10*accuracy)
+            # pnm --> probability of no muon (just a poisson probability)
             pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
+            # pnmfn --> fine grid interpolation of pnm
             pnmfn = interpolate.interp1d(ecrs, pnm, kind='cubic',
                                          assume_sorted=True, bounds_error=False,
                                          fill_value=(1,np.nan))
+            # nums --> numerator
             nums = []
+            # dens --> denominator
             dens = []
+            # istart --> integration starting point, the lowest energy index for the integral
             istart = max(0, np.argmax(ecrs > enu) - 1)
-            for ecr in ecrs[istart:]:
-                cr_flux = pmodel.nucleus_flux(particle, ecr)*Units.phim2
-                # poisson exp(-Nmu)
+            for ecr in ecrs[istart:]: # integral in primary energy (E_CR)
+                # cr_flux --> cosmic ray flux
+                # phim2 --> units of flux * m^2 (look it up in the units)
+                cr_flux = pmodel.nucleus_flux(particle, ecr.item())*Units.phim2
+                # poisson exp(-Nmu) [last term in eq 12]
                 pnmarr = pnmfn(ecr-esamp)
                 # cubic splining doesn't enforce 0-1 bounds
                 pnmarr[pnmarr>1] = 1
                 pnmarr[pnmarr<0] = 0
                 # print pnmarr
+
+                # Run MCEq to get the yield distribution of muons given some parent and neutrino energy
                 grid_sol = self.grid_sol(ecr, particle)
-                num_ecr = 0
-                den_ecr = 0
+
+                num_ecr = 0 # single entry in nums
+                den_ecr = 0 # single entry in dens
                 # dh
-                for idx in xrange(len(self.x_vec)):
+                for idx in xrange(len(self.x_vec)): # integral in height
                     # dEp
+                    # integral in Ep
                     num_ecr += integrate.trapz(
                         self.get_integrand(
                             categ, daughter, grid_sol, idx,
