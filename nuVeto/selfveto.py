@@ -31,7 +31,7 @@ class SelfVeto(object):
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m):
-        """Initializes the SelvVeto object for a particular costheta, CR Flux,
+        """Initializes the SelfVeto object for a particular costheta, CR Flux,
         hadronic model, barr parameters, and depth
 
         Note:
@@ -84,6 +84,7 @@ class SelfVeto(object):
         """Is this category prompt?"""
         return categ == 'pr' or categ[0] in ['D', 'L']
 
+    
     @staticmethod
     def categ_to_mothers(categ, daughter):
         """Get the parents for this category"""
@@ -334,7 +335,7 @@ class SelfVeto(object):
                 cr_flux = pmodel.nucleus_flux(particle, ecr.item())*Units.phim2
                 # poisson exp(-Nmu) [last term in eq 12]
                 pnmarr = pnmfn(ecr-esamp)
-                # cubic splining doesn't enforce 0-1 bounds ????
+                # cubic splining doesn't enforce 0-1 bounds
                 pnmarr[pnmarr>1] = 1
                 pnmarr[pnmarr<0] = 0
                 # print pnmarr
