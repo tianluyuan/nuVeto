@@ -130,7 +130,7 @@ def fig_extsv():
     cos_ths = [0.25, 0.85]
     ens = np.logspace(2,9, 100)
     useexts = [False, True]
-    labels = ['New', 'Previous']
+    labels = ['This work', 'GJKvS']
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
