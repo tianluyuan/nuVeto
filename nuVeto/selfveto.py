@@ -288,10 +288,9 @@ class SelfVeto(object):
         esamp = np.logspace(np.log10(enu),
                             np.log10(enu+1e8), 1000*accuracy)
 
-        if 'numu' not in daughter:
+        reaching = np.ones(len(esamp))
+        if 'numu' in  daughter:
             # muon accompanies numu only
-            reaching = np.ones(len(esamp))
-        else:
             fn = MuonProb(prpl)
 
             if self.is_prompt(categ):
