@@ -57,10 +57,10 @@ def fig_prpl_cbar():
 
 
 def fig_prpls():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['pr_nue']
     cos_ths = [0.25, 0.85]
-    prpls = ['step_1', 'step_0.75', 'sigmoid_0.75_0.1']
-    labels = [r'$\mu=1, \sigma=0$ [TeV]', r'$\mu=0.75, \sigma=0$ [TeV]', r'$\mu=0.75, \sigma=0.1$ [TeV]']
+    prpls = ['step_1', 'step_0.75', 'sigmoid_0.75_0.25']
+    labels = [r'$\mu=1, \sigma=0$ [TeV]', r'$\mu=0.75, \sigma=0$ [TeV]', r'$\mu=0.75, \sigma=0.25$ [TeV]']
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
@@ -73,7 +73,10 @@ def fig_prpls():
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
                         label=labels[idx])
             plt.gca().set_prop_cycle(None)
-        plt.legend()
+        if 'nue' in kind:
+            plt.legend(loc='lower left')
+        else:
+            plt.legend()
         plt.tight_layout(0.3)
         save('fig/prpls_{}.eps'.format(kind))
 
