@@ -168,21 +168,21 @@ def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H
     eff, elow, eup, xedges, yedges = corsika[kind]
     cos_theta = centers(yedges)[cos_theta_bin]
 
+    pr = plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
+                     xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
+                                         10**xedges[1:]-10**centers(xedges))).T,
+                     yerr=np.asarray(zip(elow[:,cos_theta_bin],
+                                         eup[:,cos_theta_bin])).T,
+                     label='CORSIKA {} {:.2g}'.format(kind, cos_theta),
+                     fmt='.')
     if plot_legacy_veto_lines and fraction:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cos_theta))
         plt.plot(ens, exthp.passrates(kind)(ens, emu, cos_theta), 'k--',
                  label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
     if plot_nuveto_lines:
-        pr = pr_enu(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
-                fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
-    plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
-                 xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
-                                     10**xedges[1:]-10**centers(xedges))).T,
-                 yerr=np.asarray(zip(elow[:,cos_theta_bin],
-                                     eup[:,cos_theta_bin])).T,
-                 label='CORSIKA {} {:.2g}'.format(kind, cos_theta),
-                 fmt='.', color=pr.get_color())
+        pr_enu(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
+               fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta), color=pr[0].get_color())
     plt.legend()
 
 
