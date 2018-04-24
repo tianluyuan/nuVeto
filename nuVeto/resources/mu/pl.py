@@ -12,7 +12,7 @@ def pl_step_1000(emu):
 
 
 def pl_step_750(emu):
-    """ heaviside at 1 TeV
+    """ heaviside at 750 GeV
     """
     return sigmoid(emu, 0.75e3, 1e-6)
 
@@ -21,3 +21,9 @@ def pl_sigmoid_750_100(emu):
     """ sigmoid centered at 750 GeV
     """
     return sigmoid(emu, 750, 100)
+
+
+def pl_sigmoid_750_250(emu):
+    """ sigmoid centered at 750 GeV
+    """
+    return sigmoid(emu, 750, 250)
