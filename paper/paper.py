@@ -59,8 +59,8 @@ def fig_prpl_cbar():
 def fig_prpls():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     cos_ths = [0.25, 0.85]
-    prpls = ['step_1', 'sigmoid_0.75_0.1']
-    labels = ['Heaviside', 'Sigmoid']
+    prpls = ['step_1', 'step_0.75', 'sigmoid_0.75_0.1']
+    labels = [r'$\mu=1, \sigma=0$ [TeV]', r'$\mu=0.75, \sigma=0$ [TeV]', r'$\mu=0.75, \sigma=0.1$ [TeV]']
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
