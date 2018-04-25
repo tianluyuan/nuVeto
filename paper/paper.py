@@ -57,7 +57,7 @@ def fig_prpl_cbar():
 
 
 def fig_prpls():
-    kinds = ['conv_nu', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     cos_ths = [0.25, 0.85]
     prpls = ['step_1', 'step_0.75', 'sigmoid_0.75_0.25']
     labels = [r'$\Theta(E_\mu^{\rm i} - 1\,{\rm TeV})$',
@@ -75,10 +75,7 @@ def fig_prpls():
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
                         label=labels[idx])
             plt.gca().set_prop_cycle(None)
-        if 'nue' in kind:
-            plt.legend(loc='lower left')
-        else:
-            plt.legend()
+        plt.legend()
         plt.tight_layout(0.3)
         save('fig/prpls_{}.eps'.format(kind))
 
