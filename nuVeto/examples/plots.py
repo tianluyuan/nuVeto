@@ -234,7 +234,6 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     xlocmaj = LogLocator(base=10,numticks=12)
     plt.gca().xaxis.set_major_locator(xlocmaj)
     plt.gca().minorticks_off()
-    plt.gca().set_facecolor('k')
     plt.ticklabel_format(style='plain', axis='y')
 
 
