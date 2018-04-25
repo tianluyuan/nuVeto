@@ -1,10 +1,14 @@
 import pickle
 import os
+from pkg_resources import resource_filename
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto.selfveto import *
+from nuVeto.selfveto import SelfVeto, passing, total
+from nuVeto.utils import Units, ParticleProperties, amu, centers
+from nuVeto.barr_uncertainties import BARR
 from matplotlib import pyplot as plt
 from scipy import interpolate
+import numpy as np
 try:
     import CRFluxModels.CRFluxModels as pm
 except ImportError:
@@ -203,25 +207,33 @@ def dndee(mother, daughter):
     plt.legend()
 
 
-def plot_prpl(int_prpl, include_mean=False, include_cbar=True):
-    from matplotlib.ticker import ScalarFormatter
-    plt.scatter(int_prpl[:,0], int_prpl[:,1]/1e3, c=int_prpl[:,2], cmap='magma')
+def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
+    from matplotlib.ticker import ScalarFormatter, LogLocator
+    prplfn = pickle.load(open(interp_pkl))
+    emui_edges = np.logspace(2, 8, 100)
+    l_ice_edges = np.linspace(1e3, 5e4, 100)
+    emui = centers(emui_edges)
+    l_ice = centers(l_ice_edges)
+    xx, yy = np.meshgrid(emui, l_ice)
+    prpls = prplfn(zip(xx.flatten(), yy.flatten()))
+    plt.pcolormesh(emui_edges, l_ice_edges/1e3, prpls.reshape(xx.shape), cmap='magma')
     if include_cbar:
         plt.colorbar()
     if include_mean:
-        l_ice = np.unique(int_prpl[:,1])
         small_ice = l_ice[l_ice<2.7e4]
         plt.plot(extsv.minimum_muon_energy(small_ice), small_ice/1e3, 'w--',
                  label=r'Median $l_{\rm ice}$ for $E_\mu^{\rm th} = 1\,{\rm TeV}$')
-        leg = plt.legend(prop={'weight':'bold'})
+        leg = plt.legend(frameon=False, prop={'weight':'bold'}, loc='upper left')
         for text in leg.get_texts():
-            plt.setp(text, color = 'w')
-            plt.setp(text, color = 'w')
+            plt.setp(text, color = 'w', fontsize='medium')
     plt.xlabel(r'$E_\mu^{\rm i}$ [GeV]')
     plt.ylabel(r'$l_{\rm ice}$ [km]')
-    plt.yscale('log')
+    # plt.yscale('log')
+    # plt.gca().yaxis.set_major_formatter(ScalarFormatter())
     plt.xscale('log')
-    plt.gca().yaxis.set_major_formatter(ScalarFormatter())
+    xlocmaj = LogLocator(base=10,numticks=12)
+    plt.gca().xaxis.set_major_locator(xlocmaj)
+    plt.gca().minorticks_off()
     plt.gca().set_facecolor('k')
     plt.ticklabel_format(style='plain', axis='y')
 
