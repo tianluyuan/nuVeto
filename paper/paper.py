@@ -61,8 +61,8 @@ def fig_prpls():
     cos_ths = [0.25, 0.85]
     prpls = ['step_1', 'step_0.75', 'sigmoid_0.75_0.25']
     labels = [r'$\Theta(E_\mu^{\rm f} - 1\,{\rm TeV})$',
-              r'$\Theta(E_\mu^{\rm f} - .75\,{\rm TeV})$',
-              r'$\Phi\left(\frac{E_\mu^{\rm f} - .75\,{\rm TeV}}{.25\,{\rm TeV}}\right)$']
+              r'$\Theta(E_\mu^{\rm f} - 0.75\,{\rm TeV})$',
+              r'$\Phi\left(\frac{E_\mu^{\rm f} - 0.75\,{\rm TeV}}{0.25\,{\rm TeV}}\right)$']
     for kind in kinds:
         plt.figure()
         plt.title(titling[kind])
