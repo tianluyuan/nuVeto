@@ -28,12 +28,17 @@ def save(fname):
 
     
 def fig_prpl():
-    heaviside = resource_filename('nuVeto', 'data/prpl/step_1.pkl')
+    step1000 = resource_filename('nuVeto', 'data/prpl/step_1.pkl')
+    step750 = resource_filename('nuVeto', 'data/prpl/step_0.75.pkl')
     sigmoid = resource_filename('nuVeto', 'data/prpl/sigmoid_0.75_0.25.pkl')
     plt.figure()
-    plots.plot_prpl(heaviside, True, False)
+    plots.plot_prpl(step1000, True, False)
     plt.tight_layout(0.3)
-    plt.savefig('fig/prpl_heaviside.png')
+    plt.savefig('fig/prpl_step1000.png')
+    plt.figure()
+    plots.plot_prpl(step750, True, False)
+    plt.tight_layout(0.3)
+    plt.savefig('fig/prpl_step750.png')
     plt.figure()
     plots.plot_prpl(sigmoid, True, False)
     plt.tight_layout(0.3)
