@@ -218,6 +218,7 @@ def plot_prpl(int_prpl, include_mean=False, include_cbar=True):
     plt.yscale('log')
     plt.xscale('log')
     plt.gca().yaxis.set_major_formatter(ScalarFormatter())
+    plt.gca().set_facecolor('k')
     plt.ticklabel_format(style='plain', axis='y')
 
 
