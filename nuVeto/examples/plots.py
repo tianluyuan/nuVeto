@@ -235,6 +235,8 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     plt.gca().xaxis.set_major_locator(xlocmaj)
     plt.gca().minorticks_off()
     plt.ticklabel_format(style='plain', axis='y')
+    plt.xlim(1e2, 1e8)
+    plt.ylim(1, 40)
 
 
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
