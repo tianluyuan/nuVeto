@@ -213,8 +213,9 @@ def plot_prpl(int_prpl, include_mean=False, include_cbar=True):
         small_ice = l_ice[l_ice<2.7e4]
         plt.plot(extsv.minimum_muon_energy(small_ice), small_ice/1e3, 'w--',
                  label=r'Median $l_{\rm ice}$ for $E_\mu^{\rm th} = 1\,{\rm TeV}$')
-        leg = plt.legend()
+        leg = plt.legend(prop={'weight':'bold'})
         for text in leg.get_texts():
+            plt.setp(text, color = 'w')
             plt.setp(text, color = 'w')
     plt.xlabel(r'$E_\mu^{\rm i}$ [GeV]')
     plt.ylabel(r'$l_{\rm ice}$ [km]')
