@@ -28,20 +28,20 @@ def save(fname):
 
     
 def fig_prpl():
-    heaviside = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_heaviside)
-    sigmoid = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_smeared)
+    heaviside = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_step_1000)
+    sigmoid = mu.int_ef(resource_filename('nuVeto.resources.mu', 'mmc/ice.pklz'), mu.pl.pl_sigmoid_750_250)
     plt.figure()
     plots.plot_prpl(heaviside, True, False)
     plt.legend()
     plt.xlim(1e2, 1e8)
-    plt.ylim(1e3, 2e5)
+    plt.ylim(1, 2e2)
     plt.tight_layout(0.3)
     plt.savefig('fig/prpl_heaviside.png')
     plt.figure()
     plots.plot_prpl(sigmoid, True, False)
     plt.legend()
     plt.xlim(1e2, 1e8)
-    plt.ylim(1e3, 2e5)
+    plt.ylim(1, 2e2)
     plt.tight_layout(0.3)
     save('fig/prpl_sigmoid.png')
 
@@ -49,7 +49,7 @@ def fig_prpl():
 def fig_prpl_cbar():
     plt.figure(figsize=(5,1.5))
     norm = mpl.colors.Normalize(vmin=0, vmax=1)
-    cb = mpl.colorbar.ColorbarBase(plt.gca(),
+    cb = mpl.colorbar.ColorbarBase(plt.gca(), cmap='magma',
                                    norm=norm, orientation='horizontal')
     cb.set_label(r'${\cal P}_{\rm det}$')
     plt.tight_layout(1)

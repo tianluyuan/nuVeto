@@ -204,18 +204,21 @@ def dndee(mother, daughter):
 
 
 def plot_prpl(int_prpl, include_mean=False, include_cbar=True):
-    plt.scatter(int_prpl[:,0], int_prpl[:,1], c=int_prpl[:,2])
+    from matplotlib.ticker import ScalarFormatter
+    plt.scatter(int_prpl[:,0], int_prpl[:,1]/1e3, c=int_prpl[:,2], cmap='magma')
     if include_cbar:
         plt.colorbar()
     if include_mean:
         l_ice = np.unique(int_prpl[:,1])
         small_ice = l_ice[l_ice<2.7e4]
-        plt.plot(extsv.minimum_muon_energy(small_ice), small_ice, 'k--', label=r'Mean $E_\mu^i$')
+        plt.plot(extsv.minimum_muon_energy(small_ice), small_ice/1e3, 'k--', label=r'Mean $E_\mu^i$')
         plt.legend()
     plt.xlabel(r'$E_\mu^i$ [GeV]')
-    plt.ylabel(r'$l_{ice}$ [m]')
+    plt.ylabel(r'$l_{ice}$ [km]')
     plt.yscale('log')
     plt.xscale('log')
+    plt.gca().yaxis.set_major_formatter(ScalarFormatter())
+    plt.ticklabel_format(style='plain', axis='y')
 
 
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
