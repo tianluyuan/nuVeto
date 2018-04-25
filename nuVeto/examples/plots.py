@@ -211,10 +211,13 @@ def plot_prpl(int_prpl, include_mean=False, include_cbar=True):
     if include_mean:
         l_ice = np.unique(int_prpl[:,1])
         small_ice = l_ice[l_ice<2.7e4]
-        plt.plot(extsv.minimum_muon_energy(small_ice), small_ice/1e3, 'k--', label=r'Mean $E_\mu^i$')
-        plt.legend()
-    plt.xlabel(r'$E_\mu^i$ [GeV]')
-    plt.ylabel(r'$l_{ice}$ [km]')
+        plt.plot(extsv.minimum_muon_energy(small_ice), small_ice/1e3, 'w--',
+                 label=r'Median $l_{\rm ice}$ for $E_\mu^{\rm th} = 1\,{\rm TeV}$')
+        leg = plt.legend()
+        for text in leg.get_texts():
+            plt.setp(text, color = 'w')
+    plt.xlabel(r'$E_\mu^{\rm i}$ [GeV]')
+    plt.ylabel(r'$l_{\rm ice}$ [km]')
     plt.yscale('log')
     plt.xscale('log')
     plt.gca().yaxis.set_major_formatter(ScalarFormatter())
