@@ -210,8 +210,8 @@ def dndee(mother, daughter):
 def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     from matplotlib.ticker import ScalarFormatter, LogLocator
     prplfn = pickle.load(open(interp_pkl))
-    emui_edges = np.logspace(2, 8, 100)
-    l_ice_edges = np.linspace(1e3, 5e4, 100)
+    emui_edges = np.logspace(2, 8, 101)
+    l_ice_edges = np.linspace(1e3, 4e4, 101)
     emui = centers(emui_edges)
     l_ice = centers(l_ice_edges)
     xx, yy = np.meshgrid(emui, l_ice)
