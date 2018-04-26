@@ -45,7 +45,7 @@ To calculate the passing fraction requires knowing the muon detection pdf as a f
 
 ```bash
 cd nuVeto/resources/mu
-./mu.py -o ../../prpl/mymudet.pkl mmc/ice.pklz
+./mu.py -o ../../prpl/mymudet.pkl --plight pl_step_1000 mmc/ice_allm97.pklz
 ```
 
 To use the newly generated file, pass it as a string to the `prpl` argument.

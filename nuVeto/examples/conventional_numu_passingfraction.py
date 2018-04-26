@@ -10,7 +10,7 @@ import numpy as np
 from nuVeto.external import helper
 from nuVeto.external import selfveto as jvssv
 
-def PlotNuMuConventionalPassingFraction(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', prpl='step_1'):
+def PlotNuMuConventionalPassingFraction(cos_theta, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', prpl='ice_allm97_step_1'):
     """ plot passing fraction for the conventional component
     """
     enu_grid = np.logspace(3, 10, 20)

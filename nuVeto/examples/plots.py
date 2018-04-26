@@ -22,7 +22,7 @@ def fn(slice_val):
     return pr_enu if slice_val <=1 else pr_cth
 
 
-def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
+def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,20)
@@ -43,7 +43,7 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     return prs[0]
 
 
-def pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False, **kwargs):
+def pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,21)
@@ -107,14 +107,14 @@ def accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'
     plt.legend()
 
 
-def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', compare=(None, 'step_1', 'sigmoid_0.75_0.1')):
+def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', compare=(None, 'ice_allm97_step_1', 'sigmoid_0.75_0.1')):
     for prpl in compare:
         fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
                       label='{} {} {:.2g}'.format(prpl, kind, slice_val))
     plt.legend()
 
 
-def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='step_1', corr_only=False):
+def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='ice_allm97_step_1', corr_only=False):
     hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
     echoice = exthp.corr if corr_only else exthp.passrates
     if slice_val > 1:
@@ -132,7 +132,7 @@ def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl=
     plt.legend()
 
 
-def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', corr_only=False):
+def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', corr_only=False):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
@@ -151,7 +151,7 @@ def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step
     plt.legend()
 
 
-def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', fraction=True):
+def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', fraction=True):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH'),
@@ -162,7 +162,7 @@ def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='step_1', fr
     plt.legend()
 
 
-def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='step_1', corsika_file='eff_maxmu', plot_nuveto_lines = False, plot_legacy_veto_lines = False):
+def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='ice_allm97_step_1', corsika_file='eff_maxmu', plot_nuveto_lines = False, plot_legacy_veto_lines = False):
     if isinstance(cos_theta_bin, list):
         [corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
         return
@@ -294,7 +294,7 @@ def nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
             plt.xlim(*np.power(10,logxlim))
 
 
-def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', prpl='step_1'):
+def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', prpl='ice_allm97_step_1'):
     """ plot prob_nomu as fn of ecr
     """
     ecrs = amu(particle)*np.logspace(3, 10, 20)

@@ -11,7 +11,7 @@ setup(
     packages=find_packages('./'),
     package_data={
         'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl'],
-        'nuVeto.resources.mu':['mmc/ice.pklz']
+        'nuVeto.resources.mu':['mmc/ice*.pklz']
     },
     install_requires=['numpy',
                       'scipy',

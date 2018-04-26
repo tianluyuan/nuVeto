@@ -28,9 +28,9 @@ def save(fname):
 
     
 def fig_prpl():
-    step1000 = resource_filename('nuVeto', 'data/prpl/step_1.pkl')
-    step750 = resource_filename('nuVeto', 'data/prpl/step_0.75.pkl')
-    sigmoid = resource_filename('nuVeto', 'data/prpl/sigmoid_0.75_0.25.pkl')
+    step1000 = resource_filename('nuVeto', 'data/prpl/ice_allm97_step_1.pkl')
+    step750 = resource_filename('nuVeto', 'data/prpl/ice_allm97_step_0.75.pkl')
+    sigmoid = resource_filename('nuVeto', 'data/prpl/ice_allm97_sigmoid_0.75_0.25.pkl')
     plt.figure()
     plots.plot_prpl(step1000, True, False)
     plt.tight_layout(0.3)
@@ -58,7 +58,7 @@ def fig_prpl_cbar():
 def fig_prpls():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     cos_ths = [0.25, 0.85]
-    prpls = ['step_1', 'step_0.75', 'sigmoid_0.75_0.25']
+    prpls = ['ice_allm97_step_1', 'ice_allm97_step_0.75', 'ice_allm97_sigmoid_0.75_0.25']
     labels = [r'$\Theta(E_\mu^{\rm f} - 1\,{\rm TeV})$',
               r'$\Theta(E_\mu^{\rm f} - 0.75\,{\rm TeV})$',
               r'$\Phi\left(\frac{E_\mu^{\rm f} - 0.75\,{\rm TeV}}{0.25\,{\rm TeV}}\right)$']

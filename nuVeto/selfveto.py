@@ -156,7 +156,7 @@ class SelfVeto(object):
 
 
     @lru_cache(maxsize=2**10)
-    def prob_nomu(self, ecr, particle, prpl='step_1'):
+    def prob_nomu(self, ecr, particle, prpl='ice_allm97_step_1'):
         """Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
@@ -274,7 +274,7 @@ class SelfVeto(object):
         return ys
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='step_1', corr_only=False):
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='ice_allm97_step_1', corr_only=False):
         """Returns the flux and passing fraction
         for a particular neutrino energy, flux, and p_light
         """
@@ -385,7 +385,7 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth):
     return SelfVeto(cos_theta, pmodel, hadr, barr_mods, depth)
 
 
-def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='step_1', corr_only=False):
+def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num/den if fraction else num
