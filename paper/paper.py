@@ -55,6 +55,37 @@ def fig_prpl_cbar():
     save('fig/prpl_cbar.png')
 
 
+def fig_prs_ratio():
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    cos_ths = [0.25, 0.85]
+    labels = [r'ALLM97',
+              r'BB']
+
+    for kind in kinds:
+        plt.figure()
+        plt.title(titling[kind])
+
+        for cos_th in cos_ths:
+            clabel = r'$\cos \theta_z = {}$'.format(cos_th)
+            allm97 = plots.fn(cos_th)(cos_th, kind, prpl='ice_allm97_step_1',
+                                      label=clabel)
+            bb = plots.fn(cos_th)(cos_th, kind, prpl='ice_bb_step_1',
+                                  linestyle='--',
+                                  color=allm97.get_color())
+            plt.plot(bb.get_data()[0], allm97.get_data()[1]/bb.get_data()[1], ':', color=allm97.get_color())
+
+        plt.axvline(np.nan, color='k', linestyle='-',
+                    label=labels[0])
+        plt.axvline(np.nan, color='k', linestyle='--',
+                    label=labels[1])
+        plt.axvline(np.nan, color='k', linestyle=':',
+                    label='ALLM97/BB')
+        plt.legend()
+        plt.tight_layout(0.3)
+        save('fig/prs_ratio_{}.eps'.format(kind))
+
+
+    
 def fig_prs():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     cos_ths = [0.25, 0.85]

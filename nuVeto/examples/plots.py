@@ -7,6 +7,8 @@ from nuVeto.selfveto import SelfVeto, passing, total
 from nuVeto.utils import Units, ParticleProperties, amu, centers
 from nuVeto.barr_uncertainties import BARR
 from matplotlib import pyplot as plt
+from matplotlib import colors
+from matplotlib.ticker import LogLocator
 from scipy import interpolate
 import numpy as np
 try:
@@ -208,7 +210,6 @@ def dndee(mother, daughter):
 
 
 def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
-    from matplotlib.ticker import ScalarFormatter, LogLocator
     prplfn = pickle.load(open(interp_pkl))
     emui_edges = np.logspace(2, 8, 101)
     l_ice_edges = np.linspace(1e3, 4e4, 101)
@@ -216,6 +217,7 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     l_ice = centers(l_ice_edges)
     xx, yy = np.meshgrid(emui, l_ice)
     prpls = prplfn(zip(xx.flatten(), yy.flatten()))
+    plt.figure()
     plt.pcolormesh(emui_edges, l_ice_edges/1e3, prpls.reshape(xx.shape), cmap='magma')
     if include_cbar:
         plt.colorbar()
@@ -237,8 +239,33 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     plt.ticklabel_format(style='plain', axis='y')
     plt.xlim(1e2, 1e8)
     plt.ylim(1, 40)
+    return emui_edges, l_ice_edges, prpls.reshape(xx.shape)
 
 
+def plot_prpl_ratio(interp_pkl_num, interp_pkl_den, include_cbar=True):
+    emui_edges, l_ice_edges, prpls_num = plot_prpl(interp_pkl_num, False, False)
+    emui_edges, l_ice_edges, prpls_den = plot_prpl(interp_pkl_den, False, False)
+    plt.figure()
+    plt.pcolormesh(emui_edges, l_ice_edges/1e3, np.ma.masked_invalid(prpls_num/prpls_den),
+                   norm=colors.LogNorm(vmin=1e-2, vmax=1e2),
+                   cmap='coolwarm')
+    if include_cbar:
+        plt.colorbar()
+    plt.xlabel(r'$E_\mu^{\rm i}$ [GeV]')
+    plt.ylabel(r'$l_{\rm ice}$ [km]')
+    # plt.yscale('log')
+    # plt.gca().yaxis.set_major_formatter(ScalarFormatter())
+    plt.xscale('log')
+    xlocmaj = LogLocator(base=10,numticks=12)
+    plt.gca().xaxis.set_major_locator(xlocmaj)
+    plt.gca().minorticks_off()
+    plt.ticklabel_format(style='plain', axis='y')
+    plt.xlim(1e2, 1e8)
+    plt.ylim(1, 40)
+    plt.title('{}/{}'.format(os.path.splitext(os.path.basename(interp_pkl_num))[0],
+                             os.path.splitext(os.path.basename(interp_pkl_den))[0]))
+
+    
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
                      ecr=None, particle=None):
     plt.figure()
