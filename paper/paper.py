@@ -76,7 +76,7 @@ def fig_prs():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/pls_{}.eps'.format(kind))
+        save('fig/prs_{}.eps'.format(kind))
 
 
 def fig_pls():
