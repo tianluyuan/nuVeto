@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""
+Generates initial muon energies and overburdens for input to MMC
+
+Run as
+./reaching.py | ./ammc -raw -user -sdec -lpm -bs=1 -ph=3 -bb=2 -sh=2 -scat -medi=ice -frho -f -r -vcut=1e-3 -cont > reaching.txt &
+"""
 import numpy as np
 
 nsamples = 1000
