@@ -59,7 +59,7 @@ if __name__ == '__main__':
         description='Generate muon detection probability')
     parser.add_argument('mmc', metavar='MMC',
                     help='text file or pickled histogram containing MMC simulated data')
-    parser.add_argument('--plight', default='pl_heaviside',
+    parser.add_argument('--plight', default='pl_step_1000',
                         choices=[fn for fn in dir(pl) if fn.startswith('pl_')],
                         help='choice of a plight function to apply as defined in pl.py')
     parser.add_argument('--noconvolution', default=False, action='store_true',
