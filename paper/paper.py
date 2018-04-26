@@ -55,7 +55,31 @@ def fig_prpl_cbar():
     save('fig/prpl_cbar.png')
 
 
-def fig_prpls():
+def fig_prs():
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    cos_ths = [0.25, 0.85]
+    prpls = ['ice_allm97_step_1', 'ice_bb_step_1']
+    labels = [r'ALLM97',
+              r'BB']
+
+    for kind in kinds:
+        plt.figure()
+        plt.title(titling[kind])
+        for idx, prpl in enumerate(prpls):
+            for cos_th in cos_ths:
+                clabel = r'$\cos \theta_z = {}$'.format(cos_th) if idx == 0 else None
+                plots.fn(cos_th)(cos_th, kind, prpl=prpl,
+                                 label=clabel, linestyle=linestyles[idx])
+
+            plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
+                        label=labels[idx])
+            plt.gca().set_prop_cycle(None)
+        plt.legend()
+        plt.tight_layout(0.3)
+        save('fig/pls_{}.eps'.format(kind))
+
+
+def fig_pls():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     cos_ths = [0.25, 0.85]
     prpls = ['ice_allm97_step_1', 'ice_allm97_step_0.75', 'ice_allm97_sigmoid_0.75_0.25']
@@ -76,7 +100,7 @@ def fig_prpls():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/prpls_{}.eps'.format(kind))
+        save('fig/pls_{}.eps'.format(kind))
 
 
 def fig_hadrs():
