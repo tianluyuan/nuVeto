@@ -29,7 +29,10 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     """
     ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,20)
     passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens]
-    passed_fn = interpolate.interp1d(ens, passed, kind='quadratic')
+    if fraction:
+        passed_fn = interpolate.interp1d(ens, passed, kind='quadratic')
+    else:
+        passed_fn = lambda es: 10**interpolate.interp1d(ens, np.log10(passed), kind='quadratic')(es)
     ens_plot = np.logspace(3,7,100)
     if fraction:
         prs = plt.plot(ens_plot, passed_fn(ens_plot), **kwargs)
@@ -38,7 +41,7 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     else:
         prs = plt.plot(ens_plot, passed_fn(ens_plot)*ens_plot**3, **kwargs)
         plt.yscale('log')
-        plt.ylabel(r'$E_\nu^3 \Phi_\nu [GeV^2 cm^-2 s^-1 st^-1]$')
+        plt.ylabel(r'$E_\nu^3 \Phi_\nu [GeV^2 cm^{-2} s^{-1} st^{-1}]$')
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$ [GeV]')
