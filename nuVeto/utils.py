@@ -126,6 +126,23 @@ class Geometry(EarthGeometry):
         return (np.sqrt(z**2*cos_theta**2+d*(2*r-d))-z*cos_theta)/Units.m
 
 
+    def overburden_to_cos_theta(self, l):
+        """Returns the theta for a given overburden for a detector at 
+        *depth* below some surface at *elevation*.
+
+        From law of cosines,
+        x^2 == r^2+(r-d)^2-2r(r-d)cos(gamma)
+        where
+        r*cos(gamma) = r-d+x*cos(theta), solve and return x.
+
+        :param cos_theta: cosine of zenith angle in detector coord
+        """
+        d = self.depth
+        r = self.r_E
+        z = r-d
+        return (2*d*r-d**2-l**2)/(2*l*z)
+
+
     def cos_theta_eff(self, cos_theta):
         """ Returns the effective cos_theta relative the the normal at earth surface.
 

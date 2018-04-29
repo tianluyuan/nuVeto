@@ -4,7 +4,7 @@ from pkg_resources import resource_filename
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.selfveto import SelfVeto, passing, total
-from nuVeto.utils import Units, ParticleProperties, amu, centers
+from nuVeto.utils import Units, ParticleProperties, amu, centers, Geometry
 from nuVeto.barr_uncertainties import BARR
 from matplotlib import pyplot as plt
 from matplotlib import colors
@@ -213,6 +213,7 @@ def dndee(mother, daughter):
 
 
 def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
+    depth = 1950*Units.m
     prplfn = pickle.load(open(interp_pkl))
     emui_edges = np.logspace(2, 8, 101)
     l_ice_edges = np.linspace(1e3, 4e4, 101)
@@ -233,15 +234,26 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
             plt.setp(text, color = 'w', fontsize='medium')
     plt.xlabel(r'$E_\mu^{\rm i}$ [GeV]')
     plt.ylabel(r'$l_{\rm ice}$ [km]')
-    # plt.yscale('log')
-    # plt.gca().yaxis.set_major_formatter(ScalarFormatter())
-    plt.xscale('log')
-    xlocmaj = LogLocator(base=10,numticks=12)
-    plt.gca().xaxis.set_major_locator(xlocmaj)
+    plt.locator_params(axis='y', nticks=8)
+    # # plt.yscale('log')
+    # # plt.gca().yaxis.set_major_formatter(ScalarFormatter())
+    # plt.ticklabel_format(style='plain', axis='y')
     plt.gca().minorticks_off()
-    plt.ticklabel_format(style='plain', axis='y')
-    plt.xlim(1e2, 1e8)
-    plt.ylim(1, 40)
+    plt.ylim(depth/Units.km, 40)
+    # right y-axis with angles
+    axr = plt.gca().twinx()
+    axr.grid(False)
+    geom = Geometry(depth)
+    costhetas = geom.overburden_to_cos_theta(np.arange(10, 41, 10)*Units.km)
+    axr.set_ylim(depth/Units.km, 40)
+    axr.set_yticks(geom.overburden(costhetas)/1e3)
+    axr.set_yticklabels(np.round(costhetas, 2))
+    axr.set_ylabel(r'$\cos \theta_z$')
+    axr.set_xscale('log')
+    axr.set_xlim(1e2, 1e8)
+    axr.minorticks_off()
+    xlocmaj = LogLocator(base=10,numticks=12)
+    axr.get_xaxis().set_major_locator(xlocmaj)
     return emui_edges, l_ice_edges, prpls.reshape(xx.shape)
 
 
