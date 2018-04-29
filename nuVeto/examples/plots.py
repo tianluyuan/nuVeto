@@ -248,7 +248,7 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     axr.set_ylim(depth/Units.km, 40)
     axr.set_yticks(geom.overburden(costhetas)/1e3)
     axr.set_yticklabels(np.round(costhetas, 2))
-    axr.set_ylabel(r'$\cos \theta_z$')
+    axr.set_ylabel(r'$\cos \theta_z$', rotation=-90)
     axr.set_xscale('log')
     axr.set_xlim(1e2, 1e8)
     axr.minorticks_off()
