@@ -71,12 +71,12 @@ class SelfVeto(object):
         # Populate the modifications to the matrices by re-filling the interaction matrix
         self.mceq._init_default_matrices(skip_D_matrix=True)
 
-        x_vec = np.logspace(np.log10(1e-4),
+        X_vec = np.logspace(np.log10(1e-4),
                             np.log10(self.mceq.density_model.max_X), 11)
-        heights = self.mceq.density_model.X2h(x_vec)
+        heights = self.mceq.density_model.X2h(X_vec)
         lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
-        self.dh_vec = np.diff(lengths)
-        self.x_vec = centers(x_vec)
+        self.dx_vec = np.diff(lengths)
+        self.X_vec = centers(X_vec)
 
 
     @staticmethod
@@ -156,7 +156,7 @@ class SelfVeto(object):
             self.mceq.set_single_primary_particle(ecr, particle)
         else:
             self.mceq.set_primary_model(*self.pmodel)
-        self.mceq.solve(int_grid=self.x_vec, grid_var="X")
+        self.mceq.solve(int_grid=self.X_vec, grid_var="X")
         return self.mceq.grid_sol
 
 
@@ -204,17 +204,17 @@ class SelfVeto(object):
 
         if grid_idx is None: # Surface only case
             sol = np.array([grid_sol[-1]])
-            xv = np.array([self.x_vec[-1]])
+            xv = np.array([self.X_vec[-1]])
         elif isinstance(grid_idx, bool) and not grid_idx: # Whole solution case
             sol = np.asarray(grid_sol)
-            xv = np.asarray(self.x_vec)
+            xv = np.asarray(self.X_vec)
             reduce_res = False
         elif grid_idx >= len(self.mceq.grid_sol): # Surface only case
             sol = np.array([grid_sol[-1]])
-            xv = np.array([self.x_vec[-1]])
+            xv = np.array([self.X_vec[-1]])
         else: # Particular height case
             sol = np.array([grid_sol[grid_idx]])
-            xv = np.array([self.x_vec[grid_idx]])
+            xv = np.array([self.X_vec[grid_idx]])
 
         # MCEq solution for particle
         direct = sol[:,ref[particle_name].lidx():
@@ -260,8 +260,8 @@ class SelfVeto(object):
 
     def get_rescale_phi(self, mother, grid_sol):
         """Flux of the mother at all heights"""
-        dh = self.dh_vec
-        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) * (dh[None,:] / ParticleProperties.lifetime_dict[mother])
+        dx = self.dx_vec
+        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) * (dx[None,:] / ParticleProperties.lifetime_dict[mother])
         rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
         return rescale_phi
 
@@ -269,7 +269,7 @@ class SelfVeto(object):
     def get_integrand(self, categ, daughter, grid_sol, esamp, enu):
         """flux*yield"""
         mothers = self.categ_to_mothers(categ, daughter)
-        ys = np.zeros((len(esamp),len(self.dh_vec)))
+        ys = np.zeros((len(esamp),len(self.dx_vec)))
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, grid_sol)
@@ -321,7 +321,7 @@ class SelfVeto(object):
         total = 0
         if corr_only:
             grid_sol = self.grid_sol() # MCEq solution (fluxes tabulated as a function of height)
-            # sum performs the dh integral
+            # sum performs the dx integral
             integrand = np.sum(self.get_integrand(categ, daughter, grid_sol, esamp, enu), axis=1)
             passed = integrate.trapz(integrand*reaching, esamp)
             total = integrate.trapz(integrand, esamp)
