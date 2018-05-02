@@ -14,5 +14,6 @@ if __name__ == '__main__':
         print('Making all figures... this will take awhile')
         for fig in figs:
             getattr(paper, fig)()
+            print('Made {}.'.format(fig))
     else:
         getattr(paper, args.choice)()
