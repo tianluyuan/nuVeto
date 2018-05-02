@@ -167,6 +167,15 @@ def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_
     plt.legend()
 
 
+def density_models(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', fraction=True):
+    models = [('CORSIKA', ('BK_USStd', None)),
+              ('CORSIKA', ('PL_SouthPole', 'January'))]
+    for model in models:
+        pr = fn(slice_val)(slice_val, kind, density=model, hadr=hadr, prpl=prpl, fraction=fraction,
+                           label='{} {} {} {} {:.2g}'.format(model[0], model[1][0], model[1][1], kind, slice_val))
+    plt.legend()
+
+
 def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', prpl='ice_allm97_step_1', corsika_file='eff_maxmu', plot_nuveto_lines = False, plot_legacy_veto_lines = False):
     if isinstance(cos_theta_bin, list):
         [corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
