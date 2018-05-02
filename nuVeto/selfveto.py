@@ -73,16 +73,15 @@ class SelfVeto(object):
 
         X_vec = np.logspace(np.log10(1e-4),
                             np.log10(self.mceq.density_model.max_X), 11)
-        heights = self.mceq.density_model.X2h(X_vec)
-        lengths = self.mceq.density_model.geom.delta_l(heights, np.radians(theta)) * Units.cm
-        self.dx_vec = np.diff(lengths)
-        self.X_vec = centers(X_vec)
+        self.dX_vec = np.diff(X_vec)
+        self.X_vec = 10**centers(np.log10(X_vec))
 
 
     @staticmethod
     def is_prompt(categ):
         """Is this category prompt?"""
         return categ == 'pr' or categ[0] in ['D', 'L']
+
 
     @staticmethod
     def categ_to_mothers(categ, daughter):
@@ -260,16 +259,17 @@ class SelfVeto(object):
 
     def get_rescale_phi(self, mother, grid_sol):
         """Flux of the mother at all heights"""
-        dx = self.dx_vec
-        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) * (dx[None,:] / ParticleProperties.lifetime_dict[mother])
-        rescale_phi = inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
+        dX = self.dX_vec*Units.gr/Units.cm**2
+        rho = self.mceq.density_model.X2rho(self.X_vec)*Units.gr/Units.cm**3
+        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) / (ParticleProperties.lifetime_dict[mother]*rho[None,:])
+        rescale_phi = dX[None,:]* inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
         return rescale_phi
 
 
     def get_integrand(self, categ, daughter, grid_sol, esamp, enu):
         """flux*yield"""
         mothers = self.categ_to_mothers(categ, daughter)
-        ys = np.zeros((len(esamp),len(self.dx_vec)))
+        ys = np.zeros((len(esamp),len(self.X_vec)))
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, grid_sol)
@@ -321,7 +321,7 @@ class SelfVeto(object):
         total = 0
         if corr_only:
             grid_sol = self.grid_sol() # MCEq solution (fluxes tabulated as a function of height)
-            # sum performs the dx integral
+            # sum performs the dX integral
             integrand = np.sum(self.get_integrand(categ, daughter, grid_sol, esamp, enu), axis=1)
             passed = integrate.trapz(integrand*reaching, esamp)
             total = integrate.trapz(integrand, esamp)
