@@ -71,7 +71,7 @@ class SelfVeto(object):
         # Populate the modifications to the matrices by re-filling the interaction matrix
         self.mceq._init_default_matrices(skip_D_matrix=True)
 
-        X_vec = np.logspace(np.log10(1e-3),
+        X_vec = np.logspace(np.log10(2e-3),
                             np.log10(self.mceq.density_model.max_X), 11)
         self.dX_vec = np.diff(X_vec)
         self.X_vec = 10**centers(np.log10(X_vec))
