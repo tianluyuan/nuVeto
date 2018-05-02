@@ -286,12 +286,12 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
     plt.figure()
     sv = SelfVeto(cos_theta, pmodel, hadr)
     gsol = sv.grid_sol(ecr, particle)
-    dh_vec, x_vec = sv.dh_vec, sv.x_vec
-    for idx, x_val in enumerate(x_vec):
+    X_vec = sv.X_vec
+    for idx, x_val in enumerate(X_vec):
         mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)
         calc = sv.get_solution(parent, gsol, mag, grid_idx=idx)
         pout = plt.loglog(sv.mceq.e_grid, mceq,
-                          label='h={:.3g} km'.format(
+                          label='X={:.3g} km'.format(
                               float(sv.mceq.density_model.X2h(x_val))/1e5))
         plt.loglog(sv.mceq.e_grid, calc, '--',
                    color=pout[0].get_color())
