@@ -93,12 +93,17 @@ class SelfVeto(object):
         #lbar = '' if 'anti' in daughter else '-bar'
         if categ == 'conv':
             mothers = ['pi'+rcharge, 'K'+rcharge, 'K0L']
-            if 'nue' in daughter:
+            if 'nutau' in daughter:
+                mothers = []
+            elif 'nue' in daughter:
                 mothers.extend(['K0S', 'mu'+rcharge])
             else:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
-            mothers = ['D'+rcharge, 'Ds'+rcharge, 'D0'+rbar]#, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
+            if 'nutau' in daughter:
+                mothers = ['D'+rcharge, 'Ds'+rcharge]
+            else:
+                mothers = ['D'+rcharge, 'Ds'+rcharge, 'D0'+rbar]#, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
         else:
             mothers = [categ,]
         return mothers
