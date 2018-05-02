@@ -282,7 +282,7 @@ def plot_prpl_ratio(interp_pkl_num, interp_pkl_den, include_cbar=True):
 
     
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
-                     ecr=None, particle=None):
+                ecr=None, particle=None):
     plt.figure()
     sv = SelfVeto(cos_theta, pmodel, hadr)
     gsol = sv.grid_sol(ecr, particle)
