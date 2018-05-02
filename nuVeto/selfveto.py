@@ -30,7 +30,8 @@ class SelfVeto(object):
     """Class for computing the neutrino passing fraction i.e. (1-(Self veto probability))"""
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012, 'H3a'),
-                 hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m):
+                 hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m,
+                 density=('CORSIKA', ('BK_USStd', None))):
         """Initializes the SelfVeto object for a particular costheta, CR Flux,
         hadronic model, barr parameters, and depth
 
@@ -57,13 +58,15 @@ class SelfVeto(object):
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
+            # atmospheric density model
+            density_model=density,
             # primary cosmic ray flux model
             # support a tuple (primary model class (not instance!), arguments)
             primary_model=pmodel,
             # zenith angle \theta in degrees, measured positively from vertical direction
             theta_deg=theta,
             enable_muon_energy_loss=False,
-            **mceq_config_without(['enable_muon_energy_loss']))
+            **mceq_config_without(['enable_muon_energy_loss', 'density_model']))
 
         for barr_mod in barr_mods:
             # Modify proton-air -> mod[0]
@@ -386,16 +389,16 @@ class SelfVeto(object):
 
 
 @lru_cache(maxsize=2**10)
-def builder(cos_theta, pmodel, hadr, barr_mods, depth):
-    return SelfVeto(cos_theta, pmodel, hadr, barr_mods, depth)
+def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
+    return SelfVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
 
-def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
-    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth)
+def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('BK_USStd', None)), accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
+    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num/den if fraction else num
 
 
-def total(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, corr_only=False):
-    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth)
+def total(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('BK_USStd', None)), accuracy=3, corr_only=False):
+    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     return sv.get_fluxes(enu, kind, accuracy, corr_only=corr_only)[1]

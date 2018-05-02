@@ -24,11 +24,11 @@ def fn(slice_val):
     return pr_enu if slice_val <=1 else pr_cth
 
 
-def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
+def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('BK_USStd', None)), accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,20)
-    passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for en in ens]
+    passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, density, accuracy, fraction, prpl, corr_only) for en in ens]
     if fraction:
         passed_fn = interpolate.interp1d(ens, passed, kind='quadratic')
     else:
@@ -48,11 +48,11 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     return prs[0]
 
 
-def pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
+def pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('BK_USStd', None)), accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,21)
-    passed = [passing(enu, cos_theta, kind, pmodel, hadr, barr_mods, depth, accuracy, fraction, prpl, corr_only) for cos_theta in cths]
+    passed = [passing(enu, cos_theta, kind, pmodel, hadr, barr_mods, depth, density, accuracy, fraction, prpl, corr_only) for cos_theta in cths]
     if fraction:
         prs = plt.plot(cths, passed, **kwargs)
         plt.ylim(0., 1.)
