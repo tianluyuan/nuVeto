@@ -34,10 +34,11 @@ enu = 1e5*Units.GeV
 cos_theta = 0.5
 pf = passing(enu, cos_theta, kind='conv_numu',
              pmodel=(pm.HillasGaisser2012, 'H3a'),
-             hadr='SIBYLL2.3c', depth=1950*Units.m)
+             hadr='SIBYLL2.3c', depth=1950*Units.m,
+             density=(CORSIKA', ('PL_SouthPole','January')))
 ```
 
-See the `examples/` directory for more detailed examples.
+See the `examples/` directory for more detailed examples. Running with `'MSIS00'` density models in c-mode requires running `make` in `MCEq/c-NRLMSISE-00`.
 
 ## Building muon detection probabilities
 
