@@ -88,7 +88,6 @@ def fig_prs_ratio():
         save('fig/prs_ratio_{}.eps'.format(kind))
 
 
-    
 def fig_prs():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     cos_ths = [0.25, 0.85]
@@ -137,6 +136,30 @@ def fig_pls():
         save('fig/pls_{}.eps'.format(kind))
 
 
+def fig_medium():
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    cos_ths = [0.25, 0.85]
+    prpls = ['ice_allm97_step_1', 'water_allm97_step_1']
+    labels = [r'Ice',
+              r'Water']
+
+    for kind in kinds:
+        plt.figure()
+        plt.title(titling[kind])
+        for idx, prpl in enumerate(prpls):
+            for cos_th in cos_ths:
+                clabel = r'$\cos \theta_z = {}$'.format(cos_th) if idx == 0 else None
+                plots.fn(cos_th)(cos_th, kind, prpl=prpl,
+                                 label=clabel, linestyle=linestyles[idx])
+
+            plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
+                        label=labels[idx])
+            plt.gca().set_prop_cycle(None)
+        plt.legend()
+        plt.tight_layout(0.3)
+        save('fig/medium_{}.eps'.format(kind))
+
+        
 def fig_hadrs():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     hadrs_prompt = ['SIBYLL2.3c', 'SIBYLL2.3', 'DPMJET-III']
