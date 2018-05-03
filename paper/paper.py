@@ -211,7 +211,8 @@ def fig_density():
 def fig_pmodels():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
-               (pm.PolyGonato, False, 'poly-gonato'),
+               (pm.GaisserStanevTilav, '3-gen', 'GST 3-gen'),
+               # (pm.PolyGonato, False, 'poly-gonato'),
                # (pm.GaisserHonda, None, 'GH'),
                (pm.ZatsepinSokolskaya, 'default', 'ZS')]
     cos_ths = [0.25, 0.85]
