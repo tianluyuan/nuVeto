@@ -38,7 +38,7 @@ pf = passing(enu, cos_theta, kind='conv_numu',
              density=('CORSIKA', ('PL_SouthPole','January')))
 ```
 
-See the `examples/` directory for more detailed examples. Running with `'MSIS00'` density models in c-mode requires running `make` in `MCEq/c-NRLMSISE-00`.
+Running with `'MSIS00'` density models in c-mode requires running `make` in `MCEq/c-NRLMSISE-00`. See the `examples/` directory for more detailed examples.
 
 ## Building muon detection probabilities
 
