@@ -160,6 +160,30 @@ def fig_hadrs():
         save('fig/hadrs_{}.eps'.format(kind))
 
 
+def fig_density():
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    dmodels = [('MSIS00_IC',('SouthPole', 'January')),
+              ('MSIS00_IC',('SouthPole', 'August')),
+              ('CORSIKA',('SouthPole', 'January')),
+              ('CORSIKA',('SouthPole', 'August'))]
+    cos_ths = [0.25, 0.85]
+    for kind in kinds:
+        plt.figure()
+        plt.title(titling[kind])
+        for idx, dmodel in enumerate(dmodels):
+            for cos_th in cos_ths:
+                clabel = r'$\cos \theta_z = {}$'.format(cos_th) if idx == 0 else None
+                plots.fn(cos_th)(cos_th, kind, density=dmodel,
+                                 label=clabel, linestyle=linestyles[idx])
+
+            plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
+                        label='{} SP/{}'.format(dmodel[0], dmodel[1][1][:3]))
+            plt.gca().set_prop_cycle(None)
+        plt.legend()
+        plt.tight_layout(0.3)
+        save('fig/dmodels_{}.eps'.format(kind, cos_th))
+
+
 def fig_pmodels():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
