@@ -177,7 +177,8 @@ def fig_density():
                                  label=clabel, linestyle=linestyles[idx])
 
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
-                        label='{} SP/{}'.format(dmodel[0], dmodel[1][1][:3]))
+                        label='{} SP/{}'.format(dmodel[0].replace('_', '-'),
+                                                dmodel[1][1][:3]))
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
