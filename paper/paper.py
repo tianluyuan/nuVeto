@@ -185,10 +185,10 @@ def fig_hadrs():
 
 def fig_density():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    dmodels = [('MSIS00_IC',('SouthPole', 'January')),
-              ('MSIS00_IC',('SouthPole', 'August')),
-              ('CORSIKA',('PL_SouthPole', 'January')),
-              ('CORSIKA',('PL_SouthPole', 'August'))]
+    dmodels = [('CORSIKA',('SouthPole', 'June')),
+               ('CORSIKA',('SouthPole', 'December')),
+               ('MSIS00_IC',('SouthPole', 'June')),
+               ('MSIS00_IC',('SouthPole', 'December'))]
     cos_ths = [0.25, 0.85]
     for kind in kinds:
         plt.figure()
