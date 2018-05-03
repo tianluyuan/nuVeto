@@ -66,4 +66,4 @@ def test_nuflux():
             mine = np.asarray([total(en, cth, kind, corr_only=True) for en in sv.mceq.e_grid[ensel]])
 
             print kind, cth, theirs/mine
-            assert np.all(np.abs(theirs/mine - 1) < 0.08)
+            assert np.all(np.abs(theirs/mine - 1) < 0.09)
