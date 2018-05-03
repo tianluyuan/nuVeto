@@ -31,7 +31,7 @@ class SelfVeto(object):
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m,
-                 density=('CORSIKA', ('BK_USStd', None))):
+                 density=('MSIS00_IC', ('SouthPole','January'))):
         """Initializes the SelfVeto object for a particular costheta, CR Flux,
         hadronic model, barr parameters, and depth
 
@@ -393,12 +393,12 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
     return SelfVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
 
-def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('BK_USStd', None)), accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
+def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('MSIS00_IC',('SouthPole','January')), accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num/den if fraction else num
 
 
-def total(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('BK_USStd', None)), accuracy=3, corr_only=False):
+def total(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('MSIS00_IC',('SouthPole','January')), accuracy=3, corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     return sv.get_fluxes(enu, kind, accuracy, corr_only=corr_only)[1]
