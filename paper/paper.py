@@ -5,6 +5,7 @@ from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
 from nuVeto.external import helper as exthp
 from nuVeto.selfveto import pm
+from nuVeto.utils import Units
 import numpy as np
 import matplotlib as mpl
 from matplotlib import pyplot as plt
@@ -138,10 +139,15 @@ def fig_pls():
 
 def fig_medium():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    cos_ths = [0.25, 0.85]
-    prpls = ['ice_allm97_step_1', 'water_allm97_step_1']
-    labels = [r'Ice',
-              r'Water']
+    cos_ths = [0.25]
+    prpls = [('ice_allm97_step_1', 1.95*Units.km),
+             ('water_allm97_step_1', 1.95*Units.km),
+             ('ice_allm97_step_1', 3.5*Units.km),
+             ('water_allm97_step_1', 3.5*Units.km)]
+    labels = [r'Ice $1.95$ km',
+              r'Water $1.95$ km',
+              r'Ice $3.5$ km',
+              r'Water $3.5$ km']
 
     for kind in kinds:
         plt.figure()
