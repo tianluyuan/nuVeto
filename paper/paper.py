@@ -155,7 +155,7 @@ def fig_medium():
         for idx, prpl in enumerate(prpls):
             for cos_th in cos_ths:
                 clabel = r'$\cos \theta_z = {}$'.format(cos_th) if idx == 0 else None
-                plots.fn(cos_th)(cos_th, kind, prpl=prpl,
+                plots.fn(cos_th)(cos_th, kind, prpl=prpl[0], depth=prpl[1],
                                  label=clabel, linestyle=linestyles[idx])
 
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
