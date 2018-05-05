@@ -180,7 +180,7 @@ def density_models(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_
 
 def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', density=('CORSIKA',('SouthPole', 'June')), prpl='ice_allm97_step_1', corsika_file='eff_maxmu', plot_nuveto_lines = False, plot_legacy_veto_lines = False):
     if isinstance(cos_theta_bin, list):
-        [corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
+        [corsika(cth, kind, pmodel, hadr, density, prpl, corsika_file, plot_nuveto_lines, plot_legacy_veto_lines) for cth in cos_theta_bin]
         return
 
     cfile = pickle.load(open(resource_filename('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl'))))
