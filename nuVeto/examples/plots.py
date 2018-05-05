@@ -183,9 +183,9 @@ def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H
         [corsika(cth, kind, pmodel, hadr, prpl, corsika_file) for cth in cos_theta_bin]
         return
 
-    corsika = pickle.load(open(resource_filename('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl'))))
+    cfile = pickle.load(open(resource_filename('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl'))))
     fraction = 'eff' in corsika_file
-    eff, elow, eup, xedges, yedges = corsika[kind]
+    eff, elow, eup, xedges, yedges = cfile[kind]
     cos_theta = centers(yedges)[cos_theta_bin]
 
     pr = plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],

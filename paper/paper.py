@@ -139,7 +139,7 @@ def fig_pls():
 
 def fig_medium():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    cos_ths = [0.25]
+    cos_ths = [0.25, 0.85]
     prpls = [('ice_allm97_step_1', 1.95*Units.km),
              ('water_allm97_step_1', 1.95*Units.km),
              ('ice_allm97_step_1', 3.5*Units.km),
