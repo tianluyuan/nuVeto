@@ -191,10 +191,10 @@ def fig_hadrs():
 
 def fig_density():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    dmodels = [('CORSIKA',('SouthPole', 'June')),
-               ('CORSIKA',('SouthPole', 'December')),
-               ('MSIS00_IC',('SouthPole', 'June')),
-               ('MSIS00_IC',('SouthPole', 'December'))]
+    dmodels = [('CORSIKA',('SouthPole', 'June'), 'MSIS-90-E'),
+               ('CORSIKA',('SouthPole', 'December'), 'MSIS-90-E'),
+               ('CORSIKA',('PL_SouthPole', 'August'), 'PL'),
+               ('CORSIKA',('PL_SouthPole', 'January'), 'PL')]
     cos_ths = [0.25, 0.85]
     for kind in kinds:
         plt.figure()
@@ -202,11 +202,11 @@ def fig_density():
         for idx, dmodel in enumerate(dmodels):
             for cos_th in cos_ths:
                 clabel = r'$\cos \theta_z = {}$'.format(cos_th) if idx == 0 else None
-                plots.fn(cos_th)(cos_th, kind, density=dmodel,
+                plots.fn(cos_th)(cos_th, kind, density=dmodel[:2],
                                  label=clabel, linestyle=linestyles[idx])
 
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
-                        label='{} SP/{}'.format(dmodel[0].replace('_', '-'),
+                        label='{} SP/{}'.format(dmodel[2],
                                                 dmodel[1][1][:3]))
             plt.gca().set_prop_cycle(None)
         plt.legend()
