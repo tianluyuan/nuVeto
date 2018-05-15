@@ -4,7 +4,7 @@ from pkg_resources import resource_filename
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.selfveto import SelfVeto, passing, total
-from nuVeto.utils import Units, ParticleProperties, amu, centers, Geometry
+from nuVeto.utils import Units, ParticleProperties, amu, centers, Geometry, calc_bins
 from nuVeto.barr_uncertainties import BARR
 from matplotlib import pyplot as plt
 from matplotlib import colors
