@@ -191,10 +191,10 @@ def fig_hadrs():
 
 def fig_density():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    dmodels = [('CORSIKA',('SouthPole', 'June'), 'MSIS-90-E'),
-               ('CORSIKA',('SouthPole', 'December'), 'MSIS-90-E'),
-               ('CORSIKA',('PL_SouthPole', 'August'), 'PL'),
-               ('CORSIKA',('PL_SouthPole', 'January'), 'PL')]
+    dmodels = [('CORSIKA',('SouthPole', 'June'), 'MSIS-90-E SP/Jul'),
+               ('CORSIKA',('SouthPole', 'December'), 'MSIS-90-E SP/Dec'),
+               ('MSIS00',('Karlsruhe', 'July'), 'NRLMSISE-00 KR/Jul'),
+               ('MSIS00',('Karlsruhe', 'December'), 'NRLMSISE-00 KR/Dec')]
     cos_ths = [0.25, 0.85]
     for kind in kinds:
         plt.figure()
@@ -206,8 +206,7 @@ def fig_density():
                                  label=clabel, linestyle=linestyles[idx])
 
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
-                        label='{} SP/{}'.format(dmodel[2],
-                                                dmodel[1][1][:3]))
+                        label='{}'.format(dmodel[2]))
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)

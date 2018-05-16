@@ -292,6 +292,25 @@ def plot_prpl_ratio(interp_pkl_num, interp_pkl_den, include_cbar=True):
                              os.path.splitext(os.path.basename(interp_pkl_den))[0]))
 
     
+def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c',
+                 ecr=None, particle=None):
+    plt.figure()
+    sv = SelfVeto(cos_theta, pmodel, hadr)
+    gsol = sv.grid_sol(ecr, particle)
+    X_vec = sv.X_vec
+    for idx, x_val in enumerate(X_vec):
+        calc0 = sv.get_solution(parents.split()[0], gsol, grid_idx=idx)
+        calc1 = sv.get_solution(parents.split()[1], gsol, grid_idx=idx)
+        plt.loglog(sv.mceq.e_grid, calc0/calc1,
+                   label='X={:.3g} km'.format(
+                       float(sv.mceq.density_model.X2h(x_val))/1e5))
+
+    plt.xlabel(r'$E_p$')
+    plt.ylabel(r'{}/{} flux ratio'.format(*parents.split()))
+    plt.legend()
+    plt.title(r'$\cos \theta = {:.2g}$'.format(cos_theta))
+
+
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
                 ecr=None, particle=None):
     plt.figure()
