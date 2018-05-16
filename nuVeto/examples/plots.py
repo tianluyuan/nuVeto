@@ -309,7 +309,10 @@ def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3
     plt.ylabel(r'{}/{} flux ratio'.format(*parents.split()))
     plt.xscale('log')
     plt.legend()
-    plt.title(r'$\cos \theta = {:.2g}$'.format(cos_theta))
+    if ecr is None or particle is None:
+        plt.title(r'$\cos \theta = {:.2g}$'.format(cos_theta))
+    else:
+        plt.title(r'{} at {:.2g} GeV and $\cos \theta = {:.2g}$'.format(particle, ecr, cos_theta))
 
 
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
