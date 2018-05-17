@@ -216,7 +216,7 @@ def fig_density():
 def fig_pmodels():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
-               (pm.GlobalSplineFitBeta, None, 'GSF spl'),
+               # (pm.GlobalSplineFitBeta, None, 'GSF spl'),
                (pm.GaisserStanevTilav, '4-gen', 'GST 4-gen'),
                # (pm.PolyGonato, False, 'poly-gonato'),
                # (pm.GaisserHonda, None, 'GH'),
