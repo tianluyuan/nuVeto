@@ -303,6 +303,11 @@ def fig_flux():
         plt.axvline(np.nan, color='k',
                     label='Passing')
         for kind in kinds:
+            earth = []
+            for cth in cths_full:
+                earth.append(earth_attenuation(enu, cth, kind)[0])
+            earth = np.asarray(earth)
+
             passing = []
             total = []
             for cth in cths:
@@ -314,10 +319,6 @@ def fig_flux():
             total_full = np.concatenate((total[:0:-1], total))
             passing_full = np.concatenate((total[:0:-1], passing))
 
-            earth = []
-            for cth in cths_full:
-                earth.append(earth_attenuation(enu, cth, kind)[0])
-            earth = np.asarray(earth)
             totalfn = interp1d(cths_full, np.log10(earth*total_full*enu**3),
                                kind='quadratic')
             passfn = interp1d(cths_full, np.log10(earth*passing_full*enu**3),
