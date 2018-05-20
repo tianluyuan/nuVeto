@@ -289,6 +289,7 @@ def fig_flux():
         plt.xlabel(r'$\cos \theta_z$')
         plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ st$^{-1}]$')
         plt.xlim(-1,1)
+        plt.yscale('log')
         plt.legend()
         plt.tight_layout(0.3)
         save('fig/fluxes_{:.0f}.eps'.format(enu/1e3))
