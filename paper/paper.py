@@ -4,7 +4,7 @@ from nuVeto.examples import plots
 from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
 from nuVeto.external import helper as exthp
-from nuVeto.selfveto import pm
+from nuVeto.selfveto import pm, fluxes
 from nuVeto.utils import Units
 import numpy as np
 import matplotlib as mpl
@@ -263,3 +263,33 @@ def fig_extsv():
         plt.legend()
         plt.tight_layout(0.3)
         save('fig/extsv_{}.eps'.format(kind))
+
+
+def fig_flux():
+    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv_nue']
+    ens = [1e5]
+    cths = np.linspace(-1,1,11)
+    for enu in ens:
+        plt.figure()
+        plt.title(r'$E_\nu = {:.0f}$ TeV'.format(enu/1e3))
+        for kind in kinds:
+            passing = []
+            total = []
+            for cth in cths:
+                num, den = fluxes(enu, cth, kind)
+                passing.append(num)
+                total.append(den)
+            pr = plt.plot(cths, np.asarray(total)*enu**3, ':')
+            plt.plot(cths, np.asarray(passing)*enu**3, color=pr[0].get_color(),
+                     label=titling[kind])
+        plt.axvline(np.nan, color='k', linestyle=':',
+                    label='Total')
+        plt.axvline(np.nan, color='k',
+                    label='Passing')
+        plt.xlabel(r'$\cos \theta_z$')
+        plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ st$^{-1}]$')
+        plt.xlim(-1,1)
+        plt.legend()
+        plt.tight_layout(0.3)
+        save('fig/fluxes_{:.0f}.eps'.format(enu/1e3))

@@ -402,3 +402,8 @@ def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a
 def total(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3, corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     return sv.get_fluxes(enu, kind, accuracy, corr_only=corr_only)[1]
+
+
+def fluxes(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3, corr_only=False):
+    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
+    return sv.get_fluxes(enu, kind, accuracy, corr_only=corr_only)
