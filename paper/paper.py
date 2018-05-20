@@ -318,8 +318,13 @@ def fig_flux():
             for cth in cths_full:
                 earth.append(earth_attenuation(enu, cth, kind)[0])
             earth = np.asarray(earth)
-            pr = plt.plot(cths_full, earth*total_full*enu**3, ':')
-            plt.plot(cths_full, earth*passing_full*enu**3, color=pr[0].get_color(),
+            totalfn = interp1d(cths_full, np.log10(earth*total_full*enu**3),
+                               kind='quadratic')
+            passfn = interp1d(cths_full, np.log10(earth*passing_full*enu**3),
+                              kind='quadratic')
+            cths_plot = np.linspace(-1,1,100)
+            pr = plt.plot(cths_plot, totalfn(cths_plot), ':')
+            plt.plot(cths_plot, passfn(cths_plot), color=pr[0].get_color(),
                      label=titling[kind])
         plt.xlabel(r'$\cos \theta_z$')
         plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ st$^{-1}]$')
