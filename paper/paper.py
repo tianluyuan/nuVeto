@@ -273,6 +273,10 @@ def fig_flux():
     for enu in ens:
         plt.figure()
         plt.title(r'$E_\nu = {:.0f}$ TeV'.format(enu/1e3))
+        plt.axvline(np.nan, color='k', linestyle=':',
+                    label='Total')
+        plt.axvline(np.nan, color='k',
+                    label='Passing')
         for kind in kinds:
             passing = []
             total = []
@@ -288,10 +292,6 @@ def fig_flux():
             pr = plt.plot(full_cths, full_total*enu**3, ':')
             plt.plot(full_cths, full_passing*enu**3, color=pr[0].get_color(),
                      label=titling[kind])
-        plt.axvline(np.nan, color='k', linestyle=':',
-                    label='Total')
-        plt.axvline(np.nan, color='k',
-                    label='Passing')
         plt.xlabel(r'$\cos \theta_z$')
         plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ st$^{-1}]$')
         plt.xlim(-1,1)
