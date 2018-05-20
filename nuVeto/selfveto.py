@@ -126,7 +126,7 @@ class SelfVeto(object):
         return allowed
 
 
-    @lru_cache(2**10)
+    @lru_cache(2**12)
     def get_dNdEE(self, mother, daughter):
         """Differential parent-->neutrino (mother--daughter) yield"""
         ihijo = 20
@@ -151,7 +151,7 @@ class SelfVeto(object):
         return x_range, dNdEE, dNdEE_interp
 
 
-    @lru_cache(maxsize=2**10)
+    @lru_cache(maxsize=2**12)
     def grid_sol(self, ecr=None, particle=None):
         """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
         if ecr is not None:
@@ -162,7 +162,7 @@ class SelfVeto(object):
         return self.mceq.grid_sol
 
 
-    @lru_cache(maxsize=2**10)
+    @lru_cache(maxsize=2**12)
     def prob_nomu(self, ecr, particle, prpl='ice_allm97_step_1'):
         """Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
@@ -388,7 +388,7 @@ class SelfVeto(object):
         return passed, total
 
 
-@lru_cache(maxsize=2**10)
+@lru_cache(maxsize=2**12)
 def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
     return SelfVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
