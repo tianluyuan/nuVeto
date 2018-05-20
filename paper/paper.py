@@ -1,4 +1,5 @@
 import os
+import sys
 from pkg_resources import resource_filename
 from nuVeto.examples import plots
 from nuVeto.resources.mu import mu
@@ -7,6 +8,7 @@ from nuVeto.external import helper as exthp
 from nuVeto.selfveto import pm, fluxes
 from nuVeto.utils import Units
 import numpy as np
+from scipy.interpolate import interp1d
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 
@@ -27,7 +29,30 @@ def save(fname):
     except OSError as e:
         plt.savefig(fname)
 
-    
+
+def earth_attenuation(enu, cos_theta, kind='conv_numu'):
+    nufate = os.path.expanduser('~/projects/nuFATE/')
+    flavor_dict = {'numu':2,'nue':1,'antinue':-1,'antinumu':-2}
+    flavor = flavor_dict[kind.split('_')[-1]]
+    zenith = np.arccos(cos_theta)
+
+    # nuFATE
+    sys.path.append(nufate)
+    import cascade as cas
+    import earth
+    w,v,ci,energy_nodes,phi_0 = cas.get_eigs(flavor,
+                                             os.path.join(nufate,
+                                                          'data/phiHGextrap.dat'),
+                                             os.path.join(nufate,
+                                             'data/NuFATECrossSections.h5'))
+    sys.path.pop()
+
+    t = earth.get_t_earth(zenith)*Units.Na
+    phisol = np.dot(v,(ci*np.exp(w*t)))/phi_0
+    phisolfn = interp1d(energy_nodes, phisol, kind='quadratic', assume_sorted=True)
+    return phisolfn(enu)
+
+        
 def fig_prpl():
     step1000 = resource_filename('nuVeto', 'data/prpl/ice_allm97_step_1.pkl')
     step750 = resource_filename('nuVeto', 'data/prpl/ice_allm97_step_0.75.pkl')
@@ -284,13 +309,17 @@ def fig_flux():
                 num, den = fluxes(enu, cth, kind)
                 passing.append(num)
                 total.append(den)
-
             total = np.asarray(total)
             passing = np.asarray(passing)
             total_full = np.concatenate((total[:0:-1], total))
             passing_full = np.concatenate((total[:0:-1], passing))
-            pr = plt.plot(cths_full, total_full*enu**3, ':')
-            plt.plot(cths_full, passing_full*enu**3, color=pr[0].get_color(),
+
+            earth = []
+            for cth in cths_full:
+                earth.append(earth_attenuation(enu, cth, kind)[0])
+            earth = np.asarray(earth)
+            pr = plt.plot(cths_full, earth*total_full*enu**3, ':')
+            plt.plot(cths_full, earth*passing_full*enu**3, color=pr[0].get_color(),
                      label=titling[kind])
         plt.xlabel(r'$\cos \theta_z$')
         plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ st$^{-1}]$')
