@@ -305,7 +305,7 @@ def fig_flux():
         for kind in kinds:
             earth = []
             for cth in cths_full:
-                earth.append(earth_attenuation(enu, cth, kind)[0])
+                earth.append(earth_attenuation(enu, cth, kind))
             earth = np.asarray(earth)
 
             passing = []
