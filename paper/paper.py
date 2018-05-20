@@ -328,7 +328,7 @@ def fig_flux():
             plt.plot(cths_plot, 10**passfn(cths_plot), color=pr[0].get_color(),
                      label=titling[kind])
         plt.xlabel(r'$\cos \theta_z$')
-        plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ st$^{-1}]$')
+        plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ sr$^{-1}]$')
         plt.xlim(-1,1)
         plt.yscale('log')
         plt.legend()
