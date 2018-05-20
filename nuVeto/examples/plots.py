@@ -3,7 +3,7 @@ import os
 from pkg_resources import resource_filename
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto.selfveto import SelfVeto, passing, total
+from nuVeto.selfveto import SelfVeto, passing, fluxes
 from nuVeto.utils import Units, ParticleProperties, amu, centers, Geometry, calc_bins
 from nuVeto.barr_uncertainties import BARR
 from matplotlib import pyplot as plt
@@ -344,7 +344,7 @@ def nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
     fig, axs = plt.subplots(2,1)
     for kind in kinds.split():
         plt.sca(axs[0])
-        mine = np.asarray([total(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only) for en in sv.mceq.e_grid])
+        mine = np.asarray([fluxes(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only)[1] for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
                       label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))

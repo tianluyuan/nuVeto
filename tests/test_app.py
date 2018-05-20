@@ -1,7 +1,7 @@
 import numpy as np
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto.selfveto import passing, total, SelfVeto
+from nuVeto.selfveto import passing, fluxes, SelfVeto
 from nuVeto.utils import Geometry, Units
 try:
     import CRFluxModels.CRFluxModels as pm
@@ -63,7 +63,7 @@ def test_nuflux():
             thres = 1e7 if sv.is_prompt(kind) else 1e6
             ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
             theirs = sv.mceq.get_solution(kind)[ensel]
-            mine = np.asarray([total(en, cth, kind, corr_only=True) for en in sv.mceq.e_grid[ensel]])
+            mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
 
             print kind, cth, theirs/mine
             assert np.all(np.abs(theirs/mine - 1) < 0.09)

@@ -269,7 +269,7 @@ def fig_flux():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     ens = [1e4, 1e5]
     cths = np.linspace(0,1,11)
-    full_cths = np.concatenate((-cths[:0:-1], cths))
+    cths_full = np.concatenate((-cths[:0:-1], cths))
     for enu in ens:
         plt.figure()
         plt.title(r'$E_\nu = {:.0f}$ TeV'.format(enu/1e3))
@@ -287,10 +287,10 @@ def fig_flux():
 
             total = np.asarray(total)
             passing = np.asarray(passing)
-            full_total = np.concatenate((total[:0:-1], total))
-            full_passing = np.concatenate((total[:0:-1], passing))
-            pr = plt.plot(full_cths, full_total*enu**3, ':')
-            plt.plot(full_cths, full_passing*enu**3, color=pr[0].get_color(),
+            total_full = np.concatenate((total[:0:-1], total))
+            passing_full = np.concatenate((total[:0:-1], passing))
+            pr = plt.plot(cths_full, total_full*enu**3, ':')
+            plt.plot(cths_full, passing_full*enu**3, color=pr[0].get_color(),
                      label=titling[kind])
         plt.xlabel(r'$\cos \theta_z$')
         plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ st$^{-1}]$')
