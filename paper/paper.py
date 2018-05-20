@@ -269,6 +269,7 @@ def fig_flux():
     kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
     ens = [1e5]
     cths = np.linspace(0,1,11)
+    full_cths = np.concatenate((-cths[:0:-1], cths))
     for enu in ens:
         plt.figure()
         plt.title(r'$E_\nu = {:.0f}$ TeV'.format(enu/1e3))
@@ -282,10 +283,10 @@ def fig_flux():
 
             total = np.asarray(total)
             passing = np.asarray(passing)
-            full_cths = np.concatenate((-cths[:0:-1], cths))
             full_total = np.concatenate((total[:0:-1], total))
+            full_passing = np.concatenate((total[:0:-1], passing))
             pr = plt.plot(full_cths, full_total*enu**3, ':')
-            plt.plot(cths, passing*enu**3, color=pr[0].get_color(),
+            plt.plot(full_cths, full_passing*enu**3, color=pr[0].get_color(),
                      label=titling[kind])
         plt.axvline(np.nan, color='k', linestyle=':',
                     label='Total')
