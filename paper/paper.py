@@ -298,10 +298,6 @@ def fig_flux():
     for enu in ens:
         plt.figure()
         plt.title(r'$E_\nu = {:.0f}$ TeV'.format(enu/1e3))
-        plt.axvline(np.nan, color='k', linestyle=':',
-                    label='Total')
-        plt.axvline(np.nan, color='k',
-                    label='Passing')
         for kind in kinds:
             earth = []
             for cth in cths_full:
@@ -327,6 +323,10 @@ def fig_flux():
             pr = plt.plot(cths_plot, 10**totalfn(cths_plot), ':')
             plt.plot(cths_plot, 10**passfn(cths_plot), color=pr[0].get_color(),
                      label=titling[kind])
+        plt.axvline(np.nan, color='k', linestyle=':',
+                    label='Total')
+        plt.axvline(np.nan, color='k',
+                    label='Passing')
         plt.xlabel(r'$\cos \theta_z$')
         plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ sr$^{-1}]$')
         plt.xlim(-1,1)
