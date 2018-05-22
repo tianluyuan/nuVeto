@@ -3,7 +3,7 @@ import os
 from pkg_resources import resource_filename
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto.selfveto import SelfVeto, passing, fluxes
+from nuVeto.nuveto import nuVeto, passing, fluxes
 from nuVeto.utils import Units, ParticleProperties, amu, centers, Geometry, calc_bins
 from nuVeto.barr_uncertainties import BARR
 from matplotlib import pyplot as plt
@@ -208,7 +208,7 @@ def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H
 
 # intermediate tests
 def dndee(mother, daughter):
-    sv = SelfVeto(0)
+    sv = nuVeto(0)
     x_range, dNdEE, dNdEE_interp = sv.get_dNdEE(mother, daughter)
 
     # print x_range[0], x_range[-1]
@@ -295,7 +295,7 @@ def plot_prpl_ratio(interp_pkl_num, interp_pkl_den, include_cbar=True):
 def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c',
                  ecr=None, particle=None):
     plt.figure()
-    sv = SelfVeto(cos_theta, pmodel, hadr)
+    sv = nuVeto(cos_theta, pmodel, hadr)
     gsol = sv.grid_sol(ecr, particle)
     X_vec = sv.X_vec
     for idx, x_val in enumerate(X_vec):
@@ -318,7 +318,7 @@ def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
                 ecr=None, particle=None):
     plt.figure()
-    sv = SelfVeto(cos_theta, pmodel, hadr)
+    sv = nuVeto(cos_theta, pmodel, hadr)
     gsol = sv.grid_sol(ecr, particle)
     X_vec = sv.X_vec
     for idx, x_val in enumerate(X_vec):
@@ -339,7 +339,7 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
         
 
 def nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7), corr_only=False):
-    sv = SelfVeto(cos_theta, pmodel, hadr)
+    sv = nuVeto(cos_theta, pmodel, hadr)
     sv.grid_sol()
     fig, axs = plt.subplots(2,1)
     for kind in kinds.split():
@@ -375,7 +375,7 @@ def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
     """
     ecrs = amu(particle)*np.logspace(3, 10, 20)
     ecrs_fine = amu(particle)*np.logspace(3, 10, 1000)
-    sv = SelfVeto(cos_theta, pmodel, hadr)
+    sv = nuVeto(cos_theta, pmodel, hadr)
     pnm = [sv.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
     pnmfn = interpolate.interp1d(ecrs, pnm, kind='cubic',
                                  assume_sorted=True, fill_value=(1,np.nan))

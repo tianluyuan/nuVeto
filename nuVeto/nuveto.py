@@ -1,4 +1,4 @@
-"""SelfVeto calculation [ref.]
+"""nuVeto calculation [ref.]
 
 This module computes the probability that an atmospheric neutrino will be
 accompanied by a sibling muon produced in the same cosmic ray airshower at a
@@ -26,13 +26,13 @@ from mceq_config import config, mceq_config_without
 from nuVeto.utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
 from nuVeto.barr_uncertainties import BARR, barr_unc
 
-class SelfVeto(object):
+class nuVeto(object):
     """Class for computing the neutrino passing fraction i.e. (1-(Self veto probability))"""
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m,
                  density=('CORSIKA', ('SouthPole', 'June'))):
-        """Initializes the SelfVeto object for a particular costheta, CR Flux,
+        """Initializes the nuVeto object for a particular costheta, CR Flux,
         hadronic model, barr parameters, and depth
 
         Note:
@@ -110,6 +110,12 @@ class SelfVeto(object):
             mothers = [categ,]
         return mothers
 
+
+    @staticmethod
+    def psib(mother, enu):
+        """ returns the suppresion factor due to the sibling muon
+        """
+        
 
     @staticmethod
     def projectiles():
@@ -390,7 +396,7 @@ class SelfVeto(object):
 
 @lru_cache(maxsize=2**12)
 def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
-    return SelfVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
+    return nuVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
 
 def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False):

@@ -5,7 +5,7 @@ from nuVeto.examples import plots
 from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
 from nuVeto.external import helper as exthp
-from nuVeto.selfveto import pm, fluxes
+from nuVeto.nuveto import pm, fluxes
 from nuVeto.utils import Units
 import numpy as np
 from scipy.interpolate import interp1d

@@ -1,7 +1,7 @@
 import numpy as np
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto.selfveto import passing, fluxes, SelfVeto
+from nuVeto.nuveto import passing, fluxes, nuVeto
 from nuVeto.utils import Geometry, Units
 try:
     import CRFluxModels.CRFluxModels as pm
@@ -10,16 +10,16 @@ except ImportError:
 
 
 def test_is_prompt():
-    assert SelfVeto.is_prompt('pr')
-    assert not SelfVeto.is_prompt('conv')
+    assert nuVeto.is_prompt('pr')
+    assert not nuVeto.is_prompt('conv')
 
 
 def test_categ():
-    assert SelfVeto.categ_to_mothers('conv', 'numu') == ['pi+', 'K+', 'K0L', 'mu-']
-    assert SelfVeto.categ_to_mothers('conv', 'antinumu') == ['pi-', 'K-', 'K0L', 'mu+']
-    assert SelfVeto.categ_to_mothers('conv', 'nue') == ['pi+', 'K+', 'K0L', 'K0S', 'mu+']
-    assert SelfVeto.categ_to_mothers('pr', 'numu') == ['D+', 'Ds+', 'D0']
-    assert SelfVeto.categ_to_mothers('pr', 'antinumu') == ['D-', 'Ds-', 'D0-bar']
+    assert nuVeto.categ_to_mothers('conv', 'numu') == ['pi+', 'K+', 'K0L', 'mu-']
+    assert nuVeto.categ_to_mothers('conv', 'antinumu') == ['pi-', 'K-', 'K0L', 'mu+']
+    assert nuVeto.categ_to_mothers('conv', 'nue') == ['pi+', 'K+', 'K0L', 'K0S', 'mu+']
+    assert nuVeto.categ_to_mothers('pr', 'numu') == ['D+', 'Ds+', 'D0']
+    assert nuVeto.categ_to_mothers('pr', 'antinumu') == ['D-', 'Ds-', 'D0-bar']
 
 
 def test_costh_effective():
@@ -57,7 +57,7 @@ def test_nuflux():
     cths = [0.1, 0.3, 0.8]
     kinds = ['conv_numu', 'conv_nue', 'pr_numu', 'pr_nue']
     for cth in cths:
-        sv = SelfVeto(cth)
+        sv = nuVeto(cth)
         sv.grid_sol()
         for kind in kinds:
             thres = 1e7 if sv.is_prompt(kind) else 1e6

@@ -4,7 +4,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from scipy.interpolate import interpolate as interpolate
 import CRFluxModels.CRFluxModels as pm
-import nuVeto.selfveto as sv
+import nuVeto.nuveto as nv
 import numpy as np
 
 from nuVeto.external import helper
@@ -15,7 +15,7 @@ def PlotNuMuConventionalPassingFraction(cos_theta, pmodel=(pm.HillasGaisser2012,
     """
     enu_grid = np.logspace(3, 10, 20)
     enu_grid_fine = np.logspace(3, 10, 1000)
-    pnm = [sv.passing(enu, cos_theta, kind = 'conv_numu') for enu in enu_grid]
+    pnm = [nv.passing(enu, cos_theta, kind = 'conv_numu') for enu in enu_grid]
     pnmfn = interpolate.interp1d(enu_grid, pnm, kind='cubic',
                                  assume_sorted=True, fill_value=(1,np.nan))
     plt.semilogx(enu_grid_fine, pnmfn(enu_grid_fine), label='interpolated')

@@ -29,7 +29,7 @@ pip install -e .
 The simplest way to run is
 
 ```python
-from nuVeto.selfveto import *
+from nuVeto.nuveto import passing
 enu = 1e5*Units.GeV
 cos_theta = 0.5
 pf = passing(enu, cos_theta, kind='conv_numu',
