@@ -137,7 +137,6 @@ class nuVeto(object):
 
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
-        reaching = np.ones(esamp.size)
         with np.load(fpath) as dfile:
             xmus = centers(dfile['xedges'])
             xnus = np.concatenate([xmus, [1]])
@@ -145,12 +144,9 @@ class nuVeto(object):
 
             ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
                                                        bounds_error=False, fill_value=None)
-            for i, enufrac in enumerate(enu/esamp):
-                emu = xmus*esamp[i]
-                pmu = ddec(zip([enufrac]*len(emu), xmus))
-                reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
-                                                          [l_ice]*len(emu))))
-        return reaching
+            emu_mat = xmus[:,None]*esamp[None,:]*Units.GeV
+            pmu_mat = ddec(np.stack(np.meshgrid(enu/esamp, xmus), axis=-1))
+            return 1-np.dot(pmu_mat.T, fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape)*l_ice], axis=-1))).diagonal()
 
 
     @lru_cache(2**12)
