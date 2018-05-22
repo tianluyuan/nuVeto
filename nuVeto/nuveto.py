@@ -112,10 +112,13 @@ class nuVeto(object):
 
 
     @staticmethod
-    def psib(mother, enu):
-        """ returns the suppresion factor due to the sibling muon
+    def esamp(enu, accuracy):
+        """ returns the sampling of parent energies for a given enu
         """
-        
+        # TODO: replace 1e8 with MMC-prpl interpolated bounds
+        return np.logspace(np.log10(enu),
+                           np.log10(enu+1e8), 1000*accuracy)
+
 
     @staticmethod
     def projectiles():
@@ -132,6 +135,35 @@ class nuVeto(object):
         return allowed
 
 
+    @lru_cache(2**12)
+    def psib(self, mother_proxy, enu, accuracy, prpl):
+        """ returns the suppresion factor due to the sibling muon
+        """
+        ice_distance = self.geom.overburden(self.costh)
+        esamp = self.esamp(enu, accuracy)
+        reaching = np.ones(esamp.size)
+        fn = MuonProb(prpl)
+
+        if self.is_prompt(mother_proxy):
+            with np.load(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz')) as dfile:
+                xmus = centers(dfile['xedges'])
+                xnus = np.concatenate([xmus, [1]])
+                vals = dfile['histograms']
+
+                ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
+                                                           bounds_error=False, fill_value=None)
+                for i, enufrac in enumerate(enu/esamp):
+                    emu = xmus*esamp[i]
+                    pmu = ddec(zip([enufrac]*len(emu), xmus))
+                    reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
+                                                              [ice_distance]*len(emu))))
+        else:
+            # Assuming muon energy is E_parent - E_nu
+            reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
+                                    [ice_distance]*len(esamp)))
+        return reaching
+
+            
     @lru_cache(2**12)
     def get_dNdEE(self, mother, daughter):
         """Differential parent-->neutrino (mother--daughter) yield"""
@@ -275,17 +307,26 @@ class nuVeto(object):
         return rescale_phi
 
 
-    def get_integrand(self, categ, daughter, grid_sol, esamp, enu):
+    def get_integrand(self, categ, daughter, grid_sol, enu, accuracy, prpl):
         """flux*yield"""
+        esamp = self.esamp(enu, accuracy)
         mothers = self.categ_to_mothers(categ, daughter)
-        ys = np.zeros((len(esamp),len(self.X_vec)))
+        nums = np.zeros((len(esamp),len(self.X_vec)))
+        dens = np.zeros((len(esamp),len(self.X_vec)))
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, grid_sol)
             rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
-            ys += (dNdEE(enu/esamp)/esamp)[:,None]*rescale_phi
+            if 'numu' in daughter:
+                # muon accompanies numu only
+                pnmsib = self.psib(mother[0], enu, accuracy, prpl)
+            else:
+                pnmsib = np.ones(len(esamp))
+            dnde = dNdEE(enu/esamp)/esamp
+            nums += (dnde * pnmsib)[:,None]*rescale_phi
+            dens += (dnde)[:,None]*rescale_phi
 
-        return ys
+        return nums, dens
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='ice_allm97_step_1', corr_only=False):
@@ -296,34 +337,7 @@ class nuVeto(object):
         # prpl -> None ==> median for muon reaching
         categ, daughter = kind.split('_')
 
-        ice_distance = self.geom.overburden(self.costh)
-
-        # TODO: replace 1e8 with MMC-prpl interpolated bounds
-        esamp = np.logspace(np.log10(enu),
-                            np.log10(enu+1e8), 1000*accuracy)
-
-        reaching = np.ones(len(esamp))
-        if 'numu' in  daughter:
-            # muon accompanies numu only
-            fn = MuonProb(prpl)
-
-            if self.is_prompt(categ):
-                with np.load(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz')) as dfile:
-                    xmus = centers(dfile['xedges'])
-                    xnus = np.concatenate([xmus, [1]])
-                    vals = dfile['histograms']
-
-                    ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
-                                                               bounds_error=False, fill_value=None)
-                    for i, enufrac in enumerate(enu/esamp):
-                        emu = xmus*esamp[i]
-                        pmu = ddec(zip([enufrac]*len(emu), xmus))
-                        reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
-                                                                  [ice_distance]*len(emu))))
-            else:
-                # Assuming muon energy is E_parent - E_nu
-                reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
-                                        [ice_distance]*len(esamp)))
+        esamp = self.esamp(enu, accuracy)
 
         # Correlated only (no need for the unified calculation here) [really just for testing]
         passed = 0
@@ -331,9 +345,11 @@ class nuVeto(object):
         if corr_only:
             grid_sol = self.grid_sol() # MCEq solution (fluxes tabulated as a function of height)
             # sum performs the dX integral
-            integrand = np.sum(self.get_integrand(categ, daughter, grid_sol, esamp, enu), axis=1)
-            passed = integrate.trapz(integrand*reaching, esamp)
-            total = integrate.trapz(integrand, esamp)
+            nums, dens = self.get_integrand(categ, daughter, grid_sol, enu, accuracy, prpl)
+            num = np.sum(nums, axis=1)
+            den = np.sum(dens, axis=1)
+            passed = integrate.trapz(num, esamp)
+            total = integrate.trapz(den, esamp)
             return passed, total
                 
         pmodel = self.pmodel[0](self.pmodel[1])
@@ -381,9 +397,9 @@ class nuVeto(object):
 
                 # dEp
                 # integral in Ep
-                integrand = np.sum(self.get_integrand(categ, daughter, grid_sol, esamp, enu), axis=1)
-                num_ecr = integrate.trapz(integrand*reaching*pnmarr, esamp)
-                den_ecr = integrate.trapz(integrand, esamp)
+                nums_ecr, dens_ecr = self.get_integrand(categ, daughter, grid_sol, enu, accuracy, prpl)
+                num_ecr = integrate.trapz(np.sum(nums_ecr, axis=1)*pnmarr, esamp)
+                den_ecr = integrate.trapz(np.sum(dens_ecr, axis=1), esamp)
 
                 nums.append(num_ecr*cr_flux/Units.phicm2)
                 dens.append(den_ecr*cr_flux/Units.phicm2)
