@@ -140,13 +140,13 @@ class nuVeto(object):
         with np.load(fpath) as dfile:
             xmus = centers(dfile['xedges'])
             xnus = np.concatenate([xmus, [1]])
-            vals = dfile['histograms']
+            vals = np.nan_to_num(dfile['histograms'])
 
             ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
                                                        bounds_error=False, fill_value=None)
             emu_mat = xmus[:,None]*esamp[None,:]*Units.GeV
             pmu_mat = ddec(np.stack(np.meshgrid(enu/esamp, xmus), axis=-1))
-            return 1-np.dot(pmu_mat.T, fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape)*l_ice], axis=-1))).diagonal()
+            return 1-np.sum(pmu_mat*fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape)*l_ice], axis=-1)), axis=0)
 
 
     @lru_cache(2**12)
@@ -156,8 +156,10 @@ class nuVeto(object):
         l_ice = self.geom.overburden(self.costh)
         esamp = self.esamp(enu, accuracy)
         fn = MuonProb(prpl)
-
-        if self.is_prompt(mother):
+        if mother == 'D0' or mother == 'D0-bar':
+            reaching = nuVeto.nbody(resource_filename('nuVeto','data/decay_distributions/D0_numu.npz'),
+                                    esamp, enu, fn, l_ice)
+        elif self.is_prompt(mother):
             reaching = nuVeto.nbody(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz'),
                                     esamp, enu, fn, l_ice)
         else:
@@ -322,7 +324,7 @@ class nuVeto(object):
             rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
             if 'numu' in daughter:
                 # muon accompanies numu only
-                pnmsib = self.psib(mother[0], enu, accuracy, prpl)
+                pnmsib = self.psib(mother, enu, accuracy, prpl)
             else:
                 pnmsib = np.ones(len(esamp))
             dnde = dNdEE(enu/esamp)/esamp
