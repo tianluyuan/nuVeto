@@ -135,32 +135,39 @@ class nuVeto(object):
         return allowed
 
 
+    @staticmethod
+    def nbody(fpath, esamp, enu, fn, l_ice):
+        reaching = np.ones(esamp.size)
+        with np.load(fpath) as dfile:
+            xmus = centers(dfile['xedges'])
+            xnus = np.concatenate([xmus, [1]])
+            vals = dfile['histograms']
+
+            ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
+                                                       bounds_error=False, fill_value=None)
+            for i, enufrac in enumerate(enu/esamp):
+                emu = xmus*esamp[i]
+                pmu = ddec(zip([enufrac]*len(emu), xmus))
+                reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
+                                                          [l_ice]*len(emu))))
+        return reaching
+
+
     @lru_cache(2**12)
-    def psib(self, mother_proxy, enu, accuracy, prpl):
+    def psib(self, mother, enu, accuracy, prpl):
         """ returns the suppresion factor due to the sibling muon
         """
-        ice_distance = self.geom.overburden(self.costh)
+        l_ice = self.geom.overburden(self.costh)
         esamp = self.esamp(enu, accuracy)
-        reaching = np.ones(esamp.size)
         fn = MuonProb(prpl)
 
-        if self.is_prompt(mother_proxy):
-            with np.load(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz')) as dfile:
-                xmus = centers(dfile['xedges'])
-                xnus = np.concatenate([xmus, [1]])
-                vals = dfile['histograms']
-
-                ddec = interpolate.RegularGridInterpolator((xnus, xmus), vals,
-                                                           bounds_error=False, fill_value=None)
-                for i, enufrac in enumerate(enu/esamp):
-                    emu = xmus*esamp[i]
-                    pmu = ddec(zip([enufrac]*len(emu), xmus))
-                    reaching[i] = 1 - np.dot(pmu, fn.prpl(zip(emu*Units.GeV,
-                                                              [ice_distance]*len(emu))))
+        if self.is_prompt(mother):
+            reaching = nuVeto.nbody(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz'),
+                                    esamp, enu, fn, l_ice)
         else:
             # Assuming muon energy is E_parent - E_nu
             reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
-                                    [ice_distance]*len(esamp)))
+                                    [l_ice]*len(esamp)))
         return reaching
 
             
