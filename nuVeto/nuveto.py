@@ -177,7 +177,7 @@ class nuVeto(object):
         return reaching
 
             
-    @lru_cache(2**12)
+    @lru_cache(maxsize=2**12)
     def get_dNdEE(self, mother, daughter):
         """Differential parent-->neutrino (mother--daughter) yield"""
         ihijo = 20
@@ -215,7 +215,7 @@ class nuVeto(object):
                                 self.mceq.e_grid))
 
 
-    @lru_cache(2**12)
+    @lru_cache(maxsize=2**12)
     def get_integrand(self, categ, daughter, enu, accuracy, prpl, ecr=None, particle=None):
         """flux*yield"""
         grid_sol = self.grid_sol(ecr, particle) # MCEq solution (fluxes tabulated as a function of height)
