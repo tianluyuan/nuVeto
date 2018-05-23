@@ -87,7 +87,7 @@ class MuonProb(object):
     
     def median_approx(self, coord):
         coord = np.asarray(coord)
-        muon_energy, ice_distance = coord[:,0], coord[:,1]
+        muon_energy, ice_distance = coord[...,0], coord[...,1]
         min_mue = self.median_emui(ice_distance)*Units.GeV
         return muon_energy > min_mue
 

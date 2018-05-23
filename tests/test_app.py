@@ -36,7 +36,6 @@ def test_overburden():
 
 
 def test_elbert():
-    echoice = exthp.corr
     ens = np.logspace(2,9,50)
     cths = [0.1,0.3,0.8]
     for cth in cths:
