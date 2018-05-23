@@ -143,6 +143,102 @@ class nuVeto(object):
             return 1-np.sum(pmu_mat*fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape)*l_ice], axis=-1)), axis=0)
 
 
+    @lru_cache(2**12)
+    def psib(self, mother, enu, accuracy, prpl):
+        """ returns the suppression factor due to the sibling muon
+        """
+        l_ice = self.geom.overburden(self.costh)
+        esamp = self.esamp(enu, accuracy)
+        fn = MuonProb(prpl)
+        if mother in ['D0', 'D0-bar']:
+            reaching = nuVeto.nbody(
+                resource_filename(
+                'nuVeto','data/decay_distributions/D0_numu.npz'),
+                esamp, enu, fn, l_ice)
+        elif mother in ['D+', 'D-']:
+            reaching = nuVeto.nbody(
+                resource_filename(
+                'nuVeto','data/decay_distributions/D+_numu.npz'),
+                esamp, enu, fn, l_ice)
+        elif mother in ['Ds+', 'Ds-']:
+            reaching = nuVeto.nbody(
+                resource_filename(
+                'nuVeto','data/decay_distributions/Ds_numu.npz'),
+                esamp, enu, fn, l_ice)
+        elif mother == 'K0L':
+            reaching = nuVeto.nbody(
+                resource_filename(
+                'nuVeto','data/decay_distributions/K0L_numu.npz'),
+                esamp, enu, fn, l_ice)
+        else:
+            # Assuming muon energy is E_parent - E_nu
+            reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
+                                    [l_ice]*len(esamp)))
+        return reaching
+
+            
+    @lru_cache(2**12)
+    def get_dNdEE(self, mother, daughter):
+        """Differential parent-->neutrino (mother--daughter) yield"""
+        ihijo = 20
+        e_grid = self.mceq.e_grid
+        delta = self.mceq.e_widths
+        x_range = e_grid[ihijo]/e_grid
+        rr = ParticleProperties.rr(mother, daughter)
+        dNdEE_edge = ParticleProperties.br_2body(mother, daughter)/(1-rr)
+        dN_mat = self.mceq.decays.get_d_matrix(
+            ParticleProperties.pdg_id[mother],
+            ParticleProperties.pdg_id[daughter])
+        dNdEE = dN_mat[ihijo]*e_grid/delta
+        logx = np.log10(x_range)
+        logx_width = -np.diff(logx)[0]
+        good = (logx + logx_width/2 < np.log10(1-rr)) & (x_range >= 5.e-2)
+
+        lower = dNdEE[good][-1]
+        dNdEE_interp = interpolate.interp1d(
+            np.concatenate([[1-rr], x_range[good]]),
+            np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='quadratic',
+            bounds_error=False, fill_value=(lower, 0.0))
+        return x_range, dNdEE, dNdEE_interp
+
+
+    @lru_cache(maxsize=2**12)
+    def prob_nomu(self, ecr, particle, prpl='ice_allm97_step_1'):
+        """Poisson probability of getting no muons"""
+        grid_sol = self.grid_sol(ecr, particle)
+        l_ice = self.geom.overburden(self.costh)
+        mu = self.get_solution('mu-', grid_sol) + self.get_solution('mu+', grid_sol)
+
+        fn = MuonProb(prpl)
+        coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
+        return np.exp(-np.trapz(mu*fn.prpl(coords),
+                                self.mceq.e_grid))
+
+
+    @lru_cache(2**12)
+    def get_integrand(self, categ, daughter, enu, accuracy, prpl, ecr=None, particle=None):
+        """flux*yield"""
+        grid_sol = self.grid_sol(ecr, particle) # MCEq solution (fluxes tabulated as a function of height)
+        esamp = self.esamp(enu, accuracy)
+        mothers = self.categ_to_mothers(categ, daughter)
+        nums = np.zeros((len(esamp),len(self.X_vec)))
+        dens = np.zeros((len(esamp),len(self.X_vec)))
+        for mother in mothers:
+            dNdEE = self.get_dNdEE(mother, daughter)[-1]
+            rescale_phi = self.get_rescale_phi(mother, grid_sol)
+            rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
+            if 'numu' in daughter:
+                # muon accompanies numu only
+                pnmsib = self.psib(mother, enu, accuracy, prpl)
+            else:
+                pnmsib = np.ones(len(esamp))
+            dnde = dNdEE(enu/esamp)/esamp
+            nums += (dnde * pnmsib)[:,None]*rescale_phi
+            dens += (dnde)[:,None]*rescale_phi
+
+        return nums, dens
+
+
     def grid_sol(self, ecr=None, particle=None):
         """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
         if ecr is not None:
@@ -245,102 +341,6 @@ class nuVeto(object):
         inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) / (ParticleProperties.lifetime_dict[mother]*rho[None,:])
         rescale_phi = dX[None,:]* inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
         return rescale_phi
-
-
-    @lru_cache(2**12)
-    def psib(self, mother, enu, accuracy, prpl):
-        """ returns the suppression factor due to the sibling muon
-        """
-        l_ice = self.geom.overburden(self.costh)
-        esamp = self.esamp(enu, accuracy)
-        fn = MuonProb(prpl)
-        if mother in ['D0', 'D0-bar']:
-            reaching = nuVeto.nbody(
-                resource_filename(
-                'nuVeto','data/decay_distributions/D0_numu.npz'),
-                esamp, enu, fn, l_ice)
-        elif mother in ['D+', 'D-']:
-            reaching = nuVeto.nbody(
-                resource_filename(
-                'nuVeto','data/decay_distributions/D+_numu.npz'),
-                esamp, enu, fn, l_ice)
-        elif mother in ['Ds+', 'Ds-']:
-            reaching = nuVeto.nbody(
-                resource_filename(
-                'nuVeto','data/decay_distributions/Ds_numu.npz'),
-                esamp, enu, fn, l_ice)
-        elif mother == 'K0L':
-            reaching = nuVeto.nbody(
-                resource_filename(
-                'nuVeto','data/decay_distributions/K0L_numu.npz'),
-                esamp, enu, fn, l_ice)
-        else:
-            # Assuming muon energy is E_parent - E_nu
-            reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
-                                    [l_ice]*len(esamp)))
-        return reaching
-
-            
-    @lru_cache(2**12)
-    def get_dNdEE(self, mother, daughter):
-        """Differential parent-->neutrino (mother--daughter) yield"""
-        ihijo = 20
-        e_grid = self.mceq.e_grid
-        delta = self.mceq.e_widths
-        x_range = e_grid[ihijo]/e_grid
-        rr = ParticleProperties.rr(mother, daughter)
-        dNdEE_edge = ParticleProperties.br_2body(mother, daughter)/(1-rr)
-        dN_mat = self.mceq.decays.get_d_matrix(
-            ParticleProperties.pdg_id[mother],
-            ParticleProperties.pdg_id[daughter])
-        dNdEE = dN_mat[ihijo]*e_grid/delta
-        logx = np.log10(x_range)
-        logx_width = -np.diff(logx)[0]
-        good = (logx + logx_width/2 < np.log10(1-rr)) & (x_range >= 5.e-2)
-
-        lower = dNdEE[good][-1]
-        dNdEE_interp = interpolate.interp1d(
-            np.concatenate([[1-rr], x_range[good]]),
-            np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='quadratic',
-            bounds_error=False, fill_value=(lower, 0.0))
-        return x_range, dNdEE, dNdEE_interp
-
-
-    @lru_cache(maxsize=2**12)
-    def prob_nomu(self, ecr, particle, prpl='ice_allm97_step_1'):
-        """Poisson probability of getting no muons"""
-        grid_sol = self.grid_sol(ecr, particle)
-        l_ice = self.geom.overburden(self.costh)
-        mu = self.get_solution('mu-', grid_sol) + self.get_solution('mu+', grid_sol)
-
-        fn = MuonProb(prpl)
-        coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
-        return np.exp(-np.trapz(mu*fn.prpl(coords),
-                                self.mceq.e_grid))
-
-
-    @lru_cache(2**12)
-    def get_integrand(self, categ, daughter, enu, accuracy, prpl, ecr=None, particle=None):
-        """flux*yield"""
-        grid_sol = self.grid_sol(ecr, particle) # MCEq solution (fluxes tabulated as a function of height)
-        esamp = self.esamp(enu, accuracy)
-        mothers = self.categ_to_mothers(categ, daughter)
-        nums = np.zeros((len(esamp),len(self.X_vec)))
-        dens = np.zeros((len(esamp),len(self.X_vec)))
-        for mother in mothers:
-            dNdEE = self.get_dNdEE(mother, daughter)[-1]
-            rescale_phi = self.get_rescale_phi(mother, grid_sol)
-            rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
-            if 'numu' in daughter:
-                # muon accompanies numu only
-                pnmsib = self.psib(mother, enu, accuracy, prpl)
-            else:
-                pnmsib = np.ones(len(esamp))
-            dnde = dNdEE(enu/esamp)/esamp
-            nums += (dnde * pnmsib)[:,None]*rescale_phi
-            dens += (dnde)[:,None]*rescale_phi
-
-        return nums, dens
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='ice_allm97_step_1', corr_only=False):
