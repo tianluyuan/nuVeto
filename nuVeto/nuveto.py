@@ -81,12 +81,6 @@ class nuVeto(object):
 
 
     @staticmethod
-    def is_prompt(categ):
-        """Is this category prompt?"""
-        return categ == 'pr' or categ[0] in ['D', 'L']
-
-
-    @staticmethod
     def categ_to_mothers(categ, daughter):
         """Get the parents for this category"""
         rcharge = '-' if 'anti' in daughter else '+'
@@ -156,10 +150,10 @@ class nuVeto(object):
         l_ice = self.geom.overburden(self.costh)
         esamp = self.esamp(enu, accuracy)
         fn = MuonProb(prpl)
-        if mother == 'D0' or mother == 'D0-bar':
+        if mother in ['D0', 'D0-bar']:
             reaching = nuVeto.nbody(resource_filename('nuVeto','data/decay_distributions/D0_numu.npz'),
                                     esamp, enu, fn, l_ice)
-        elif self.is_prompt(mother):
+        elif mother[0] in ['D', 'L']:
             reaching = nuVeto.nbody(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz'),
                                     esamp, enu, fn, l_ice)
         else:

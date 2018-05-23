@@ -9,11 +9,6 @@ except ImportError:
     import CRFluxModels as pm
 
 
-def test_is_prompt():
-    assert nuVeto.is_prompt('pr')
-    assert not nuVeto.is_prompt('conv')
-
-
 def test_categ():
     assert nuVeto.categ_to_mothers('conv', 'numu') == ['pi+', 'K+', 'K0L', 'mu-']
     assert nuVeto.categ_to_mothers('conv', 'antinumu') == ['pi-', 'K-', 'K0L', 'mu+']
@@ -60,7 +55,7 @@ def test_nuflux():
         sv = nuVeto(cth)
         sv.grid_sol()
         for kind in kinds:
-            thres = 1e7 if sv.is_prompt(kind) else 1e6
+            thres = 1e7 if kind.split('_') == 'pr' else 1e6
             ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
             theirs = sv.mceq.get_solution(kind)[ensel]
             mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
