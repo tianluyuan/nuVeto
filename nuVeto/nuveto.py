@@ -145,17 +145,31 @@ class nuVeto(object):
 
     @lru_cache(2**12)
     def psib(self, mother, enu, accuracy, prpl):
-        """ returns the suppresion factor due to the sibling muon
+        """ returns the suppression factor due to the sibling muon
         """
         l_ice = self.geom.overburden(self.costh)
         esamp = self.esamp(enu, accuracy)
         fn = MuonProb(prpl)
         if mother in ['D0', 'D0-bar']:
-            reaching = nuVeto.nbody(resource_filename('nuVeto','data/decay_distributions/D0_numu.npz'),
-                                    esamp, enu, fn, l_ice)
+            reaching = nuVeto.nbody(
+                resource_filename(
+                'nuVeto','data/decay_distributions/D0_numu.npz'),
+                esamp, enu, fn, l_ice)
         elif mother[0] in ['D', 'L']:
-            reaching = nuVeto.nbody(resource_filename('nuVeto','data/decay_distributions/D+_numu.npz'),
-                                    esamp, enu, fn, l_ice)
+            reaching = nuVeto.nbody(
+                resource_filename(
+                'nuVeto','data/decay_distributions/D+_numu.npz'),
+                esamp, enu, fn, l_ice)
+        elif mother == 'K0L':
+            reaching = nuVeto.nbody(
+                resource_filename(
+                'nuVeto','data/decay_distributions/K0L_numu.npz'),
+                esamp, enu, fn, l_ice)
+        elif mother in ['K+', 'K-']:
+            reaching = nuVeto.nbody(
+                resource_filename(
+                'nuVeto','data/decay_distributions/K+_numu.npz'),
+                esamp, enu, fn, l_ice)
         else:
             # Assuming muon energy is E_parent - E_nu
             reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
