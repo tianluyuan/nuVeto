@@ -143,12 +143,12 @@ class nuVeto(object):
             return 1-np.sum(pmu_mat*fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape)*l_ice], axis=-1)), axis=0)
 
 
+    @staticmethod
     @lru_cache(2**12)
-    def psib(self, mother, enu, accuracy, prpl):
+    def psib(l_ice, mother, enu, accuracy, prpl):
         """ returns the suppression factor due to the sibling muon
         """
-        l_ice = self.geom.overburden(self.costh)
-        esamp = self.esamp(enu, accuracy)
+        esamp = nuVeto.esamp(enu, accuracy)
         fn = MuonProb(prpl)
         if mother in ['D0', 'D0-bar']:
             reaching = nuVeto.nbody(
@@ -203,6 +203,17 @@ class nuVeto(object):
 
 
     @lru_cache(maxsize=2**12)
+    def grid_sol(self, ecr=None, particle=None):
+        """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
+        if ecr is not None:
+            self.mceq.set_single_primary_particle(ecr, particle)
+        else:
+            self.mceq.set_primary_model(*self.pmodel)
+        self.mceq.solve(int_grid=self.X_vec, grid_var="X")
+        return self.mceq.grid_sol
+
+
+    @lru_cache(maxsize=2**12)
     def prob_nomu(self, ecr, particle, prpl='ice_allm97_step_1'):
         """Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
@@ -216,20 +227,30 @@ class nuVeto(object):
 
 
     @lru_cache(maxsize=2**12)
+    def get_rescale_phi(self, mother, ecr=None, particle=None):
+        """Flux of the mother at all heights"""
+        grid_sol = self.grid_sol(ecr, particle) # MCEq solution (fluxes tabulated as a function of height)
+        dX = self.dX_vec*Units.gr/Units.cm**2
+        rho = self.mceq.density_model.X2rho(self.X_vec)*Units.gr/Units.cm**3
+        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) / (ParticleProperties.lifetime_dict[mother]*rho[None,:])
+        rescale_phi = dX[None,:]* inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
+        return rescale_phi
+
+
     def get_integrand(self, categ, daughter, enu, accuracy, prpl, ecr=None, particle=None):
         """flux*yield"""
-        grid_sol = self.grid_sol(ecr, particle) # MCEq solution (fluxes tabulated as a function of height)
         esamp = self.esamp(enu, accuracy)
         mothers = self.categ_to_mothers(categ, daughter)
         nums = np.zeros((len(esamp),len(self.X_vec)))
         dens = np.zeros((len(esamp),len(self.X_vec)))
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
-            rescale_phi = self.get_rescale_phi(mother, grid_sol)
+            rescale_phi = self.get_rescale_phi(mother, ecr, particle)
             rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
             if 'numu' in daughter:
                 # muon accompanies numu only
-                pnmsib = self.psib(mother, enu, accuracy, prpl)
+                pnmsib = self.psib(self.geom.overburden(self.costh),
+                                   mother, enu, accuracy, prpl)
             else:
                 pnmsib = np.ones(len(esamp))
             dnde = dNdEE(enu/esamp)/esamp
@@ -237,16 +258,6 @@ class nuVeto(object):
             dens += (dnde)[:,None]*rescale_phi
 
         return nums, dens
-
-
-    def grid_sol(self, ecr=None, particle=None):
-        """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
-        if ecr is not None:
-            self.mceq.set_single_primary_particle(ecr, particle)
-        else:
-            self.mceq.set_primary_model(*self.pmodel)
-        self.mceq.solve(int_grid=self.X_vec, grid_var="X")
-        return self.mceq.grid_sol
 
 
     def get_solution(self,
@@ -332,15 +343,6 @@ class nuVeto(object):
         if reduce_res:
             res = res[0]
         return res
-
-
-    def get_rescale_phi(self, mother, grid_sol):
-        """Flux of the mother at all heights"""
-        dX = self.dX_vec*Units.gr/Units.cm**2
-        rho = self.mceq.density_model.X2rho(self.X_vec)*Units.gr/Units.cm**3
-        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) / (ParticleProperties.lifetime_dict[mother]*rho[None,:])
-        rescale_phi = dX[None,:]* inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
-        return rescale_phi
 
 
     def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='ice_allm97_step_1', corr_only=False):
