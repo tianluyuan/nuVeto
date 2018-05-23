@@ -143,6 +143,100 @@ class nuVeto(object):
             return 1-np.sum(pmu_mat*fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape)*l_ice], axis=-1)), axis=0)
 
 
+    def get_solution(self,
+                     particle_name,
+                     grid_sol,
+                     mag=0.,
+                     grid_idx=None):
+        """Retrieves solution of the calculation on the energy grid.
+
+        Args:
+          particle_name (str): The name of the particle such, e.g.
+            ``total_mu+`` for the total flux spectrum of positive muons or
+            ``pr_antinumu`` for the flux spectrum of prompt anti muon neutrinos
+          mag (float, optional): 'magnification factor': the solution is
+            multiplied by ``sol`` :math:`= \\Phi \\cdot E^{mag}`
+          grid_idx (int, optional): if the integrator has been configured to save
+            intermediate solutions on a depth grid, then ``grid_idx`` specifies
+            the index of the depth grid for which the solution is retrieved. If
+            not specified the flux at the surface is returned
+          integrate (bool, optional): return averge particle number instead of
+          flux (multiply by bin width)
+
+        Returns:
+          (numpy.array): flux of particles on energy grid :attr:`e_grid`
+        """
+
+        # MCEq index conversion
+        ref = self.mceq.pname2pref
+        p_pdg = ParticleProperties.pdg_id[particle_name]
+        reduce_res = True
+
+        if grid_idx is None: # Surface only case
+            sol = np.array([grid_sol[-1]])
+            xv = np.array([self.X_vec[-1]])
+        elif isinstance(grid_idx, bool) and not grid_idx: # Whole solution case
+            sol = np.asarray(grid_sol)
+            xv = np.asarray(self.X_vec)
+            reduce_res = False
+        elif grid_idx >= len(self.mceq.grid_sol): # Surface only case
+            sol = np.array([grid_sol[-1]])
+            xv = np.array([self.X_vec[-1]])
+        else: # Particular height case
+            sol = np.array([grid_sol[grid_idx]])
+            xv = np.array([self.X_vec[grid_idx]])
+
+        # MCEq solution for particle
+        direct = sol[:,ref[particle_name].lidx():
+                     ref[particle_name].uidx()]
+        res = np.zeros(direct.shape)
+        rho_air = self.mceq.density_model.X2rho(xv)
+
+        # meson decay length
+        decayl = ((self.mceq.e_grid * Units.GeV)
+                  / ParticleProperties.mass_dict[particle_name]
+                  * ParticleProperties.lifetime_dict[particle_name]
+                  / Units.cm)
+
+        # number of targets per cm2
+        ndens = rho_air*Units.Na/Units.mol_air
+        for prim in self.projectiles():
+            prim_flux = sol[:,ref[prim].lidx():
+                            ref[prim].uidx()]
+            prim_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[prim])
+            try:
+                int_yields = self.mceq.y.get_y_matrix(
+                    ParticleProperties.pdg_id[prim],
+                    p_pdg)
+                res += np.sum(int_yields[None,:,:]*prim_flux[:,None,:]*prim_xs[None,None,:]*ndens[:,None,None], axis=2)
+            except KeyError as e:
+                continue
+
+        res *= decayl[None,:]
+        # combine with direct
+        res[direct != 0] = direct[direct != 0]
+
+        if particle_name[:-1] == 'mu':
+            for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
+                res += sol[:,ref[_].lidx():
+                           ref[_].uidx()]
+
+        res *= self.mceq.e_grid[None,:] ** mag
+
+        if reduce_res:
+            res = res[0]
+        return res
+
+
+    def get_rescale_phi(self, mother, grid_sol):
+        """Flux of the mother at all heights"""
+        dX = self.dX_vec*Units.gr/Units.cm**2
+        rho = self.mceq.density_model.X2rho(self.X_vec)*Units.gr/Units.cm**3
+        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) / (ParticleProperties.lifetime_dict[mother]*rho[None,:])
+        rescale_phi = dX[None,:]* inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
+        return rescale_phi
+
+
     @lru_cache(2**12)
     def psib(self, mother, enu, accuracy, prpl):
         """ returns the suppression factor due to the sibling muon
@@ -226,102 +320,10 @@ class nuVeto(object):
                                 self.mceq.e_grid))
 
 
-    def get_solution(self,
-                     particle_name,
-                     grid_sol,
-                     mag=0.,
-                     grid_idx=None):
-        """Retrieves solution of the calculation on the energy grid.
-
-        Args:
-          particle_name (str): The name of the particle such, e.g.
-            ``total_mu+`` for the total flux spectrum of positive muons or
-            ``pr_antinumu`` for the flux spectrum of prompt anti muon neutrinos
-          mag (float, optional): 'magnification factor': the solution is
-            multiplied by ``sol`` :math:`= \\Phi \\cdot E^{mag}`
-          grid_idx (int, optional): if the integrator has been configured to save
-            intermediate solutions on a depth grid, then ``grid_idx`` specifies
-            the index of the depth grid for which the solution is retrieved. If
-            not specified the flux at the surface is returned
-          integrate (bool, optional): return averge particle number instead of
-          flux (multiply by bin width)
-
-        Returns:
-          (numpy.array): flux of particles on energy grid :attr:`e_grid`
-        """
-
-        # MCEq index conversion
-        ref = self.mceq.pname2pref
-        p_pdg = ParticleProperties.pdg_id[particle_name]
-        reduce_res = True
-
-        if grid_idx is None: # Surface only case
-            sol = np.array([grid_sol[-1]])
-            xv = np.array([self.X_vec[-1]])
-        elif isinstance(grid_idx, bool) and not grid_idx: # Whole solution case
-            sol = np.asarray(grid_sol)
-            xv = np.asarray(self.X_vec)
-            reduce_res = False
-        elif grid_idx >= len(self.mceq.grid_sol): # Surface only case
-            sol = np.array([grid_sol[-1]])
-            xv = np.array([self.X_vec[-1]])
-        else: # Particular height case
-            sol = np.array([grid_sol[grid_idx]])
-            xv = np.array([self.X_vec[grid_idx]])
-
-        # MCEq solution for particle
-        direct = sol[:,ref[particle_name].lidx():
-                     ref[particle_name].uidx()]
-        res = np.zeros(direct.shape)
-        rho_air = np.array([self.mceq.density_model.X2rho(xv_i) for xv_i in xv])
-
-        # meson decay length
-        decayl = ((self.mceq.e_grid * Units.GeV)
-                  / ParticleProperties.mass_dict[particle_name]
-                  * ParticleProperties.lifetime_dict[particle_name]
-                  / Units.cm)
-
-        # number of targets per cm2
-        ndens = rho_air*Units.Na/Units.mol_air
-        for prim in self.projectiles():
-            prim_flux = sol[:,ref[prim].lidx():
-                            ref[prim].uidx()]
-            prim_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[prim])
-            try:
-                int_yields = self.mceq.y.get_y_matrix(
-                    ParticleProperties.pdg_id[prim],
-                    p_pdg)
-                res += np.sum(int_yields[None,:,:]*prim_flux[:,None,:]*prim_xs[None,None,:]*ndens[:,None,None], axis=2)
-            except KeyError as e:
-                continue
-
-        res *= decayl[None,:]
-        # combine with direct
-        res[direct != 0] = direct[direct != 0]
-
-        if particle_name[:-1] == 'mu':
-            for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
-                res += sol[:,ref[_].lidx():
-                           ref[_].uidx()]
-
-        res *= self.mceq.e_grid[None,:] ** mag
-
-        if reduce_res:
-            res = res[0]
-        return res
-
-
-    def get_rescale_phi(self, mother, grid_sol):
-        """Flux of the mother at all heights"""
-        dX = self.dX_vec*Units.gr/Units.cm**2
-        rho = self.mceq.density_model.X2rho(self.X_vec)*Units.gr/Units.cm**3
-        inv_decay_length_array = (ParticleProperties.mass_dict[mother] / (self.mceq.e_grid[:,None] * Units.GeV)) / (ParticleProperties.lifetime_dict[mother]*rho[None,:])
-        rescale_phi = dX[None,:]* inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
-        return rescale_phi
-
-
-    def get_integrand(self, categ, daughter, grid_sol, enu, accuracy, prpl):
+    @lru_cache(2**12)
+    def get_integrand(self, categ, daughter, enu, accuracy, prpl, ecr=None, particle=None):
         """flux*yield"""
+        grid_sol = self.grid_sol(ecr, particle) # MCEq solution (fluxes tabulated as a function of height)
         esamp = self.esamp(enu, accuracy)
         mothers = self.categ_to_mothers(categ, daughter)
         nums = np.zeros((len(esamp),len(self.X_vec)))
@@ -356,9 +358,8 @@ class nuVeto(object):
         passed = 0
         total = 0
         if corr_only:
-            grid_sol = self.grid_sol() # MCEq solution (fluxes tabulated as a function of height)
             # sum performs the dX integral
-            nums, dens = self.get_integrand(categ, daughter, grid_sol, enu, accuracy, prpl)
+            nums, dens = self.get_integrand(categ, daughter, enu, accuracy, prpl)
             num = np.sum(nums, axis=1)
             den = np.sum(dens, axis=1)
             passed = integrate.trapz(num, esamp)
@@ -402,15 +403,12 @@ class nuVeto(object):
                 pnmarr[pnmarr<0] = 0
                 # print pnmarr
 
-                # Run MCEq to get the yield distribution of muons given some parent and neutrino energy
-                grid_sol = self.grid_sol(ecr, particle)
-
                 num_ecr = 0 # single entry in nums
                 den_ecr = 0 # single entry in dens
 
                 # dEp
                 # integral in Ep
-                nums_ecr, dens_ecr = self.get_integrand(categ, daughter, grid_sol, enu, accuracy, prpl)
+                nums_ecr, dens_ecr = self.get_integrand(categ, daughter, enu, accuracy, prpl, ecr, particle)
                 num_ecr = integrate.trapz(np.sum(nums_ecr, axis=1)*pnmarr, esamp)
                 den_ecr = integrate.trapz(np.sum(dens_ecr, axis=1), esamp)
 
