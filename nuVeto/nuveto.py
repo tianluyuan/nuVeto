@@ -143,6 +143,16 @@ class nuVeto(object):
             return 1-np.sum(pmu_mat*fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape)*l_ice], axis=-1)), axis=0)
 
 
+    def grid_sol(self, ecr=None, particle=None):
+        """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
+        if ecr is not None:
+            self.mceq.set_single_primary_particle(ecr, particle)
+        else:
+            self.mceq.set_primary_model(*self.pmodel)
+        self.mceq.solve(int_grid=self.X_vec, grid_var="X")
+        return self.mceq.grid_sol
+
+
     def get_solution(self,
                      particle_name,
                      grid_sol,
@@ -294,17 +304,6 @@ class nuVeto(object):
             np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='quadratic',
             bounds_error=False, fill_value=(lower, 0.0))
         return x_range, dNdEE, dNdEE_interp
-
-
-    @lru_cache(maxsize=2**12)
-    def grid_sol(self, ecr=None, particle=None):
-        """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
-        if ecr is not None:
-            self.mceq.set_single_primary_particle(ecr, particle)
-        else:
-            self.mceq.set_primary_model(*self.pmodel)
-        self.mceq.solve(int_grid=self.X_vec, grid_var="X")
-        return self.mceq.grid_sol
 
 
     @lru_cache(maxsize=2**12)
