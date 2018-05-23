@@ -27,7 +27,7 @@ from nuVeto.utils import Units, ParticleProperties, MuonProb, Geometry, amu, cen
 from nuVeto.barr_uncertainties import BARR, barr_unc
 
 class nuVeto(object):
-    """Class for computing the neutrino passing fraction i.e. (1-(Self veto probability))"""
+    """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))"""
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m,
@@ -44,7 +44,7 @@ class nuVeto(object):
             pmodel (tuple(CR model class, arguments)): CR Flux
             hadr (str): hadronic interaction model
             barr_mods: barr parameters
-            depth (float): the depth at which the self veto probability is computed below the ice
+            depth (float): the depth at which the veto probability is computed below the ice
         """
         self.costh = costh
         self.pmodel = pmodel
