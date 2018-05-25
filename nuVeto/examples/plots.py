@@ -17,6 +17,21 @@ except ImportError:
     import CRFluxModels as pm
 
 
+def tex(inp):
+    if isinstance(inp, str):
+        categ, daughter = inp.split('_')
+        daughter_trans = {'numu':r'$\nu_\mu$',
+                          'nue':r'$\nu_e$',
+                          'antinumu':r'$\overline{\nu}_\mu$',
+                          'antinue':r'$\overline{\nu}_e$'}
+        return r'{} {}'.format(categ, daughter_trans[daughter])
+    else:
+        if inp > 1:
+            return r'$E_\nu={:.2g}$'.format(inp)
+        else:
+            return r'$\cos \theta_z={:.2g}$'.format(inp)
+
+    
 # passing fraction tests
 def fn(slice_val):
     """ decide which fn to run depending on slice_val
@@ -121,20 +136,24 @@ def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
 
 def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='ice_allm97_step_1', corr_only=False):
     hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
+    hadrs=['DPMJET-III', 'SIBYLL2.3c']
     echoice = exthp.corr if corr_only else exthp.passrates
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
-        plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+        plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--',
+                 label='Analytic approx. {} {}'.format(tex(kind), tex(slice_val)))
     else:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
-        plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+        plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--',
+                 label='Analytic approx. {} {}'.format(tex(kind), tex(slice_val)))
 
     for hadr in hadrs:
         fn(slice_val)(slice_val, kind, pmodel, hadr, prpl=prpl, corr_only=corr_only,
-                      label='{} {} {:.2g}'.format(hadr, kind, slice_val))
+                      label='{} {} {}'.format(hadr, tex(kind), tex(slice_val)))
     plt.legend()
+    plt.tight_layout(0.3)
 
 
 def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', corr_only=False):
@@ -145,14 +164,16 @@ def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
-        plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+        plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--',
+                 label='Analytic approx. {} {}'.format(tex(kind), tex(slice_val)))
     else:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
-        plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--', label='Analytic approx. {} {:.2g}'.format(kind, slice_val))
+        plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--',
+                 label='Analytic approx. {} {}'.format(tex(kind), tex(slice_val)))
     for pmodel in pmodels:
         pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
-                     label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
+                     label='{} {} {}'.format(pmodel[2], tex(kind), tex(slice_val)))
     plt.legend()
 
 
@@ -174,7 +195,7 @@ def density_models(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_
               ('MSIS00_IC',('SouthPole', 'January'))]
     for model in models:
         pr = fn(slice_val)(slice_val, kind, density=model, hadr=hadr, prpl=prpl, fraction=fraction,
-                           label='{} {} {} {} {:.2g}'.format(model[0], model[1][0], model[1][1], kind, slice_val))
+                           label='{} {} {} {} {}'.format(model[0], model[1][0], model[1][1], tex(kind), tex(slice_val)))
     plt.legend()
 
 
@@ -187,22 +208,24 @@ def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H
     fraction = 'eff' in corsika_file
     eff, elow, eup, xedges, yedges = cfile[kind]
     cos_theta = centers(yedges)[cos_theta_bin]
+    clean = eff[:,cos_theta_bin]>0
+    xcenters = 10**centers(xedges)[clean]
 
-    pr = plt.errorbar(10**centers(xedges), eff[:,cos_theta_bin],
-                     xerr=np.asarray(zip(10**centers(xedges)-10**xedges[:-1],
-                                         10**xedges[1:]-10**centers(xedges))).T,
-                     yerr=np.asarray(zip(elow[:,cos_theta_bin],
-                                         eup[:,cos_theta_bin])).T,
-                     label='CORSIKA {} {:.2g}'.format(kind, cos_theta),
+    pr = plt.errorbar(xcenters, eff[:,cos_theta_bin][clean],
+                     xerr=np.asarray(zip(xcenters-10**xedges[:-1][clean],
+                                         10**xedges[1:][clean]-xcenters)).T,
+                     yerr=np.asarray(zip(elow[:,cos_theta_bin][clean],
+                                         eup[:,cos_theta_bin][clean])).T,
+                     label='CORSIKA {} {}'.format(tex(kind), tex(cos_theta)),
                      fmt='.')
     if plot_legacy_veto_lines and fraction:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cos_theta))
         plt.plot(ens, exthp.passrates(kind)(ens, emu, cos_theta), 'k--',
-                 label='Analytic approx. {} {:.2g}'.format(kind, cos_theta))
+                 label='Analytic approx. {} {}'.format(tex(kind), tex(cos_theta)))
     if plot_nuveto_lines:
         pr_enu(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, density=density,
-               fraction=fraction, label='{} {} {:.2g}'.format(hadr, kind, cos_theta), color=pr[0].get_color())
+               fraction=fraction, label='{} {} {}'.format(hadr, tex(kind), tex(cos_theta)), color=pr[0].get_color())
     plt.legend()
 
 
@@ -387,29 +410,34 @@ def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
 
 
 def elbert_only(slice_val=1., kind='conv_numu'):
+    plt.figure()
     if 'nue' in kind:
         echoices = [exthp.passrates]
-        names = ['uncorr.']
+        names = [r'$\cal P_{\rm pass}^{\rm uncor, GJKvS}$']
     else:
         echoices = [exthp.corr, exthp.passrates]
-        names = ['corr.', 'corr.*uncorr.']
+        names = [r'$\cal P_{\rm pass}^{\rm cor, SGRS}$',
+                 r'$\cal P_{\rm pass}^{\rm cor, SGRS} \cal P_{\rm pass}^{\rm uncor, GJKvS}$']
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
         for echoice, name in zip(echoices,names):
-            plt.plot(cths, echoice(kind)(slice_val, emu, cths), '--', label='{} {} {:.2g}'.format(name, kind, slice_val))
+            plt.plot(cths, echoice(kind)(slice_val, emu, cths),
+                     '--', label=name)
     else:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
         for echoice, name in zip(echoices,names):
-            plt.plot(ens, echoice(kind)(ens, emu, slice_val), '--', label='{} {} {:.2g}'.format(name, kind, slice_val))
-
+            plt.plot(ens, echoice(kind)(ens, emu, slice_val), '--',
+                     label=name)
+    plt.title(r'{}, {}'.format(tex(kind), tex(slice_val)))
     plt.ylim(0., 1.)
     plt.ylabel(r'Passing fraction')
     plt.xlim(10**3, 10**7)
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$ [GeV]')
     plt.legend()
+    plt.tight_layout(0.3)
 
 
 def hist_preach(infile, plotdir=None):
