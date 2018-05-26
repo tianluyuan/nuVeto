@@ -64,14 +64,13 @@ def test_pnmshower():
 
 
 def test_pnmsib():
-    enus = np.logspace(3, 7, 20)
-    l_ices = np.linspace(1500, 100000, 10)
+    enus = np.logspace(3, 7, 5)
+    l_ices = np.linspace(1500, 100000, 5)
     mothers = 'pi+ K+ K0L D+ D0 Ds+'.split()
     for enu in enus:
         for l_ice in l_ices:
             for mother in mothers:
                 psibs = nuVeto.psib(l_ice, mother, enu, 3, 'ice_allm97_step_1')
-                return psibs
                 assert np.all(0 <= psibs) and np.all(psibs <= 1)
 
 
