@@ -42,7 +42,7 @@ def fn(slice_val):
 def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
-    ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,40)
+    ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,39)
     passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth, density, accuracy, fraction, prpl, corr_only) for en in ens]
     if fraction:
         passed_fn = interpolate.interp1d(ens, passed, kind='quadratic')
