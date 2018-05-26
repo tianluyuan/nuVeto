@@ -161,20 +161,22 @@ def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
     echoice = exthp.corr if corr_only else exthp.passrates
+    sgrs = r'$\cal P_{\rm pass}^{\rm cor, SGRS}$ '+'{} {}'.format(tex(kind), tex(slice_val))
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
         plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--',
-                 label='Analytic approx. {} {}'.format(tex(kind), tex(slice_val)))
+                 label=sgrs)
     else:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--',
-                 label='Analytic approx. {} {}'.format(tex(kind), tex(slice_val)))
+                 label=sgrs)
     for pmodel in pmodels:
         pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
                      label='{} {} {}'.format(pmodel[2], tex(kind), tex(slice_val)))
     plt.legend()
+    plt.tight_layout(0.3)
 
 
 def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', fraction=True):
