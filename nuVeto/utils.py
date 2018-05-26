@@ -93,7 +93,9 @@ class MuonProb(object):
 
     
     def prpl(self, coord):
-        return self.mu_int(coord)
+        pdets = self.mu_int(coord)
+        pdets[pdets > 1] = 1
+        return pdets
         
     
 class Geometry(EarthGeometry):

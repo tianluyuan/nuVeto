@@ -1,8 +1,11 @@
+import os
+from pkg_resources import resource_filename
 import numpy as np
+from scipy import interpolate
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import passing, fluxes, nuVeto
-from nuVeto.utils import Geometry, Units
+from nuVeto.utils import Geometry, Units, amu, MuonProb
 try:
     import CRFluxModels.CRFluxModels as pm
 except ImportError:
@@ -33,6 +36,43 @@ def test_overburden():
 
     center = Geometry(geom.r_E)
     assert np.all(center.overburden(cosths) == geom.r_E/Units.m)
+
+
+def test_pdet():
+    l_ice = np.linspace(1000, 200000, 500)
+    emui = np.logspace(3, 8, 500)*Units.GeV
+    coords = np.stack(np.meshgrid(emui, l_ice), axis=-1)
+    root, subdir, fpaths = os.walk(resource_filename('nuVeto','data/prpl/')).next()
+    for fpath in fpaths:
+        muprob = MuonProb(os.path.splitext(fpath)[0])
+        pdets = muprob.prpl(coords)
+        assert np.all(pdets >=0) and np.all(pdets <=1)
+    
+
+def test_pnmshower():
+    cths = [0.1, 0.3, 0.8]
+    particle = 14
+    ecrs = amu(particle)*np.logspace(3, 10, 20)
+    ecrs_fine = amu(particle)*np.logspace(3, 10, 1000)
+    for cth in cths:
+        sv = nuVeto(cth)
+        nmu = [sv.nmu(ecr, particle) for ecr in ecrs]
+        nmufn = interpolate.interp1d(ecrs, nmu, kind='linear',
+                                     assume_sorted=True, fill_value=(0,np.nan))
+        pnmshower = np.exp(-nmufn(ecrs_fine))
+        assert np.all(0 <= pnmshower) and np.all(pnmshower <= 1)
+
+
+def test_pnmsib():
+    enus = np.logspace(3, 7, 20)
+    l_ices = np.linspace(1500, 100000, 10)
+    mothers = 'pi+ K+ K0L D+ D0 Ds+'.split()
+    for enu in enus:
+        for l_ice in l_ices:
+            for mother in mothers:
+                psibs = nuVeto.psib(l_ice, mother, enu, 3, 'ice_allm97_step_1')
+                return psibs
+                assert np.all(0 <= psibs) and np.all(psibs <= 1)
 
 
 def test_elbert():

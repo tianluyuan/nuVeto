@@ -214,7 +214,7 @@ class nuVeto(object):
 
 
     @lru_cache(maxsize=2**12)
-    def prob_nomu(self, ecr, particle, prpl='ice_allm97_step_1'):
+    def nmu(self, ecr, particle, prpl='ice_allm97_step_1'):
         """Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
@@ -222,8 +222,7 @@ class nuVeto(object):
 
         fn = MuonProb(prpl)
         coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
-        return np.exp(-np.trapz(mu*fn.prpl(coords),
-                                self.mceq.e_grid))
+        return np.trapz(mu*fn.prpl(coords), self.mceq.e_grid)
 
 
     @lru_cache(maxsize=2**12)
@@ -381,12 +380,12 @@ class nuVeto(object):
             ecrs = amu(particle)*np.logspace(2, 10, 10*accuracy)
 
             # pnm --> probability of no muon (just a poisson probability)
-            pnm = [self.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
+            nmu = [self.nmu(ecr, particle, prpl) for ecr in ecrs]
 
-            # pnmfn --> fine grid interpolation of pnm
-            pnmfn = interpolate.interp1d(ecrs, pnm, kind='cubic',
+            # nmufn --> fine grid interpolation of pnm
+            nmufn = interpolate.interp1d(ecrs, nmu, kind='linear',
                                          assume_sorted=True, bounds_error=False,
-                                         fill_value=(1,np.nan))
+                                         fill_value=(0,np.nan))
             # nums --> numerator
             nums = []
             # dens --> denominator
@@ -398,7 +397,7 @@ class nuVeto(object):
                 # phim2 --> units of flux * m^2 (look it up in the units)
                 cr_flux = pmodel.nucleus_flux(particle, ecr.item())*Units.phim2
                 # poisson exp(-Nmu) [last term in eq 12]
-                pnmarr = pnmfn(ecr-esamp)
+                pnmarr = np.exp(-nmufn(ecr-esamp))
                 # cubic splining doesn't enforce 0-1 bounds
                 pnmarr[pnmarr>1] = 1
                 pnmarr[pnmarr<0] = 0

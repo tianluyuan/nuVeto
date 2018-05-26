@@ -399,11 +399,11 @@ def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
     ecrs = amu(particle)*np.logspace(3, 10, 20)
     ecrs_fine = amu(particle)*np.logspace(3, 10, 1000)
     sv = nuVeto(cos_theta, pmodel, hadr)
-    pnm = [sv.prob_nomu(ecr, particle, prpl) for ecr in ecrs]
-    pnmfn = interpolate.interp1d(ecrs, pnm, kind='cubic',
-                                 assume_sorted=True, fill_value=(1,np.nan))
-    plt.semilogx(ecrs_fine, pnmfn(ecrs_fine), label='interpolated')
-    plt.semilogx(ecrs, pnm, 'ko')
+    nmu = [sv.nmu(ecr, particle, prpl) for ecr in ecrs]
+    nmufn = interpolate.interp1d(ecrs, nmu, kind='linear',
+                                 assume_sorted=True, fill_value=(0,np.nan))
+    plt.semilogx(ecrs_fine, np.exp(-nmufn(ecrs_fine)), label='interpolated')
+    plt.semilogx(ecrs, np.exp(-np.asarray(nmu)), 'ko')
     plt.xlabel(r'$E_{CR} [GeV]$')
     plt.ylabel(r'$e^{-N_\mu}$')
     plt.legend()
