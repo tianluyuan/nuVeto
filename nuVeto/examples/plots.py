@@ -88,7 +88,7 @@ def depth(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
         fn(slice_val)(slice_val, kind, pmodel, hadr,
                       depth=depth, fraction=fraction,
                       label='depth {:.0f} m'.format(depth/Units.m))
-    plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
+    plt.title('{} {} {}'.format(hadr, tex(kind), tex(slice_val)))
     plt.legend()
         
 
@@ -97,7 +97,7 @@ def brackets(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'
     uppers = [BARR[param].error for param in params]
     lowers = [-BARR[param].error for param in params]
     all_barr_mods = [tuple(zip(params, uppers)), tuple(zip(params, lowers))]
-    pr = fn(slice_val)(slice_val, kind, pmodel, hadr, label='{} {:.2g}'.format(kind, slice_val))
+    pr = fn(slice_val)(slice_val, kind, pmodel, hadr, label='{} {}'.format(tex(kind), tex(slice_val)))
     for barr_mods in all_barr_mods:
         fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, fraction=fraction,
                       color=pr.get_color(), alpha=1-abs(barr_mods[0][-1]))
@@ -106,7 +106,7 @@ def brackets(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'
 def samples(slice_val=1, kind='numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
                  seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
-    pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label='{} {:.2g}'.format(kind, slice_val))
+    pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label='{} {}'.format(tex(kind), tex(slice_val)))
     np.random.seed(seed)
     for i in xrange(nsamples-1):
         # max(-1, throw) prevents throws that dip below -100%
@@ -123,14 +123,14 @@ def accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'
         fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr,
                       accuracy=accuracy, fraction=fraction,
                       label='accuracy {}'.format(accuracy))
-    plt.title('{} {} {:.2g}'.format(hadr, kind, slice_val))
+    plt.title('{} {} {}'.format(hadr, tex(kind), tex(slice_val)))
     plt.legend()
 
 
 def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', compare=(None, 'ice_allm97_step_1', 'sigmoid_0.75_0.1')):
     for prpl in compare:
         fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
-                      label='{} {} {:.2g}'.format(prpl, kind, slice_val))
+                      label='{} {} {}'.format(prpl, tex(kind), tex(slice_val)))
     plt.legend()
 
 
@@ -184,7 +184,7 @@ def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_
                (pm.ZatsepinSokolskaya, 'default', 'ZS')]
     for pmodel in pmodels:
         pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
-                           label='{} {} {:.2g}'.format(pmodel[2], kind, slice_val))
+                           label='{} {} {}'.format(pmodel[2], tex(kind), tex(slice_val)))
     plt.legend()
 
 
@@ -348,7 +348,7 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
         mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)
         calc = sv.get_solution(parent, gsol, mag, grid_idx=idx)
         pout = plt.loglog(sv.mceq.e_grid, mceq,
-                          label='X={:.3g} km'.format(
+                          label='$X={:.3g}$ km'.format(
                               float(sv.mceq.density_model.X2h(x_val))/1e5))
         plt.loglog(sv.mceq.e_grid, calc, '--',
                    color=pout[0].get_color())
@@ -357,7 +357,8 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
     plt.ylabel(r'$E_p^{} \Phi_p$'.format(mag))
     plt.ylim(ymin=1e-20)
     plt.legend()
-    plt.title('{} {:.2g}'.format(parent, cos_theta))
+    plt.title('{} {}'.format(parent, tex(cos_theta)))
+    plt.tight_layout(0.3)
     # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
 
@@ -369,7 +370,7 @@ def nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
         plt.sca(axs[0])
         mine = np.asarray([fluxes(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only)[1] for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
-                      label='{} {} {:.2g}'.format(hadr, kind, cos_theta))
+                      label='{} {} {}'.format(hadr, tex(kind), tex(cos_theta)))
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
         plt.loglog()
         plt.xlim(*np.power(10,logxlim))
