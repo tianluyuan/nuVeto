@@ -400,10 +400,6 @@ class nuVeto(object):
                 cr_flux = pmodel.nucleus_flux(particle, ecr.item())*Units.phim2
                 # poisson exp(-Nmu) [last term in eq 12]
                 pnmarr = np.exp(-nmufn(ecr-esamp))
-                # cubic splining doesn't enforce 0-1 bounds
-                pnmarr[pnmarr>1] = 1
-                pnmarr[pnmarr<0] = 0
-                # print pnmarr
 
                 num_ecr = 0 # single entry in nums
                 den_ecr = 0 # single entry in dens
