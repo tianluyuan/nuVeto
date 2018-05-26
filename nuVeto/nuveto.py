@@ -346,7 +346,7 @@ class nuVeto(object):
         return res
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=3, prpl='ice_allm97_step_1', corr_only=False):
+    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
         """Returns the flux and passing fraction
         for a particular neutrino energy, flux, and p_light
         """
