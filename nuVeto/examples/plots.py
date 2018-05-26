@@ -31,6 +31,13 @@ def tex(inp):
         else:
             return r'$\cos \theta_z={:.2g}$'.format(inp)
 
+
+def extlabel(corr_only):
+    if corr_only:
+        return r'$\cal P_{\rm pass}^{\rm cor, SGRS}$'
+    else:
+        return r'$\cal P_{\rm pass}^{\rm cor, SGRS} \cal P_{\rm pass}^{\rm uncor, GJKvS}$'        
+        
     
 # passing fraction tests
 def fn(slice_val):
@@ -156,22 +163,22 @@ def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl=
     plt.tight_layout(0.3)
 
 
-def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', corr_only=False):
+def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='DPMJET-III', prpl='ice_allm97_step_1', corr_only=False):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
     echoice = exthp.corr if corr_only else exthp.passrates
-    sgrs = r'$\cal P_{\rm pass}^{\rm cor, SGRS}$ '+'{} {}'.format(tex(kind), tex(slice_val))
+    label = extlabel(corr_only)+' {} {}'.format(tex(kind), tex(slice_val))
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
         plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--',
-                 label=sgrs)
+                 label=label)
     else:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--',
-                 label=sgrs)
+                 label=label)
     for pmodel in pmodels:
         pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
                      label='{} {} {}'.format(pmodel[2], tex(kind), tex(slice_val)))
