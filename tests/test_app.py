@@ -100,3 +100,15 @@ def test_nuflux():
 
             print kind, cth, theirs/mine
             assert np.all(np.abs(theirs/mine - 1) < 0.09)
+
+
+def test_nonneg():
+    cths = [0.9, 1]
+    enus = [6.2e6, 1e7]
+    kinds = ['conv_numu', 'conv_nue', 'pr_numu', 'pr_nue']
+    for cth in cths:
+        sv = nuVeto(cth)
+        for kind in kinds:
+            for enu in enus:
+                n, d = sv.get_fluxes(enu, kind)
+                assert n > 0 and d > 0

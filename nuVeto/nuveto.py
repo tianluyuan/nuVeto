@@ -75,7 +75,7 @@ class nuVeto(object):
         self.mceq._init_default_matrices(skip_D_matrix=True)
 
         X_vec = np.logspace(np.log10(2e-3),
-                            np.log10(self.mceq.density_model.max_X), 11)
+                            np.log10(self.mceq.density_model.max_X), 12)
         self.dX_vec = np.diff(X_vec)
         self.X_vec = 10**centers(np.log10(X_vec))
 
@@ -197,10 +197,10 @@ class nuVeto(object):
         good = (logx + logx_width/2 < np.log10(1-rr)) & (x_range >= 5.e-2)
 
         lower = dNdEE[good][-1]
-        dNdEE_interp = interpolate.interp1d(
-            np.concatenate([[1-rr], x_range[good]]),
-            np.concatenate([[dNdEE_edge], dNdEE[good]]), kind='quadratic',
-            bounds_error=False, fill_value=(lower, 0.0))
+        dNdEE_interp = lambda x_: interpolate.pchip(
+            np.concatenate([[1-rr], x_range[good]])[::-1],
+            np.concatenate([[dNdEE_edge], dNdEE[good]])[::-1],
+            extrapolate=True)(x_) * np.heaviside(1-rr-x_, 1)
         return x_range, dNdEE, dNdEE_interp
 
 
@@ -247,13 +247,29 @@ class nuVeto(object):
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, ecr, particle)
-            rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
+            # DEBUG
+            # from matplotlib import pyplot as plt
+            # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),
+            #          np.log(rescale_phi[:,0][rescale_phi[:,0]>0]))
+            # rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
+            rescale_phi = np.exp(np.array([interpolate.interp1d(
+                np.log(self.mceq.e_grid[rescale_phi[:,i]>0]),
+                np.log(rescale_phi[:,i][rescale_phi[:,i]>0]),
+                kind='linear', fill_value='extrapolate')(np.log(esamp)) for i in xrange(rescale_phi.shape[1])])).T
+            # DEBUG
+            # print rescale_phi.min(), rescale_phi.max()
+            # print np.log(esamp)
+            # plt.plot(np.log(esamp),
+            #          np.log(rescale_phi[:,0]), label='intp')
+            # plt.legend()
+            # import pdb
+            # pdb.set_trace()
             if 'numu' in daughter:
                 # muon accompanies numu only
                 pnmsib = self.psib(self.geom.overburden(self.costh),
                                    mother, enu, accuracy, prpl)
             else:
-                pnmsib = np.ones(len(esamp))
+                pnmsib = np.ones(len(esamp))            
             dnde = dNdEE(enu/esamp)/esamp
             nums += (dnde * pnmsib)[:,None]*rescale_phi
             dens += (dnde)[:,None]*rescale_phi
