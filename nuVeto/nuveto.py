@@ -251,11 +251,13 @@ class nuVeto(object):
             # from matplotlib import pyplot as plt
             # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),
             #          np.log(rescale_phi[:,0][rescale_phi[:,0]>0]))
-            # rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', fill_value='extrapolate')(esamp) for i in xrange(rescale_phi.shape[1])]).T
+            # rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', bounds_error=False, fill_value=0)(esamp) for i in xrange(rescale_phi.shape[1])]).T
+            ###
+            # TODO: optimize to only run when esamp[0] is non-zero
             rescale_phi = np.exp(np.array([interpolate.interp1d(
                 np.log(self.mceq.e_grid[rescale_phi[:,i]>0]),
                 np.log(rescale_phi[:,i][rescale_phi[:,i]>0]),
-                kind='linear', fill_value='extrapolate')(np.log(esamp)) for i in xrange(rescale_phi.shape[1])])).T
+                kind='quadratic', bounds_error=False, fill_value=-np.inf)(np.log(esamp)) for i in xrange(rescale_phi.shape[1])])).T
             # DEBUG
             # print rescale_phi.min(), rescale_phi.max()
             # print np.log(esamp)
@@ -264,6 +266,7 @@ class nuVeto(object):
             # plt.legend()
             # import pdb
             # pdb.set_trace()
+            ###
             if 'numu' in daughter:
                 # muon accompanies numu only
                 pnmsib = self.psib(self.geom.overburden(self.costh),
