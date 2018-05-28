@@ -292,7 +292,7 @@ def fig_extsv():
 
 def fig_flux():
     kinds = ['conv_nue', 'conv_numu', 'pr_nue', 'pr_numu']
-    ens = [1e5]
+    ens = [1e4, 1e5]
     cths = np.linspace(0,1,11)
     cths_full = np.concatenate((-cths[:0:-1], cths))
     for enu in ens:
