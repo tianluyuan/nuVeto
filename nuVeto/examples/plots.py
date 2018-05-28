@@ -34,9 +34,9 @@ def tex(inp):
 
 def extlabel(corr_only):
     if corr_only:
-        return r'$\cal P_{\rm pass}^{\rm cor, SGRS}$'
+        return r'$\mathcal{P}_{\rm pass}^{\rm cor, SGRS}$'
     else:
-        return r'$\cal P_{\rm pass}^{\rm cor, SGRS} \cal P_{\rm pass}^{\rm uncor, GJKvS}$'        
+        return r'$\mathcal{P}_{\rm pass}^{\rm cor, SGRS} \mathcal{P}_{\rm pass}^{\rm uncor, GJKvS}$'        
         
     
 # passing fraction tests
@@ -423,11 +423,11 @@ def elbert_only(slice_val=1., kind='conv_numu'):
     plt.figure()
     if 'nue' in kind:
         echoices = [exthp.passrates]
-        names = [r'$\cal P_{\rm pass}^{\rm uncor, GJKvS}$']
+        names = [r'$\mathcal{P}_{\rm pass}^{\rm uncor, GJKvS}$']
     else:
         echoices = [exthp.corr, exthp.passrates]
-        names = [r'$\cal P_{\rm pass}^{\rm cor, SGRS}$',
-                 r'$\cal P_{\rm pass}^{\rm cor, SGRS} \cal P_{\rm pass}^{\rm uncor, GJKvS}$']
+        names = [extlabel(True),
+                 extlabel(False)]
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
