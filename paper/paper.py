@@ -292,7 +292,7 @@ def fig_extsv():
 
 def fig_flux():
     kinds = ['conv_nue', 'conv_numu', 'pr_nue', 'pr_numu']
-    ens = [1e4, 1e5]
+    ens = [1e5]
     cths = np.linspace(0,1,11)
     cths_full = np.concatenate((-cths[:0:-1], cths))
     for enu in ens:
@@ -332,6 +332,9 @@ def fig_flux():
         plt.xlim(-1,1)
         plt.ylim(1e-6,1e-1)
         plt.yscale('log')
-        plt.legend()
+        if enu == 1e5:
+            plt.legend(loc='upper left')
+        else:
+            plt.legend()
         plt.tight_layout(0.3)
         save('fig/fluxes_{:.0f}.eps'.format(enu/1e3))
