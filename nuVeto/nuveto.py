@@ -196,10 +196,11 @@ class nuVeto(object):
         logx_width = -np.diff(logx)[0]
         good = (logx + logx_width/2 < np.log10(1-rr)) & (x_range >= 5.e-2)
 
-        lower = dNdEE[good][-1]
+        x_low = x_range[x_range < 5e-2]
+        dNdEE_low = np.array([dNdEE[good][-1]]*x_low.size)
         dNdEE_interp = lambda x_: interpolate.pchip(
-            np.concatenate([[1-rr], x_range[good]])[::-1],
-            np.concatenate([[dNdEE_edge], dNdEE[good]])[::-1],
+            np.concatenate([[1-rr], x_range[good], x_low])[::-1],
+            np.concatenate([[dNdEE_edge], dNdEE[good], dNdEE_low])[::-1],
             extrapolate=True)(x_) * np.heaviside(1-rr-x_, 1)
         return x_range, dNdEE, dNdEE_interp
 
