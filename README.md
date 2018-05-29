@@ -14,12 +14,12 @@ The package relies on [MCEq](https://github.com/afedynitch/MCEq/) which in turn 
 
 To install directly
 ```bash
-pip install git+git://git@github.com/arguelles/nuVeto#egg=nuVeto
+pip install git+git://git@github.com/tianluyuan/nuVeto#egg=nuVeto
 ```
 
 Or if you prefer to clone the repository
 ```bash
-git clone https://github.com/arguelles/nuVeto
+git clone https://github.com/tianluyuan/nuVeto
 cd nuVeto
 pip install -e .
 ```

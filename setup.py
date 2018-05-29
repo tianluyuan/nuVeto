@@ -7,7 +7,7 @@ setup(
     author_email='caad@mit.edu, Sergio.Palomares.Ruiz@ific.uv.es, aschneider@icecube.wisc.edu, lwille@icecue.wisc.edu, and tyuan@icecube.wisc.edu',
     description='Package implements the formalism for calculating passing fraction as discussed in arXiv:XXXX.XXXX.',
     long_description=open('README.md').read(),
-    url='https://github.com/arguelles/nuVeto.git',
+    url='https://github.com/tianluyuan/nuVeto.git',
     packages=find_packages('./'),
     package_data={
         'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl'],
