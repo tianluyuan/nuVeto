@@ -10,6 +10,8 @@ The package relies on [MCEq](https://github.com/afedynitch/MCEq/) which in turn 
 
 `matplotlib` and `pandas` are optional packages for plotting and generating muon reaching probabilities.
 
+The code was tested against MCEq commit `5757d0b`.
+
 ### Installing
 
 To install directly
