@@ -7,5 +7,5 @@ BARR = {
 }
 
 
-def barr_unc(xmat, egrid, pname, value):
+def barr_unc():
     pass
