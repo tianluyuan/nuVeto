@@ -5,7 +5,7 @@ from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import nuVeto, passing, fluxes
 from nuVeto.utils import Units, ParticleProperties, amu, centers, Geometry, calc_bins
-from nuVeto.barr_uncertainties import BARR
+from nuVeto.uncertainties import BARR
 from matplotlib import pyplot as plt
 from matplotlib import colors
 from matplotlib.ticker import LogLocator

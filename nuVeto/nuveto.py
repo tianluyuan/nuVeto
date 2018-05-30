@@ -24,7 +24,7 @@ except ImportError:
     import CRFluxModels as pm
 from mceq_config import config, mceq_config_without
 from nuVeto.utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
-from nuVeto.barr_uncertainties import BARR, barr_unc
+from nuVeto.uncertainties import BARR, barr_unc
 
 class nuVeto(object):
     """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))"""
