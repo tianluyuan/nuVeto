@@ -23,9 +23,9 @@ install:
   - conda config --add channels intel
   - conda create -n idp intelpython2_core python=2
   - source activate idp
-  - conda install -y numba
+  - conda install -n idp -y numba
+  - conda install -n idp -y setuptools
   - pip install git+git://github.com/afedynitch/MCEq.git@5757d0b6e80c23032a6407364d00668328c6981e
-  - conda install -y setuptools
   - python setup.py install
 
 script:
