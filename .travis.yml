@@ -24,6 +24,7 @@ install:
   - conda create -n idp intelpython2_core python=2
   - source activate idp
   - conda install -c anaconda -y setuptools
+  - conda install -y numba
   - pip install git+git://github.com/afedynitch/MCEq.git@5757d0b6e80c23032a6407364d00668328c6981e
   - python setup.py install
 
