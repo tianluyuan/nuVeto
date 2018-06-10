@@ -25,8 +25,8 @@ install:
   - source activate idp
   - conda install -n idp -y numba
   - conda install -n idp -y setuptools
-  - git clone --recursive https://github.com/afedynitch/MCEq.git
-  - cd MCEq
+  - git clone --recursive https://github.com/afedynitch/MCEq.git .mceq
+  - cd .mceq
   - git checkout 5757d0b6e80c23032a6407364d00668328c6981e
   - pip install -e ./
   - cd ..
