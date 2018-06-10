@@ -28,7 +28,7 @@ install:
   - git clone --recursive https://github.com/afedynitch/MCEq.git
   - cd MCEq
   - git checkout 5757d0b6e80c23032a6407364d00668328c6981e
-  - export PYTHONPATH="$PWD:$PYTHONPATH"
+  - pip install -e ./
   - cd ..
   - python setup.py install
 
