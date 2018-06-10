@@ -27,7 +27,7 @@ install:
   - conda install -n idp -y setuptools
   - git clone --recursive https://github.com/afedynitch/MCEq.git
   - cd MCEq
-  - git co 5757d0b6e80c23032a6407364d00668328c6981e
+  - git checkout 5757d0b6e80c23032a6407364d00668328c6981e
   - export PYTHONPATH="$PWD:$PYTHONPATH"
   - cd ..
   - python setup.py install
