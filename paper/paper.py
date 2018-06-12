@@ -291,13 +291,24 @@ def fig_extsv():
 
 
 def fig_flux():
+    aachen8 = lambda enu: 1.01*(enu/(100*Units.TeV))**-2.19*1e-18
     kinds = ['conv_nue', 'conv_numu', 'pr_nue', 'pr_numu']
     ens = [1e4, 1e5]
     cths = np.linspace(0,1,11)
     cths_full = np.concatenate((-cths[:0:-1], cths))
+    cths_plot = np.linspace(-1,1,100)
     for enu in ens:
         plt.figure()
         plt.title(r'$E_\nu = {:.0f}$ TeV'.format(enu/1e3))
+        astro = np.ones(cths_full.shape)*aachen8(enu*Units.GeV)
+        earth = []
+        for cth in cths_full:
+            earth.append(earth_attenuation(enu, cth, 'astro_numu'))
+        earth = np.asarray(earth)
+        astrofn = interp1d(cths_full, np.log10(earth*astro*enu**3),
+                          kind='quadratic')
+        plt.plot(cths_plot, 10**astrofn(cths_plot)/2, color='gray',
+                 label=r'Astrophysical $\nu_\mu$')
         for kind in kinds:
             earth = []
             for cth in cths_full:
@@ -319,22 +330,22 @@ def fig_flux():
                                kind='quadratic')
             passfn = interp1d(cths_full, np.log10(earth*passing_full*enu**3),
                               kind='quadratic')
-            cths_plot = np.linspace(-1,1,100)
             pr = plt.plot(cths_plot, 10**totalfn(cths_plot), ':')
             plt.plot(cths_plot, 10**passfn(cths_plot), color=pr[0].get_color(),
                      label=titling[kind])
-        plt.axvline(np.nan, color='k',
-                    label='Passing')
-        plt.axvline(np.nan, color='k', linestyle=':',
-                    label='Total')
+        lpassing = plt.axvline(np.nan, color='k')
+        ltotal = plt.axvline(np.nan, color='k', linestyle=':')
         plt.xlabel(r'$\cos \theta_z$')
         plt.ylabel(r'$E_\nu^3 \Phi_\nu$ [GeV$^2$ cm$^{-2}$ s$^{-1}$ sr$^{-1}]$')
         plt.xlim(-1,1)
         plt.ylim(1e-6,1e-1)
         plt.yscale('log')
         if enu == 1e5:
-            plt.legend(loc='upper left')
+            leg1 = plt.legend(loc='upper left')
+            plt.legend([lpassing, ltotal], ['Passing', 'Total'], loc='upper right')
         else:
-            plt.legend()
+            leg1 = plt.legend()
+            plt.legend([lpassing, ltotal], ['Passing', 'Total'])
+        plt.gca().add_artist(leg1)
         plt.tight_layout(0.3)
         save('fig/fluxes_{:.0f}.eps'.format(enu/1e3))
