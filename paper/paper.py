@@ -301,19 +301,13 @@ def fig_flux():
         plt.figure()
         plt.title(r'$E_\nu = {:.0f}$ TeV'.format(enu/1e3))
         astro = np.ones(cths_full.shape)*aachen8(enu*Units.GeV)
-        earth = []
-        for cth in cths_full:
-            earth.append(earth_attenuation(enu, cth, 'astro_numu'))
-        earth = np.asarray(earth)
+        earth = np.asarray([earth_attenuation(enu, cth, 'astro_numu') for cth in cths_full])
         astrofn = interp1d(cths_full, np.log10(earth*astro*enu**3),
                           kind='quadratic')
         plt.plot(cths_plot, 10**astrofn(cths_plot)/2, color='gray',
                  label=r'Astrophysical $\nu_\mu$')
         for kind in kinds:
-            earth = []
-            for cth in cths_full:
-                earth.append(earth_attenuation(enu, cth, kind))
-            earth = np.asarray(earth)
+            earth = np.asarray([earth_attenuation(enu, cth, kind) for cth in cths_full])
 
             passing = []
             total = []
