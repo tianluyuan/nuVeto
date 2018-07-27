@@ -347,14 +347,15 @@ def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3
         plt.title(r'{} at {:.2g} GeV and $\cos \theta = {:.2g}$'.format(particle, ecr, cos_theta))
 
 
-def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3,
-                ecr=None, particle=None):
+def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c',
+                density=('CORSIKA',('SouthPole', 'June')), mag=3, ecr=None, particle=None):
     plt.figure()
-    sv = nuVeto(cos_theta, pmodel, hadr)
+    sv = nuVeto(cos_theta, pmodel, hadr, density=density)
     gsol = sv.grid_sol(ecr, particle)
     X_vec = sv.X_vec
     for idx, x_val in enumerate(X_vec):
         mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)
+        mceq[mceq==0] = np.nan
         calc = sv.get_solution(parent, gsol, mag, grid_idx=idx)
         pout = plt.loglog(sv.mceq.e_grid, mceq,
                           label='$X={:.3g}$ km'.format(
