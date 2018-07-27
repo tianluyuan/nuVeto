@@ -1,7 +1,10 @@
 # nuVeto
+
 [![Build Status](https://travis-ci.com/tianluyuan/nuVeto.svg?branch=master)](https://travis-ci.com/tianluyuan/nuVeto)
 
-This package calculates the effect of a detector veto on the high-energy atmospheric neutrino flux via detection of muons that reach the detector. The result calculated is the passing-flux or passing-fraction of atmospheric neutrinos as a function of energy and zenith angle. 
+This package calculates the effect of a detector veto on the high-energy atmospheric neutrino flux via detection of muons that reach the detector. The result calculated is the passing-flux or passing-fraction of atmospheric neutrinos as a function of energy and zenith angle.
+
+![Fluxes](/paper/figs_for_readme/fluxes_100.png?raw=true)
 
 ## Getting started
 
@@ -44,6 +47,8 @@ pf = passing(enu, cos_theta, kind='conv_numu',
 Running with `'MSIS00'` density models in c-mode requires running `make` in `MCEq/c-NRLMSISE-00`. See the `examples/` directory for more detailed examples.
 
 ## Building muon detection probabilities
+
+![Pdet](/paper/figs_for_readme/prpl_step1000.png?raw=true)
 
 To calculate the passing fraction requires knowing the muon detection pdf as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice in `resources/mu/mmc/ice.pklz`. The detector response probability must be defined in `resources/mu/pl.py` as a function of the muon energy (at detector). Then, construct the overall muon detection pdf and place it into the correct location.
 

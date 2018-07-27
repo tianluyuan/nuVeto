@@ -328,7 +328,7 @@ class nuVeto(object):
         direct = sol[:,ref[particle_name].lidx():
                      ref[particle_name].uidx()]
         res = np.zeros(direct.shape)
-        rho_air = self.mceq.density_model.X2rho(xv)
+        rho_air = 1./self.mceq.density_model.r_X2rho(xv)
 
         # meson decay length
         decayl = ((self.mceq.e_grid * Units.GeV)
