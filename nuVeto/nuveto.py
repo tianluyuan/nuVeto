@@ -93,13 +93,15 @@ class nuVeto(object):
                 mothers = []
             elif 'nue' in daughter:
                 mothers.extend(['K0S', 'mu'+rcharge])
-            else:
+            elif 'numu' in daughter:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
             if 'nutau' in daughter:
                 mothers = ['D'+rcharge, 'Ds'+rcharge]
             else:
                 mothers = ['D'+rcharge, 'Ds'+rcharge, 'D0'+rbar]#, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
+        elif categ == 'total':
+            mothers = nuVeto.categ_to_mothers('conv', daughter)+nuVeto.categ_to_mothers('pr', daughter)
         else:
             mothers = [categ,]
         return mothers
