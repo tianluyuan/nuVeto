@@ -16,6 +16,8 @@ class Units(object):
     m = km*1.e-3
     gr = 5.62e23 # gr to GeV value from SQuIDS
     sec = 1523000.0 #$ sec to GeV^-1 from SQuIDS
+    day = sec*60**2*24
+    yr = day*356.25
     GeV = 1
     MeV = 1e-3*GeV
     TeV = 1.e3*GeV
