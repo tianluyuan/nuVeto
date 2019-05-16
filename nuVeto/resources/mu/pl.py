@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import stats
+from scipy import stats, interpolate
 
 
 def sigmoid(emu, center, scale):
@@ -37,3 +37,14 @@ def pl_sigmoid_750_250(emu):
 
 def pl_hese(emu):
     return modified_sigmoid(emu, 2.48135679,  3.57243996,  2.05736124,  2.60328639,  0.45801598)*sigmoid(emu, 1., 1e-6)
+
+
+def pl_noearlymu(emu):
+    nstrarr = np.fromfile(
+        '/Users/tianlu/Projects/icecube/studies/hydrangea/lh/n_str_prob_pspl_full_flat_caus_30_combined.txt', sep=' ')
+    nstrarr = nstrarr.reshape(2, nstrarr.shape[0]/2)
+    # take P(Nstr|Ee) likelihood from chaack
+    nstr = lambda ee: 10**interpolate.interp1d(
+        np.log10(nstrarr[0]), np.log10(nstrarr[1]),
+        kind='linear', bounds_error=False, fill_value='extrapolate')(np.log10(ee))
+    return 1-nstr(emu)
