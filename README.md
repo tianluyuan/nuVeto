@@ -59,7 +59,7 @@ cd nuVeto/resources/mu
 
 To use the newly generated file, pass it as a string to the `prpl` argument.
 ```bash
-passing(enu, cos_theta, prpr='mymudet')`.
+passing(enu, cos_theta, prpl='mymudet')`.
 ```
 
 ## Contributers
