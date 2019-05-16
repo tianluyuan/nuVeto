@@ -70,8 +70,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.noconvolution:
         hpr = hist_preach(args.mmc)
-        pickle.dump(hpr, gzip.open(args.output, 'wb'))
+        pickle.dump(hpr, gzip.open(args.output, 'wb'), protocol=-1)
     else:
         intp = interp(args.mmc, getattr(pl, args.plight))
-        pickle.dump(intp, open(args.output, 'w'))
+        pickle.dump(intp, open(args.output, 'wb'), protocol=-1)
     print 'Output pickled into {}'.format(args.output)

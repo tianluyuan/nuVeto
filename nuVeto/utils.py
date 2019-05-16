@@ -72,9 +72,9 @@ class MuonProb(object):
         if pklfile is None:
             self.mu_int = self.median_approx
         elif os.path.isfile(pklfile):
-            self.mu_int = pickle.load(open(pklfile))
+            self.mu_int = pickle.load(open(pklfile, 'rb'))
         else:
-            self.mu_int = pickle.load(open(resource_filename('nuVeto', os.path.join('data', 'prpl', pklfile+'.pkl'))))
+            self.mu_int = pickle.load(open(resource_filename('nuVeto', os.path.join('data', 'prpl', pklfile+'.pkl')), 'rb'))
 
 
     def median_emui(self, distance):
