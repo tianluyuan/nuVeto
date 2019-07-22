@@ -36,6 +36,9 @@ The simplest way to run is
 
 ```python
 from nuVeto.nuveto import passing
+from nuVeto.utils import Units
+import CRFluxModels as pm
+
 enu = 1e5*Units.GeV
 cos_theta = 0.5
 pf = passing(enu, cos_theta, kind='conv_numu',
