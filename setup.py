@@ -15,8 +15,7 @@ setup(
     },
     install_requires=['numpy',
                       'scipy',
-                      'functools32',
-                      'MCeq_classic'],
+                      'functools32'],
     extras_require={
         'plotting':  ['matplotlib', 'pandas'],
         'resources':  ['pythia8', 'matplotlib', 'argparse', 'pandas'],
