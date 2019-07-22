@@ -10,7 +10,7 @@ This package calculates the effect of a detector veto on the high-energy atmosph
 
 ### Prerequisites
 
-The package relies on [MCEq](https://github.com/afedynitch/MCEq/) which in turn depends on some optimized python libraries. These libraries can be installed with [Anaconda](http://continuum.io/downloads) or [Miniconda](http://conda.pydata.org/miniconda.html) following the instructions to install MCEq.
+The package relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) which in turn depends on some optimized python libraries. These libraries can be installed with [Anaconda](http://continuum.io/downloads) or [Miniconda](http://conda.pydata.org/miniconda.html) following the instructions to install MCEq.
 
 `matplotlib` and `pandas` are optional packages for plotting and generating muon reaching probabilities.
 
