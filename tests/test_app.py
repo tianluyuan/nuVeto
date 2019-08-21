@@ -76,11 +76,11 @@ def test_elbert():
     cths = [0.1,0.3,0.8]
     for cth in cths:
         mine = np.asarray(
-            [passing(en, cth, kind='conv nu_mu', hadr='DPMJET-III',
+            [passing(en, cth, kind='conv nu_mu', hadr='DPMJET-III-3.0.6',
                      pmodel=(pm.GaisserHonda, None), prpl=None, corr_only=True) for en in ens])
         emu = extsv.minimum_muon_energy(extsv.overburden(cth))
         theirs = exthp.corr('conv nu_mu')(ens, emu, cth)
-        assert np.all(np.abs(theirs-mine)<0.02)
+        assert np.all(np.abs(theirs-mine)<0.022)
 
 
 def test_nuflux():
@@ -90,9 +90,13 @@ def test_nuflux():
         sv = nuVeto(cth)
         sv.grid_sol()
         for kind in kinds:
-            thres = 1e7 if kind.split('_') == 'pr' else 1e6
+            _c, _d = kind.split()
+            if 'bar' in _d:
+                _d = 'anti'+_d.replace('bar', '')
+            mkind = _c+'_'+_d.replace('_', '')
+            thres = 1e7 if _c == 'pr' else 1e6
             ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
-            theirs = sv.mceq.get_solution(kind)[ensel]
+            theirs = sv.mceq.get_solution(mkind)[ensel]
             mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
 
             print kind, cth, theirs/mine

@@ -5,7 +5,7 @@ from MCEq.geometry.geometry import EarthGeometry
 import mceq_config as config
 import numpy as np
 from scipy import stats
-import particletools.tables as ParticleDataTool
+from particletools.tables import SibyllParticleTable, PYTHIAParticleData
 
 
 class Units(object):
@@ -28,8 +28,8 @@ class Units(object):
 
 
 class ParticleProperties(object):
-    modtab = ParticleDataTool.SibyllParticleTable()
-    pd = ParticleDataTool.PYTHIAParticleData()
+    modtab = SibyllParticleTable()
+    pd = PYTHIAParticleData()
     
     mass_dict = {}; lifetime_dict = {}; pdg_id = {}; sibling = {};
 

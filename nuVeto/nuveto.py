@@ -65,7 +65,7 @@ class nuVeto(object):
                 # Modify proton-air -> mod[0]
                 self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
             # Populate the modifications to the matrices by re-filling the interaction matrix
-            self.mceq.regenerate_matrices()
+            self.mceq.regenerate_matrices(skip_decay_matrix=True)
 
         X_vec = np.logspace(np.log10(2e-3),
                             np.log10(self.mceq.density_model.max_X), 12)
@@ -79,7 +79,7 @@ class nuVeto(object):
         rcharge = '-' if 'bar' in daughter else '+'
         lcharge = '+' if 'bar' in daughter else '-'
         rbar = 'bar' if 'bar' in daughter else ''
-        #lbar = '' if 'anti' in daughter else '-bar'
+        #lbar = '' if 'bar' in daughter else 'bar'
         if categ == 'conv':
             mothers = ['pi'+rcharge, 'K'+rcharge, 'K_L0']
             if 'nu_tau' in daughter:
@@ -243,6 +243,8 @@ class nuVeto(object):
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, ecr, particle)
+            if not np.any(rescale_phi > 0):
+                continue
             # DEBUG
             # from matplotlib import pyplot as plt
             # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),

@@ -139,8 +139,7 @@ def prpls(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'),
 
 
 def elbert(slice_val=1., kind='conv nu_mu', pmodel=(pm.GaisserHonda, None), prpl='ice_allm97_step_1', corr_only=False):
-    hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
-    hadrs=['DPMJET-III', 'SIBYLL2.3c']
+    hadrs=['DPMJET-III-3.0.6', 'SIBYLL2.3c']
     echoice = exthp.corr if corr_only else exthp.passrates
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
@@ -160,7 +159,7 @@ def elbert(slice_val=1., kind='conv nu_mu', pmodel=(pm.GaisserHonda, None), prpl
     plt.tight_layout(0.3)
 
 
-def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III', prpl='ice_allm97_step_1', corr_only=False):
+def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III-3.0.6', prpl='ice_allm97_step_1', corr_only=False):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]

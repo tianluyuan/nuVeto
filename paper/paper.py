@@ -193,7 +193,7 @@ def fig_medium():
         
 def fig_hadrs():
     kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
-    hadrs_prompt = ['SIBYLL2.3c', 'SIBYLL2.3', 'DPMJET-III']
+    hadrs_prompt = ['SIBYLL2.3c', 'SIBYLL2.3', 'DPMJET-III-3.0.6']
     hadrs_conv = ['SIBYLL2.3c', 'SIBYLL2.3', 'QGSJET-II-04', 'EPOS-LHC']
     cos_ths = [0.25, 0.85]
     for kind in kinds:
