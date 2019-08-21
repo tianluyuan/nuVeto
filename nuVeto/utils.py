@@ -188,3 +188,10 @@ def calc_bins(x):
     if edges[0] == 0 and edges[1]>1:
         edges = np.concatenate((np.asarray([0., 1.]),edges[1:]))
     return edges
+
+
+def old_categ_format(kind):
+    _c, _d = kind.split()
+    if 'bar' in _d:
+        _d = 'anti'+_d.replace('bar', '')
+    return _c+'_'+_d.replace('_', '')

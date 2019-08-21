@@ -5,16 +5,16 @@ from scipy import interpolate
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import passing, fluxes, nuVeto
-from nuVeto.utils import Geometry, Units, amu, MuonProb
+from nuVeto.utils import Geometry, Units, amu, MuonProb, old_categ_format
 import crflux.models as pm
 
 
 def test_categ():
-    assert nuVeto.categ_to_mothers('conv', 'nu_mu') == ['pi+', 'K+', 'K0L', 'mu-']
-    assert nuVeto.categ_to_mothers('conv', 'nu_mubar') == ['pi-', 'K-', 'K0L', 'mu+']
-    assert nuVeto.categ_to_mothers('conv', 'nu_e') == ['pi+', 'K+', 'K0L', 'K0S', 'mu+']
-    assert nuVeto.categ_to_mothers('pr', 'nu_mu') == ['D+', 'Ds+', 'D0']
-    assert nuVeto.categ_to_mothers('pr', 'nu_mubar') == ['D-', 'Ds-', 'D0-bar']
+    assert nuVeto.categ_to_mothers('conv', 'nu_mu') == ['pi+', 'K+', 'K_L0', 'mu-']
+    assert nuVeto.categ_to_mothers('conv', 'nu_mubar') == ['pi-', 'K-', 'K_L0', 'mu+']
+    assert nuVeto.categ_to_mothers('conv', 'nu_e') == ['pi+', 'K+', 'K_L0', 'K_S0', 'mu+']
+    assert nuVeto.categ_to_mothers('pr', 'nu_mu') == ['D+', 'D_s+', 'D0']
+    assert nuVeto.categ_to_mothers('pr', 'nu_mubar') == ['D-', 'D_s-', 'Dbar0']
 
 
 def test_costh_effective():
@@ -63,7 +63,7 @@ def test_pnmshower():
 def test_pnmsib():
     enus = np.logspace(3, 7, 5)
     l_ices = np.linspace(1500, 100000, 5)
-    mothers = 'pi+ K+ K0L D+ D0 Ds+'.split()
+    mothers = 'pi+ K+ K_L0 D+ D0 Ds+'.split()
     for enu in enus:
         for l_ice in l_ices:
             for mother in mothers:
@@ -90,13 +90,11 @@ def test_nuflux():
         sv = nuVeto(cth)
         sv.grid_sol()
         for kind in kinds:
-            _c, _d = kind.split()
-            if 'bar' in _d:
-                _d = 'anti'+_d.replace('bar', '')
-            mkind = _c+'_'+_d.replace('_', '')
-            thres = 1e7 if _c == 'pr' else 1e6
+            # _c, _d = kind.split()
+            # thres = 1e7 if _c == 'pr' else 1e6
+            thres = 1e7
             ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
-            theirs = sv.mceq.get_solution(mkind)[ensel]
+            theirs = sv.mceq.get_solution(old_categ_format(kind))[ensel]
             mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
 
             print kind, cth, theirs/mine

@@ -216,11 +216,15 @@ class nuVeto(object):
         """Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
-        mu = self.get_solution('mu-', grid_sol) + self.get_solution('mu+', grid_sol)
-
+        mu = np.abs(self.get_solution('mu-', grid_sol)) + np.abs(self.get_solution('mu+', grid_sol)) # np.abs hack to prevent negative fluxes
         fn = MuonProb(prpl)
         coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
-        return np.trapz(mu*fn.prpl(coords), self.mceq.e_grid)
+        ### DEBUG ###
+        # if np.trapz(mu*fn.prpl(coords)*self.mceq.e_grid, np.log(self.mceq.e_grid)) < 0:
+        #     import pdb
+        #     pdb.set_trace()
+        ###
+        return np.trapz(mu*fn.prpl(coords)*self.mceq.e_grid, np.log(self.mceq.e_grid))
 
 
     @lru_cache(maxsize=2**12)
