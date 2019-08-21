@@ -60,11 +60,12 @@ class nuVeto(object):
             # zenith angle \theta in degrees, measured positively from vertical direction
             enable_muon_energy_loss=False)
 
-        for barr_mod in barr_mods:
-            # Modify proton-air -> mod[0]
-            self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
-        # Populate the modifications to the matrices by re-filling the interaction matrix
-        self.mceq.regenerate_matrices()
+        if len(barr_mods) > 0:
+            for barr_mod in barr_mods:
+                # Modify proton-air -> mod[0]
+                self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
+            # Populate the modifications to the matrices by re-filling the interaction matrix
+            self.mceq.regenerate_matrices()
 
         X_vec = np.logspace(np.log10(2e-3),
                             np.log10(self.mceq.density_model.max_X), 12)
@@ -75,23 +76,23 @@ class nuVeto(object):
     @staticmethod
     def categ_to_mothers(categ, daughter):
         """Get the parents for this category"""
-        rcharge = '-' if 'anti' in daughter else '+'
-        lcharge = '+' if 'anti' in daughter else '-'
-        rbar = '-bar' if 'anti' in daughter else ''
+        rcharge = '-' if 'bar' in daughter else '+'
+        lcharge = '+' if 'bar' in daughter else '-'
+        rbar = 'bar' if 'bar' in daughter else ''
         #lbar = '' if 'anti' in daughter else '-bar'
         if categ == 'conv':
             mothers = ['pi'+rcharge, 'K'+rcharge, 'K_L0']
-            if 'nutau' in daughter:
+            if 'nu_tau' in daughter:
                 mothers = []
-            elif 'nue' in daughter:
+            elif 'nu_e' in daughter:
                 mothers.extend(['K_S0', 'mu'+rcharge])
-            elif 'numu' in daughter:
+            elif 'nu_mu' in daughter:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
-            if 'nutau' in daughter:
-                mothers = ['D'+rcharge, 'Ds'+rcharge]
+            if 'nu_tau' in daughter:
+                mothers = ['D'+rcharge, 'D_s'+rcharge]
             else:
-                mothers = ['D'+rcharge, 'Ds'+rcharge, 'D0'+rbar]#, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
+                mothers = ['D'+rcharge, 'D_s'+rcharge, 'D'+rbar+'0']#, 'Lambda'+lbar+'0']#, 'Lambda_'+bar+'c+']
         elif categ == 'total':
             mothers = nuVeto.categ_to_mothers('conv', daughter)+nuVeto.categ_to_mothers('pr', daughter)
         else:
@@ -262,8 +263,8 @@ class nuVeto(object):
             # import pdb
             # pdb.set_trace()
             ###
-            if 'numu' in daughter:
-                # muon accompanies numu only
+            if 'nu_mu' in daughter:
+                # muon accompanies nu_mu only
                 pnmsib = self.psib(self.geom.overburden(self.costh),
                                    mother, enu, accuracy, prpl)
             else:
@@ -348,12 +349,12 @@ class nuVeto(object):
         # combine with direct
         res[direct != 0] = direct[direct != 0]
 
-        # import pdb
-        # pdb.set_trace()
-        # if particle_name[:-1] == 'mu':
-        #     for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
-        #         res += sol[:,ref[_].lidx:
-        #                    ref[_].uidx]
+        if particle_name[:-1] == 'mu':
+            for _ in ['k_'+particle_name, 'pi_'+particle_name]:
+                res += sol[:,ref[_+'_l'].lidx:
+                           ref[_+'_l'].uidx]
+                res += sol[:,ref[_+'_r'].lidx:
+                           ref[_+'_r'].uidx]
 
         res *= self.mceq.e_grid[None,:] ** mag
 
@@ -362,13 +363,13 @@ class nuVeto(object):
         return res
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
+    def get_fluxes(self, enu, kind='conv nu_mu', accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
         """Returns the flux and passing fraction
         for a particular neutrino energy, flux, and p_light
         """
         # prpl = probability of reaching * probability of light
         # prpl -> None ==> median for muon reaching
-        categ, daughter = kind.split('_')
+        categ, daughter = kind.split()
 
         esamp = self.esamp(enu, accuracy)
 
@@ -440,12 +441,12 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
     return nuVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
 
-def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
+def passing(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num/den if fraction else num
 
 
-def fluxes(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
+def fluxes(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     return sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)

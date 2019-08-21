@@ -10,11 +10,11 @@ import crflux.models as pm
 
 
 def test_categ():
-    assert nuVeto.categ_to_mothers('conv', 'numu') == ['pi+', 'K+', 'K0L', 'mu-']
-    assert nuVeto.categ_to_mothers('conv', 'antinumu') == ['pi-', 'K-', 'K0L', 'mu+']
-    assert nuVeto.categ_to_mothers('conv', 'nue') == ['pi+', 'K+', 'K0L', 'K0S', 'mu+']
-    assert nuVeto.categ_to_mothers('pr', 'numu') == ['D+', 'Ds+', 'D0']
-    assert nuVeto.categ_to_mothers('pr', 'antinumu') == ['D-', 'Ds-', 'D0-bar']
+    assert nuVeto.categ_to_mothers('conv', 'nu_mu') == ['pi+', 'K+', 'K0L', 'mu-']
+    assert nuVeto.categ_to_mothers('conv', 'nu_mubar') == ['pi-', 'K-', 'K0L', 'mu+']
+    assert nuVeto.categ_to_mothers('conv', 'nu_e') == ['pi+', 'K+', 'K0L', 'K0S', 'mu+']
+    assert nuVeto.categ_to_mothers('pr', 'nu_mu') == ['D+', 'Ds+', 'D0']
+    assert nuVeto.categ_to_mothers('pr', 'nu_mubar') == ['D-', 'Ds-', 'D0-bar']
 
 
 def test_costh_effective():
@@ -76,16 +76,16 @@ def test_elbert():
     cths = [0.1,0.3,0.8]
     for cth in cths:
         mine = np.asarray(
-            [passing(en, cth, kind='conv_numu', hadr='DPMJET-III',
+            [passing(en, cth, kind='conv nu_mu', hadr='DPMJET-III',
                      pmodel=(pm.GaisserHonda, None), prpl=None, corr_only=True) for en in ens])
         emu = extsv.minimum_muon_energy(extsv.overburden(cth))
-        theirs = exthp.corr('conv_numu')(ens, emu, cth)
+        theirs = exthp.corr('conv nu_mu')(ens, emu, cth)
         assert np.all(np.abs(theirs-mine)<0.02)
 
 
 def test_nuflux():
     cths = [0.1, 0.3, 0.8]
-    kinds = ['conv_numu', 'conv_nue', 'pr_numu', 'pr_nue']
+    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
     for cth in cths:
         sv = nuVeto(cth)
         sv.grid_sol()
@@ -102,7 +102,7 @@ def test_nuflux():
 def test_nonneg():
     cths = [0.9, 1]
     enus = [6.2e6, 1e7]
-    kinds = ['conv_numu', 'conv_nue', 'pr_numu', 'pr_nue']
+    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
     for cth in cths:
         sv = nuVeto(cth)
         for kind in kinds:

@@ -16,11 +16,11 @@ import crflux.models as pm
 
 def tex(inp):
     if isinstance(inp, str):
-        categ, daughter = inp.split('_')
-        daughter_trans = {'numu':r'$\nu_\mu$',
-                          'nue':r'$\nu_e$',
-                          'antinumu':r'$\overline{\nu}_\mu$',
-                          'antinue':r'$\overline{\nu}_e$'}
+        categ, daughter = inp.split()
+        daughter_trans = {'nu_mu':r'$\nu_\mu$',
+                          'nu_e':r'$\nu_e$',
+                          'nu_mubar':r'$\overline{\nu}_\mu$',
+                          'nu_ebar':r'$\overline{\nu}_e$'}
         return r'{} {}'.format(categ, daughter_trans[daughter])
     else:
         if inp > 1:
@@ -43,7 +43,7 @@ def fn(slice_val):
     return pr_enu if slice_val <=1 else pr_cth
 
 
-def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
+def pr_enu(cos_theta=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3,7,100) if corr_only else np.logspace(3,7,39)
@@ -67,7 +67,7 @@ def pr_enu(cos_theta=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     return prs[0]
 
 
-def pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
+def pr_cth(enu=1e5, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0,1,21)
@@ -86,7 +86,7 @@ def pr_cth(enu=1e5, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
     return prs[0]
 
 
-def depth(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
+def depth(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
     depths = np.asarray([1450, 1950, 2450], 'f')*Units.m
     for depth in depths:
         fn(slice_val)(slice_val, kind, pmodel, hadr,
@@ -96,7 +96,7 @@ def depth(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
     plt.legend()
         
 
-def brackets(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
+def brackets(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
     uppers = [BARR[param].error for param in params]
     lowers = [-BARR[param].error for param in params]
@@ -107,7 +107,7 @@ def brackets(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'
                       color=pr.get_color(), alpha=1-abs(barr_mods[0][-1]))
 
 
-def samples(slice_val=1, kind='numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
+def samples(slice_val=1, kind='nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
                  seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
     pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label='{} {}'.format(tex(kind), tex(slice_val)))
@@ -120,7 +120,7 @@ def samples(slice_val=1, kind='numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
                       alpha=1-min(np.mean(np.abs(errors)), 0.9))
 
 
-def accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
+def accuracy(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True):
     plt.clf()
     accuracies = [2,3,4]
     for accuracy in accuracies:
@@ -131,14 +131,14 @@ def accuracy(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'
     plt.legend()
 
 
-def prpls(slice_val=1., kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', compare=(None, 'ice_allm97_step_1', 'sigmoid_0.75_0.1')):
+def prpls(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', compare=(None, 'ice_allm97_step_1', 'sigmoid_0.75_0.1')):
     for prpl in compare:
         fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
                       label='{} {} {}'.format(prpl, tex(kind), tex(slice_val)))
     plt.legend()
 
 
-def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl='ice_allm97_step_1', corr_only=False):
+def elbert(slice_val=1., kind='conv nu_mu', pmodel=(pm.GaisserHonda, None), prpl='ice_allm97_step_1', corr_only=False):
     hadrs=['DPMJET-III', 'SIBYLL2.3', 'SIBYLL2.3c']
     hadrs=['DPMJET-III', 'SIBYLL2.3c']
     echoice = exthp.corr if corr_only else exthp.passrates
@@ -160,7 +160,7 @@ def elbert(slice_val=1., kind='conv_numu', pmodel=(pm.GaisserHonda, None), prpl=
     plt.tight_layout(0.3)
 
 
-def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='DPMJET-III', prpl='ice_allm97_step_1', corr_only=False):
+def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III', prpl='ice_allm97_step_1', corr_only=False):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
@@ -183,7 +183,7 @@ def elbert_pmodels(slice_val=1., kind='conv_numu', hadr='DPMJET-III', prpl='ice_
     plt.tight_layout(0.3)
 
 
-def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', fraction=True):
+def pmodels(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', fraction=True):
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH'),
@@ -194,7 +194,7 @@ def pmodels(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_
     plt.legend()
 
 
-def density_models(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', fraction=True):
+def density_models(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', fraction=True):
     models = [('CORSIKA', ('BK_USStd', None)),
               ('CORSIKA', ('SouthPole', 'June')),
               ('MSIS00_IC',('SouthPole', 'June')),
@@ -205,7 +205,7 @@ def density_models(slice_val=1., kind='conv_numu', hadr='SIBYLL2.3c', prpl='ice_
     plt.legend()
 
 
-def corsika(cos_theta_bin=-1, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', density=('CORSIKA',('SouthPole', 'June')), prpl='ice_allm97_step_1', corsika_file='eff_maxmu', plot_nuveto_lines = False, plot_legacy_veto_lines = False):
+def corsika(cos_theta_bin=-1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3', density=('CORSIKA',('SouthPole', 'June')), prpl='ice_allm97_step_1', corsika_file='eff_maxmu', plot_nuveto_lines = False, plot_legacy_veto_lines = False):
     if isinstance(cos_theta_bin, list):
         [corsika(cth, kind, pmodel, hadr, density, prpl, corsika_file, plot_nuveto_lines, plot_legacy_veto_lines) for cth in cos_theta_bin]
         return
@@ -372,11 +372,11 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
     # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
 
-def nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7), corr_only=False):
+def nu_flux(cos_theta, kinds='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3,7), corr_only=False):
     sv = nuVeto(cos_theta, pmodel, hadr)
     sv.grid_sol()
     fig, axs = plt.subplots(2,1)
-    for kind in kinds.split():
+    for kind in [_.strip() for _ in kinds.split(',')]:
         plt.sca(axs[0])
         mine = np.asarray([fluxes(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only)[1] for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
@@ -388,7 +388,11 @@ def nu_flux(cos_theta, kinds='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), 
         plt.legend()
 
         try:
-            theirs = sv.mceq.get_solution(kind)
+            _c, _d = kind.split()
+            if 'bar' in _d:
+                _d = 'anti'+_d.replace('bar', '')
+            mkind = _c+'_'+_d.replace('_', '')
+            theirs = sv.mceq.get_solution(mkind)
             pr = plt.plot(sv.mceq.e_grid, theirs*sv.mceq.e_grid**mag,
                           linestyle='--', color=pr[0].get_color())
 
@@ -420,9 +424,9 @@ def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
     plt.legend()
 
 
-def elbert_only(slice_val=1., kind='conv_numu'):
+def elbert_only(slice_val=1., kind='conv nu_mu'):
     plt.figure()
-    if 'nue' in kind:
+    if 'nu_e' in kind:
         echoices = [exthp.passrates]
         names = [r'$\mathcal{P}_{\rm pass}^{\rm uncor, GJKvS}$']
     else:

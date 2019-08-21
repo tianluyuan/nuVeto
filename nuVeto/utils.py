@@ -34,10 +34,9 @@ class ParticleProperties(object):
     mass_dict = {}; lifetime_dict = {}; pdg_id = {}; sibling = {};
 
     for k in modtab.part_table:
-        kk = k.replace('nu_', 'nu')
-        pdg_id[kk] = modtab.modname2pdg[k]
-        mass_dict[kk] = pd.mass(pdg_id[kk]) * Units.GeV
-        lifetime_dict[kk] = pd.ctau(pdg_id[kk]) * Units.cm
+        pdg_id[k] = modtab.modname2pdg[k]
+        mass_dict[k] = pd.mass(pdg_id[k]) * Units.GeV
+        lifetime_dict[k] = pd.ctau(pdg_id[k]) * Units.cm
 
     @staticmethod
     def rr(mother, daughter):
