@@ -13,16 +13,11 @@ import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
 import MCEq.core
-import MCEq.kernels
-import MCEq.density_profiles
 import MCEq.data
 
 from MCEq.core import MCEqRun
-try:
-    import CRFluxModels.CRFluxModels as pm
-except ImportError:
-    import CRFluxModels as pm
-from mceq_config import config, mceq_config_without
+import crflux.models as pm
+import mceq_config as config
 from nuVeto.utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
 from nuVeto.uncertainties import BARR, barr_unc
 
@@ -51,28 +46,25 @@ class nuVeto(object):
         self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
-        MCEq.core.dbg = 0
-        MCEq.kernels.dbg = 0
-        MCEq.density_profiles.dbg = 0
-        MCEq.data.dbg = 0
+        config.debug_level = 1
+        config.adv_set['allowed_projectiles'] = [2212, 2112, 211, 321, 130, -211, -321, -2212, -2112]
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
-            # atmospheric density model
-            density_model=density,
             # primary cosmic ray flux model
             # support a tuple (primary model class (not instance!), arguments)
             primary_model=pmodel,
-            # zenith angle \theta in degrees, measured positively from vertical direction
             theta_deg=theta,
-            enable_muon_energy_loss=False,
-            **mceq_config_without(['enable_muon_energy_loss', 'density_model']))
+            # atmospheric density model
+            density_model=density,
+            # zenith angle \theta in degrees, measured positively from vertical direction
+            enable_muon_energy_loss=False)
 
         for barr_mod in barr_mods:
             # Modify proton-air -> mod[0]
             self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
         # Populate the modifications to the matrices by re-filling the interaction matrix
-        self.mceq._init_default_matrices(skip_D_matrix=True)
+        self.mceq.regenerate_matrices()
 
         X_vec = np.logspace(np.log10(2e-3),
                             np.log10(self.mceq.density_model.max_X), 12)
@@ -88,11 +80,11 @@ class nuVeto(object):
         rbar = '-bar' if 'anti' in daughter else ''
         #lbar = '' if 'anti' in daughter else '-bar'
         if categ == 'conv':
-            mothers = ['pi'+rcharge, 'K'+rcharge, 'K0L']
+            mothers = ['pi'+rcharge, 'K'+rcharge, 'K_L0']
             if 'nutau' in daughter:
                 mothers = []
             elif 'nue' in daughter:
-                mothers.extend(['K0S', 'mu'+rcharge])
+                mothers.extend(['K_S0', 'mu'+rcharge])
             elif 'numu' in daughter:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
@@ -119,7 +111,7 @@ class nuVeto(object):
     @staticmethod
     def projectiles():
         """Get allowed pimaries"""
-        pdg_ids = config['adv_set']['allowed_projectiles']
+        pdg_ids = config.adv_set['allowed_projectiles']
         namer = ParticleProperties.modtab.pdg2modname
         allowed = []
         for pdg_id in pdg_ids:
@@ -190,9 +182,9 @@ class nuVeto(object):
         x_range = e_grid[ihijo]/e_grid
         rr = ParticleProperties.rr(mother, daughter)
         dNdEE_edge = ParticleProperties.br_2body(mother, daughter)/(1-rr)
-        dN_mat = self.mceq.decays.get_d_matrix(
-            ParticleProperties.pdg_id[mother],
-            ParticleProperties.pdg_id[daughter])
+        dN_mat = self.mceq._decays.get_matrix(
+            (ParticleProperties.pdg_id[mother], 0),
+            (ParticleProperties.pdg_id[daughter], 0))
         dNdEE = dN_mat[ihijo]*e_grid/delta
         logx = np.log10(x_range)
         logx_width = -np.diff(logx)[0]
@@ -308,7 +300,7 @@ class nuVeto(object):
         """
 
         # MCEq index conversion
-        ref = self.mceq.pname2pref
+        ref = self.mceq.pman.pname2pref
         p_pdg = ParticleProperties.pdg_id[particle_name]
         reduce_res = True
 
@@ -327,8 +319,8 @@ class nuVeto(object):
             xv = np.array([self.X_vec[grid_idx]])
 
         # MCEq solution for particle
-        direct = sol[:,ref[particle_name].lidx():
-                     ref[particle_name].uidx()]
+        direct = sol[:,ref[particle_name].lidx:
+                     ref[particle_name].uidx]
         res = np.zeros(direct.shape)
         rho_air = 1./self.mceq.density_model.r_X2rho(xv)
 
@@ -341,13 +333,13 @@ class nuVeto(object):
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in self.projectiles():
-            prim_flux = sol[:,ref[prim].lidx():
-                            ref[prim].uidx()]
-            prim_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[prim])
+            prim_flux = sol[:,ref[prim].lidx:
+                            ref[prim].uidx]
+            proj = self.mceq.pman[ParticleProperties.pdg_id[prim]]
+            sec = self.mceq.pman[p_pdg]
+            prim_xs = proj.inel_cross_section()
             try:
-                int_yields = self.mceq.y.get_y_matrix(
-                    ParticleProperties.pdg_id[prim],
-                    p_pdg)
+                int_yields = proj.hadr_yields[sec]
                 res += np.sum(int_yields[None,:,:]*prim_flux[:,None,:]*prim_xs[None,None,:]*ndens[:,None,None], axis=2)
             except KeyError as e:
                 continue
@@ -356,10 +348,12 @@ class nuVeto(object):
         # combine with direct
         res[direct != 0] = direct[direct != 0]
 
-        if particle_name[:-1] == 'mu':
-            for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
-                res += sol[:,ref[_].lidx():
-                           ref[_].uidx()]
+        # import pdb
+        # pdb.set_trace()
+        # if particle_name[:-1] == 'mu':
+        #     for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
+        #         res += sol[:,ref[_].lidx:
+        #                    ref[_].uidx]
 
         res *= self.mceq.e_grid[None,:] ** mag
 

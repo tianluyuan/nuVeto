@@ -1,11 +1,11 @@
 import os
 import pickle
 from pkg_resources import resource_filename
-from MCEq.geometry import EarthGeometry
-from mceq_config import config
+from MCEq.geometry.geometry import EarthGeometry
+import mceq_config as config
 import numpy as np
 from scipy import stats
-import ParticleDataTool
+import particletools.tables as ParticleDataTool
 
 
 class Units(object):
@@ -22,7 +22,7 @@ class Units(object):
     MeV = 1e-3*GeV
     TeV = 1.e3*GeV
     PeV = 1.e3*TeV
-    mol_air = config['A_target']
+    mol_air = config.A_target
     phim2 = (m**2*GeV*sec)**-1
     phicm2 = (cm**2*GeV*sec)**-1
 
@@ -34,9 +34,10 @@ class ParticleProperties(object):
     mass_dict = {}; lifetime_dict = {}; pdg_id = {}; sibling = {};
 
     for k in modtab.part_table:
-        pdg_id[k] = modtab.modname2pdg[k]
-        mass_dict[k] = pd.mass(pdg_id[k]) * Units.GeV
-        lifetime_dict[k] = pd.ctau(pdg_id[k]) * Units.cm
+        kk = k.replace('nu_', 'nu')
+        pdg_id[kk] = modtab.modname2pdg[k]
+        mass_dict[kk] = pd.mass(pdg_id[kk]) * Units.GeV
+        lifetime_dict[kk] = pd.ctau(pdg_id[kk]) * Units.cm
 
     @staticmethod
     def rr(mother, daughter):

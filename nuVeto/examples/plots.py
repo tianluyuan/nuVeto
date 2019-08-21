@@ -11,10 +11,7 @@ from matplotlib import colors
 from matplotlib.ticker import LogLocator
 from scipy import interpolate
 import numpy as np
-try:
-    import CRFluxModels.CRFluxModels as pm
-except ImportError:
-    import CRFluxModels as pm
+import crflux.models as pm
 
 
 def tex(inp):
@@ -352,6 +349,9 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
     plt.figure()
     sv = nuVeto(cos_theta, pmodel, hadr, density=density)
     gsol = sv.grid_sol(ecr, particle)
+    ### hack to convert list to np array
+    sv.mceq.grid_sol = np.asarray(sv.mceq.grid_sol)
+    ###
     X_vec = sv.X_vec
     for idx, x_val in enumerate(X_vec):
         mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)

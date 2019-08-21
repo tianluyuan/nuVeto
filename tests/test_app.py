@@ -6,10 +6,7 @@ from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import passing, fluxes, nuVeto
 from nuVeto.utils import Geometry, Units, amu, MuonProb
-try:
-    import CRFluxModels.CRFluxModels as pm
-except ImportError:
-    import CRFluxModels as pm
+import crflux.models as pm
 
 
 def test_categ():
