@@ -47,7 +47,7 @@ class nuVeto(object):
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
         config.debug_level = 1
-        config.adv_set['allowed_projectiles'] = [2212, 2112, 211, 321, 130, -211, -321, -2212, -2112]
+        config.adv_set['allowed_projectiles'] = [2212, 2112, 211, 321, 130, 11, 22]
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
