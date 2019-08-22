@@ -3,10 +3,10 @@ from setuptools import setup, find_packages
 setup(
     name='nuVeto',
     version='2.0',
-    author='C. Arguelles, S. Palomares-Ruiz, A. Schneider, L. Wille, and T. Yuan',
-    author_email='caad@mit.edu, Sergio.Palomares.Ruiz@ific.uv.es, aschneider@icecube.wisc.edu, lwille@icecube.wisc.edu, and tyuan@icecube.wisc.edu',
+    maintainer='Tianlu Yuan',
+    maintainer_email='tyuan@icecube.wisc.edu',
     description='Package implements the formalism for calculating passing fraction as discussed in JCAP07(2018)047.',
-    long_description=open('README.md').read(),
+    long_description='This package calculates the effect of a detector veto on the high-energy atmospheric neutrino flux via detection of muons that reach the detector. The result calculated is the passing-flux or passing-fraction of atmospheric neutrinos as a function of energy and zenith angle.',
     url='https://github.com/tianluyuan/nuVeto.git',
     packages=find_packages('./'),
     package_data={
