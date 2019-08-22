@@ -5,19 +5,16 @@ from scipy import interpolate
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import passing, fluxes, nuVeto
-from nuVeto.utils import Geometry, Units, amu, MuonProb
-try:
-    import CRFluxModels.CRFluxModels as pm
-except ImportError:
-    import CRFluxModels as pm
+from nuVeto.utils import Geometry, Units, MuonProb, amu, mceq_categ_format
+import crflux.models as pm
 
 
 def test_categ():
-    assert nuVeto.categ_to_mothers('conv', 'numu') == ['pi+', 'K+', 'K0L', 'mu-']
-    assert nuVeto.categ_to_mothers('conv', 'antinumu') == ['pi-', 'K-', 'K0L', 'mu+']
-    assert nuVeto.categ_to_mothers('conv', 'nue') == ['pi+', 'K+', 'K0L', 'K0S', 'mu+']
-    assert nuVeto.categ_to_mothers('pr', 'numu') == ['D+', 'Ds+', 'D0']
-    assert nuVeto.categ_to_mothers('pr', 'antinumu') == ['D-', 'Ds-', 'D0-bar']
+    assert nuVeto.categ_to_mothers('conv', 'nu_mu') == ['pi+', 'K+', 'K_L0', 'mu-']
+    assert nuVeto.categ_to_mothers('conv', 'nu_mubar') == ['pi-', 'K-', 'K_L0', 'mu+']
+    assert nuVeto.categ_to_mothers('conv', 'nu_e') == ['pi+', 'K+', 'K_L0', 'K_S0', 'mu+']
+    assert nuVeto.categ_to_mothers('pr', 'nu_mu') == ['D+', 'D_s+', 'D0']
+    assert nuVeto.categ_to_mothers('pr', 'nu_mubar') == ['D-', 'D_s-', 'Dbar0']
 
 
 def test_costh_effective():
@@ -66,7 +63,7 @@ def test_pnmshower():
 def test_pnmsib():
     enus = np.logspace(3, 7, 5)
     l_ices = np.linspace(1500, 100000, 5)
-    mothers = 'pi+ K+ K0L D+ D0 Ds+'.split()
+    mothers = 'pi+ K+ K_L0 D+ D0 Ds+'.split()
     for enu in enus:
         for l_ice in l_ices:
             for mother in mothers:
@@ -75,37 +72,42 @@ def test_pnmsib():
 
 
 def test_elbert():
-    ens = np.logspace(2,9,50)
+    ens = np.logspace(2,8.9,50)
     cths = [0.1,0.3,0.8]
     for cth in cths:
         mine = np.asarray(
-            [passing(en, cth, kind='conv_numu', hadr='DPMJET-III',
+            [passing(en, cth, kind='conv nu_mu', hadr='DPMJET-III-3.0.6',
                      pmodel=(pm.GaisserHonda, None), prpl=None, corr_only=True) for en in ens])
         emu = extsv.minimum_muon_energy(extsv.overburden(cth))
-        theirs = exthp.corr('conv_numu')(ens, emu, cth)
-        assert np.all(np.abs(theirs-mine)<0.02)
+        theirs = exthp.corr('conv nu_mu')(ens, emu, cth)
+        assert np.all(np.abs(theirs-mine)<0.022)
 
 
 def test_nuflux():
     cths = [0.1, 0.3, 0.8]
-    kinds = ['conv_numu', 'conv_nue', 'pr_numu', 'pr_nue']
+    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
     for cth in cths:
         sv = nuVeto(cth)
         sv.grid_sol()
         for kind in kinds:
-            thres = 1e7 if kind.split('_') == 'pr' else 1e6
+            _c, _d = kind.split()
+            # thres = 1e7 if _c == 'pr' else 1e6
+            thres = 1e7
             ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
-            theirs = sv.mceq.get_solution(kind)[ensel]
+            theirs = sv.mceq.get_solution(mceq_categ_format(kind))[ensel]
             mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
 
             print kind, cth, theirs/mine
-            assert np.all(np.abs(theirs/mine - 1) < 0.09)
+            if _c == 'conv':
+                assert np.all(np.abs(theirs/mine - 1) < 0.2)
+            else:
+                assert np.all(np.abs(theirs/mine - 1) < 0.8)
 
 
 def test_nonneg():
     cths = [0.9, 1]
     enus = [6.2e6, 1e7]
-    kinds = ['conv_numu', 'conv_nue', 'pr_numu', 'pr_nue']
+    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
     for cth in cths:
         sv = nuVeto(cth)
         for kind in kinds:

@@ -8,27 +8,15 @@ This package calculates the effect of a detector veto on the high-energy atmosph
 
 ## Getting started
 
-### Prerequisites
-
-The package relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) which in turn depends on some optimized python libraries. These libraries can be installed with [Anaconda](http://continuum.io/downloads) or [Miniconda](http://conda.pydata.org/miniconda.html) following the instructions to install MCEq.
-
-`matplotlib` and `pandas` are optional packages for plotting and generating muon reaching probabilities.
-
-The code was tested against MCEq commit `cbbe4b0`.
-
 ### Installing
 
-To install directly
 ```bash
-pip install git+git://git@github.com/tianluyuan/nuVeto#egg=nuVeto
+pip install nuVeto
 ```
 
-Or if you prefer to clone the repository
-```bash
-git clone https://github.com/tianluyuan/nuVeto
-cd nuVeto
-pip install -e .
-```
+This will install [MCEq](https://github.com/afedynitch/MCEq) with MKL.
+
+Extras are `pip install nuVeto[plotting, resources]` which will install some packages for plotting and generating muon reaching probabilities.
 
 ### Usage
 
@@ -37,15 +25,16 @@ The simplest way to run is
 ```python
 from nuVeto.nuveto import passing
 from nuVeto.utils import Units
-import CRFluxModels as pm
+import crflux.models as pm
 
 enu = 1e5*Units.GeV
 cos_theta = 0.5
-pf = passing(enu, cos_theta, kind='conv_numu',
+pf = passing(enu, cos_theta, kind='conv nu_mu',
              pmodel=(pm.HillasGaisser2012, 'H3a'),
              hadr='SIBYLL2.3c', depth=1950*Units.m,
              density=('CORSIKA', ('SouthPole','June')))
 ```
+where kind can be `(conv|pr|_parent_) nu_(e|mu)(bar)`
 
 Running with `'MSIS00'` density models in c-mode requires running `make` in `MCEq/c-NRLMSISE-00`. See the `examples/` directory for more detailed examples.
 

@@ -1,11 +1,11 @@
 import os
 import pickle
 from pkg_resources import resource_filename
-from MCEq.geometry import EarthGeometry
-from mceq_config import config
+from MCEq.geometry.geometry import EarthGeometry
+import mceq_config as config
 import numpy as np
 from scipy import stats
-import ParticleDataTool
+from particletools.tables import SibyllParticleTable, PYTHIAParticleData
 
 
 class Units(object):
@@ -22,14 +22,14 @@ class Units(object):
     MeV = 1e-3*GeV
     TeV = 1.e3*GeV
     PeV = 1.e3*TeV
-    mol_air = config['A_target']
+    mol_air = config.A_target
     phim2 = (m**2*GeV*sec)**-1
     phicm2 = (cm**2*GeV*sec)**-1
 
 
 class ParticleProperties(object):
-    modtab = ParticleDataTool.SibyllParticleTable()
-    pd = ParticleDataTool.PYTHIAParticleData()
+    modtab = SibyllParticleTable()
+    pd = PYTHIAParticleData()
     
     mass_dict = {}; lifetime_dict = {}; pdg_id = {}; sibling = {};
 
@@ -188,3 +188,10 @@ def calc_bins(x):
     if edges[0] == 0 and edges[1]>1:
         edges = np.concatenate((np.asarray([0., 1.]),edges[1:]))
     return edges
+
+
+def mceq_categ_format(kind):
+    _c, _d = kind.split()
+    if 'bar' in _d:
+        _d = 'anti'+_d.replace('bar', '')
+    return _c+'_'+_d.replace('_', '')

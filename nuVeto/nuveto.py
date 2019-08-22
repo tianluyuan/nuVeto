@@ -13,16 +13,11 @@ import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
 import MCEq.core
-import MCEq.kernels
-import MCEq.density_profiles
 import MCEq.data
 
 from MCEq.core import MCEqRun
-try:
-    import CRFluxModels.CRFluxModels as pm
-except ImportError:
-    import CRFluxModels as pm
-from mceq_config import config, mceq_config_without
+import crflux.models as pm
+import mceq_config as config
 from nuVeto.utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
 from nuVeto.uncertainties import BARR, barr_unc
 
@@ -51,28 +46,34 @@ class nuVeto(object):
         self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
-        MCEq.core.dbg = 0
-        MCEq.kernels.dbg = 0
-        MCEq.density_profiles.dbg = 0
-        MCEq.data.dbg = 0
+        # config.debug_level = 1
+        # config.enable_em = False
+        config.enable_muon_energy_loss = False
+        config.return_as = 'total energy'
+        config.adv_set['allowed_projectiles'] = [2212, 2112,
+                                                 211, -211,
+                                                 321, -321,
+                                                 130, 310,
+                                                 -2212, -2112]#, 11, 22]
+        config.ctau = 2.5
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
-            # atmospheric density model
-            density_model=density,
             # primary cosmic ray flux model
             # support a tuple (primary model class (not instance!), arguments)
             primary_model=pmodel,
-            # zenith angle \theta in degrees, measured positively from vertical direction
+            # zenith angle \theta in degrees, measured positively from vertical direction at surface
             theta_deg=theta,
-            enable_muon_energy_loss=False,
-            **mceq_config_without(['enable_muon_energy_loss', 'density_model']))
+            # atmospheric density model
+            density_model=density)
 
-        for barr_mod in barr_mods:
-            # Modify proton-air -> mod[0]
-            self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
-        # Populate the modifications to the matrices by re-filling the interaction matrix
-        self.mceq._init_default_matrices(skip_D_matrix=True)
+
+        if len(barr_mods) > 0:
+            for barr_mod in barr_mods:
+                # Modify proton-air -> mod[0]
+                self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
+            # Populate the modifications to the matrices by re-filling the interaction matrix
+            self.mceq.regenerate_matrices(skip_decay_matrix=True)
 
         X_vec = np.logspace(np.log10(2e-3),
                             np.log10(self.mceq.density_model.max_X), 12)
@@ -83,23 +84,23 @@ class nuVeto(object):
     @staticmethod
     def categ_to_mothers(categ, daughter):
         """Get the parents for this category"""
-        rcharge = '-' if 'anti' in daughter else '+'
-        lcharge = '+' if 'anti' in daughter else '-'
-        rbar = '-bar' if 'anti' in daughter else ''
-        #lbar = '' if 'anti' in daughter else '-bar'
+        rcharge = '-' if 'bar' in daughter else '+'
+        lcharge = '+' if 'bar' in daughter else '-'
+        rbar = 'bar' if 'bar' in daughter else ''
+        lbar = '' if 'bar' in daughter else 'bar'
         if categ == 'conv':
-            mothers = ['pi'+rcharge, 'K'+rcharge, 'K0L']
-            if 'nutau' in daughter:
+            mothers = ['pi'+rcharge, 'K'+rcharge, 'K_L0']
+            if 'nu_tau' in daughter:
                 mothers = []
-            elif 'nue' in daughter:
-                mothers.extend(['K0S', 'mu'+rcharge])
-            elif 'numu' in daughter:
+            elif 'nu_e' in daughter:
+                mothers.extend(['K_S0', 'mu'+rcharge])
+            elif 'nu_mu' in daughter:
                 mothers.extend(['mu'+lcharge])
         elif categ == 'pr':
-            if 'nutau' in daughter:
-                mothers = ['D'+rcharge, 'Ds'+rcharge]
+            if 'nu_tau' in daughter:
+                mothers = ['D'+rcharge, 'D_s'+rcharge]
             else:
-                mothers = ['D'+rcharge, 'Ds'+rcharge, 'D0'+rbar]#, 'Lambda0'+lbar]#, 'LambdaC+'+bar]
+                mothers = ['D'+rcharge, 'D_s'+rcharge, 'D'+rbar+'0']#, 'Lambda'+lbar+'0']#, 'Lambda_c'+rcharge]
         elif categ == 'total':
             mothers = nuVeto.categ_to_mothers('conv', daughter)+nuVeto.categ_to_mothers('pr', daughter)
         else:
@@ -119,7 +120,7 @@ class nuVeto(object):
     @staticmethod
     def projectiles():
         """Get allowed pimaries"""
-        pdg_ids = config['adv_set']['allowed_projectiles']
+        pdg_ids = config.adv_set['allowed_projectiles']
         namer = ParticleProperties.modtab.pdg2modname
         allowed = []
         for pdg_id in pdg_ids:
@@ -190,9 +191,9 @@ class nuVeto(object):
         x_range = e_grid[ihijo]/e_grid
         rr = ParticleProperties.rr(mother, daughter)
         dNdEE_edge = ParticleProperties.br_2body(mother, daughter)/(1-rr)
-        dN_mat = self.mceq.decays.get_d_matrix(
-            ParticleProperties.pdg_id[mother],
-            ParticleProperties.pdg_id[daughter])
+        dN_mat = self.mceq._decays.get_matrix(
+            (ParticleProperties.pdg_id[mother], 0),
+            (ParticleProperties.pdg_id[daughter], 0))
         dNdEE = dN_mat[ihijo]*e_grid/delta
         logx = np.log10(x_range)
         logx_width = -np.diff(logx)[0]
@@ -223,11 +224,15 @@ class nuVeto(object):
         """Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
-        mu = self.get_solution('mu-', grid_sol) + self.get_solution('mu+', grid_sol)
-
+        mu = np.abs(self.get_solution('mu-', grid_sol)) + np.abs(self.get_solution('mu+', grid_sol)) # np.abs hack to prevent negative fluxes
         fn = MuonProb(prpl)
         coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
-        return np.trapz(mu*fn.prpl(coords), self.mceq.e_grid)
+        ### DEBUG ###
+        # if np.trapz(mu*fn.prpl(coords)*self.mceq.e_grid, np.log(self.mceq.e_grid)) < 0:
+        #     import pdb
+        #     pdb.set_trace()
+        ###
+        return np.trapz(mu*fn.prpl(coords)*self.mceq.e_grid, np.log(self.mceq.e_grid))
 
 
     @lru_cache(maxsize=2**12)
@@ -250,6 +255,8 @@ class nuVeto(object):
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, ecr, particle)
+            if not np.any(rescale_phi > 0):
+                continue
             # DEBUG
             # from matplotlib import pyplot as plt
             # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),
@@ -270,8 +277,8 @@ class nuVeto(object):
             # import pdb
             # pdb.set_trace()
             ###
-            if 'numu' in daughter:
-                # muon accompanies numu only
+            if 'nu_mu' in daughter:
+                # muon accompanies nu_mu only
                 pnmsib = self.psib(self.geom.overburden(self.costh),
                                    mother, enu, accuracy, prpl)
             else:
@@ -308,7 +315,7 @@ class nuVeto(object):
         """
 
         # MCEq index conversion
-        ref = self.mceq.pname2pref
+        ref = self.mceq.pman.pname2pref
         p_pdg = ParticleProperties.pdg_id[particle_name]
         reduce_res = True
 
@@ -327,8 +334,8 @@ class nuVeto(object):
             xv = np.array([self.X_vec[grid_idx]])
 
         # MCEq solution for particle
-        direct = sol[:,ref[particle_name].lidx():
-                     ref[particle_name].uidx()]
+        direct = sol[:,ref[particle_name].lidx:
+                     ref[particle_name].uidx]
         res = np.zeros(direct.shape)
         rho_air = 1./self.mceq.density_model.r_X2rho(xv)
 
@@ -341,13 +348,13 @@ class nuVeto(object):
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         for prim in self.projectiles():
-            prim_flux = sol[:,ref[prim].lidx():
-                            ref[prim].uidx()]
-            prim_xs = self.mceq.cs.get_cs(ParticleProperties.pdg_id[prim])
+            prim_flux = sol[:,ref[prim].lidx:
+                            ref[prim].uidx]
+            proj = self.mceq.pman[ParticleProperties.pdg_id[prim]]
+            sec = self.mceq.pman[p_pdg]
+            prim_xs = proj.inel_cross_section()
             try:
-                int_yields = self.mceq.y.get_y_matrix(
-                    ParticleProperties.pdg_id[prim],
-                    p_pdg)
+                int_yields = proj.hadr_yields[sec]
                 res += np.sum(int_yields[None,:,:]*prim_flux[:,None,:]*prim_xs[None,None,:]*ndens[:,None,None], axis=2)
             except KeyError as e:
                 continue
@@ -357,9 +364,11 @@ class nuVeto(object):
         res[direct != 0] = direct[direct != 0]
 
         if particle_name[:-1] == 'mu':
-            for _ in ['k_'+particle_name, 'pi_'+particle_name, 'pr_'+particle_name]:
-                res += sol[:,ref[_].lidx():
-                           ref[_].uidx()]
+            for _ in ['k_'+particle_name, 'pi_'+particle_name]:
+                res += sol[:,ref[_+'_l'].lidx:
+                           ref[_+'_l'].uidx]
+                res += sol[:,ref[_+'_r'].lidx:
+                           ref[_+'_r'].uidx]
 
         res *= self.mceq.e_grid[None,:] ** mag
 
@@ -368,13 +377,13 @@ class nuVeto(object):
         return res
 
 
-    def get_fluxes(self, enu, kind='conv_numu', accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
+    def get_fluxes(self, enu, kind='conv nu_mu', accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
         """Returns the flux and passing fraction
         for a particular neutrino energy, flux, and p_light
         """
         # prpl = probability of reaching * probability of light
         # prpl -> None ==> median for muon reaching
-        categ, daughter = kind.split('_')
+        categ, daughter = kind.split()
 
         esamp = self.esamp(enu, accuracy)
 
@@ -446,12 +455,12 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
     return nuVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
 
-def passing(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
+def passing(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num/den if fraction else num
 
 
-def fluxes(enu, cos_theta, kind='conv_numu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
+def fluxes(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     return sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)

@@ -16,10 +16,10 @@ from matplotlib import pyplot as plt
 plt.style.use('paper.mplstyle')
 
 linestyles = ['-', '--', ':', '-.']
-titling = {'conv_numu':r'Conventional $\nu_\mu$',
-           'conv_nue':r'Conventional $\nu_e$',
-           'pr_numu':r'Prompt $\nu_\mu$',
-           'pr_nue':r'Prompt $\nu_e$'}
+titling = {'conv nu_mu':r'Conventional $\nu_\mu$',
+           'conv nu_e':r'Conventional $\nu_e$',
+           'pr nu_mu':r'Prompt $\nu_\mu$',
+           'pr nu_e':r'Prompt $\nu_e$'}
 
 
 def save(fname):
@@ -30,7 +30,7 @@ def save(fname):
         plt.savefig(fname)
 
 
-def earth_attenuation(enu, cos_theta, kind='conv_numu'):
+def earth_attenuation(enu, cos_theta, kind='conv nu_mu'):
     nufate = os.path.expanduser('~/projects/nuFATE/')
     flavor_dict = {'numu':2,'nue':1,'antinue':-1,'antinumu':-2}
     flavor = flavor_dict[kind.split('_')[-1]]
@@ -85,7 +85,7 @@ def fig_prpl_cbar():
 
 
 def fig_prs_ratio():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
     cos_ths = [0.25, 0.85]
     labels = [r'ALLM97',
               r'BB']
@@ -115,7 +115,7 @@ def fig_prs_ratio():
 
 
 def fig_prs():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
     cos_ths = [0.25, 0.85]
     prpls = ['ice_allm97_step_1', 'ice_bb_step_1']
     labels = [r'ALLM97',
@@ -139,7 +139,7 @@ def fig_prs():
 
 
 def fig_pls():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
     cos_ths = [0.25, 0.85]
     prpls = ['ice_allm97_step_1', 'ice_allm97_step_0.75', 'ice_allm97_sigmoid_0.75_0.25']
     labels = [r'$\Theta(E_\mu^{\rm f} - 1\,{\rm TeV})$',
@@ -163,7 +163,7 @@ def fig_pls():
 
 
 def fig_medium():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
     cos_ths = [0.25, 0.85]
     prpls = [('ice_allm97_step_1', 1.95*Units.km),
              ('water_allm97_step_1', 1.95*Units.km),
@@ -192,8 +192,8 @@ def fig_medium():
 
         
 def fig_hadrs():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
-    hadrs_prompt = ['SIBYLL2.3c', 'SIBYLL2.3', 'DPMJET-III']
+    kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
+    hadrs_prompt = ['SIBYLL2.3c', 'SIBYLL2.3', 'DPMJET-III-3.0.6']
     hadrs_conv = ['SIBYLL2.3c', 'SIBYLL2.3', 'QGSJET-II-04', 'EPOS-LHC']
     cos_ths = [0.25, 0.85]
     for kind in kinds:
@@ -215,7 +215,7 @@ def fig_hadrs():
 
 
 def fig_density():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
     dmodels = [('CORSIKA',('SouthPole', 'June'), 'MSIS-90-E SP/Jul'),
                ('CORSIKA',('SouthPole', 'December'), 'MSIS-90-E SP/Dec'),
                ('MSIS00',('Karlsruhe', 'July'), 'NRLMSISE-00 KR/Jul'),
@@ -239,7 +239,7 @@ def fig_density():
 
 
 def fig_pmodels():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
     pmodels = [(pm.HillasGaisser2012, 'H3a', 'H3a'),
                # (pm.GlobalSplineFitBeta, None, 'GSF spl'),
                (pm.GaisserStanevTilav, '4-gen', 'GST 4-gen'),
@@ -265,7 +265,7 @@ def fig_pmodels():
 
 
 def fig_extsv():
-    kinds = ['conv_nue', 'pr_nue', 'conv_numu', 'pr_numu']
+    kinds = ['conv nu_e', 'pr nu_e', 'conv nu_mu', 'pr nu_mu']
     cos_ths = [0.25, 0.85]
     ens = np.logspace(2,9, 100)
     useexts = [False, True]
@@ -292,7 +292,7 @@ def fig_extsv():
 
 def fig_flux():
     aachen8 = lambda enu: 1.01*(enu/(100*Units.TeV))**-2.19*1e-18
-    kinds = ['conv_nue', 'conv_numu', 'pr_nue', 'pr_numu']
+    kinds = ['conv nu_e', 'conv nu_mu', 'pr nu_e', 'pr nu_mu']
     ens = [1e4, 1e5]
     cths = np.linspace(0,1,11)
     cths_full = np.concatenate((-cths[:0:-1], cths))
