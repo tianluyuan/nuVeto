@@ -10,11 +10,13 @@ This package calculates the effect of a detector veto on the high-energy atmosph
 
 ### Installing
 
+This now relies on the updated version of [MCEq](https://github.com/afedynitch/MCEq). For the legacy version that relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) do `git checkout v1.5` and see the README.
+
 ```bash
 pip install nuVeto
 ```
 
-This will install the [MCEq](https://github.com/afedynitch/MCEq) dependency with MKL.
+This will install [MCEq](https://github.com/afedynitch/MCEq) with MKL.
 
 Extras are `pip install nuVeto[plotting, resources]` which will install some packages for plotting and generating muon reaching probabilities.
 
