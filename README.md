@@ -14,7 +14,7 @@ This package calculates the effect of a detector veto on the high-energy atmosph
 pip install nuVeto
 ```
 
-This will install [MCEq](https://github.com/afedynitch/MCEq) with MKL.
+This will install the [MCEq](https://github.com/afedynitch/MCEq) dependency with MKL.
 
 Extras are `pip install nuVeto[plotting, resources]` which will install some packages for plotting and generating muon reaching probabilities.
 
@@ -36,7 +36,7 @@ pf = passing(enu, cos_theta, kind='conv nu_mu',
 ```
 where kind can be `(conv|pr|_parent_) nu_(e|mu)(bar)`
 
-Running with `'MSIS00'` density models in c-mode requires running `make` in `MCEq/c-NRLMSISE-00`. See the `examples/` directory for more detailed examples.
+See `examples/plots.py` for more detailed examples.
 
 ## Building muon detection probabilities
 
