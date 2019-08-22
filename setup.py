@@ -14,6 +14,8 @@ setup(
         'nuVeto.resources.mu':['mmc/ice*.pklz']
     },
     install_requires=['functools32',
+                      'scipy<1.3.0',
+                      'numpy<1.17.0',
                       'MCEq[MKL]'],
     extras_require={
         'plotting':  ['matplotlib'],
