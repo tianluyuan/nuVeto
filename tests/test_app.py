@@ -51,7 +51,7 @@ def test_pdet():
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
 def test_pnmshower(cth):
     particle = 14
-    ecrs = amu(particle)*np.logspace(3, 10, 20)
+    ecrs = amu(particle)*np.logspace(3, 10, 10)
     ecrs_fine = amu(particle)*np.logspace(3, 10, 1000)
     sv = nuVeto(cth)
     nmu = [sv.nmu(ecr, particle) for ecr in ecrs]
