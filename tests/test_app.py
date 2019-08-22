@@ -90,7 +90,7 @@ def test_nuflux():
         sv = nuVeto(cth)
         sv.grid_sol()
         for kind in kinds:
-            # _c, _d = kind.split()
+            _c, _d = kind.split()
             # thres = 1e7 if _c == 'pr' else 1e6
             thres = 1e7
             ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
@@ -98,7 +98,10 @@ def test_nuflux():
             mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
 
             print kind, cth, theirs/mine
-            assert np.all(np.abs(theirs/mine - 1) < 0.09)
+            if _c == 'conv':
+                assert np.all(np.abs(theirs/mine - 1) < 0.2)
+            else:
+                assert np.all(np.abs(theirs/mine - 1) < 0.8)
 
 
 def test_nonneg():

@@ -55,6 +55,7 @@ class nuVeto(object):
                                                  321, -321,
                                                  130, 310,
                                                  -2212, -2112]#, 11, 22]
+        config.ctau = 2.5
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
