@@ -46,19 +46,26 @@ class nuVeto(object):
         self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
-        config.debug_level = 1
-        config.adv_set['allowed_projectiles'] = [2212, 2112, 211, 321, 130, 11, 22]
+        # config.debug_level = 1
+        # config.enable_em = False
+        config.enable_muon_energy_loss = False
+        config.return_as = 'total energy'
+        config.adv_set['allowed_projectiles'] = [2212, 2112,
+                                                 211, -211,
+                                                 321, -321,
+                                                 130, 310,
+                                                 -2212, -2112]#, 11, 22]
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
             # primary cosmic ray flux model
             # support a tuple (primary model class (not instance!), arguments)
             primary_model=pmodel,
+            # zenith angle \theta in degrees, measured positively from vertical direction at surface
             theta_deg=theta,
             # atmospheric density model
-            density_model=density,
-            # zenith angle \theta in degrees, measured positively from vertical direction
-            enable_muon_energy_loss=False)
+            density_model=density)
+
 
         if len(barr_mods) > 0:
             for barr_mod in barr_mods:
@@ -79,7 +86,7 @@ class nuVeto(object):
         rcharge = '-' if 'bar' in daughter else '+'
         lcharge = '+' if 'bar' in daughter else '-'
         rbar = 'bar' if 'bar' in daughter else ''
-        #lbar = '' if 'bar' in daughter else 'bar'
+        lbar = '' if 'bar' in daughter else 'bar'
         if categ == 'conv':
             mothers = ['pi'+rcharge, 'K'+rcharge, 'K_L0']
             if 'nu_tau' in daughter:
@@ -92,7 +99,7 @@ class nuVeto(object):
             if 'nu_tau' in daughter:
                 mothers = ['D'+rcharge, 'D_s'+rcharge]
             else:
-                mothers = ['D'+rcharge, 'D_s'+rcharge, 'D'+rbar+'0']#, 'Lambda'+lbar+'0']#, 'Lambda_'+bar+'c+']
+                mothers = ['D'+rcharge, 'D_s'+rcharge, 'D'+rbar+'0']#, 'Lambda'+lbar+'0']#, 'Lambda_c'+rcharge]
         elif categ == 'total':
             mothers = nuVeto.categ_to_mothers('conv', daughter)+nuVeto.categ_to_mothers('pr', daughter)
         else:

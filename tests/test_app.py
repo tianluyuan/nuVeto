@@ -5,7 +5,7 @@ from scipy import interpolate
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import passing, fluxes, nuVeto
-from nuVeto.utils import Geometry, Units, amu, MuonProb, old_categ_format
+from nuVeto.utils import Geometry, Units, MuonProb, amu, mceq_categ_format
 import crflux.models as pm
 
 
@@ -72,7 +72,7 @@ def test_pnmsib():
 
 
 def test_elbert():
-    ens = np.logspace(2,9,50)
+    ens = np.logspace(2,8.9,50)
     cths = [0.1,0.3,0.8]
     for cth in cths:
         mine = np.asarray(
@@ -94,7 +94,7 @@ def test_nuflux():
             # thres = 1e7 if _c == 'pr' else 1e6
             thres = 1e7
             ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
-            theirs = sv.mceq.get_solution(old_categ_format(kind))[ensel]
+            theirs = sv.mceq.get_solution(mceq_categ_format(kind))[ensel]
             mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
 
             print kind, cth, theirs/mine

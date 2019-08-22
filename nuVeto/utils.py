@@ -190,7 +190,7 @@ def calc_bins(x):
     return edges
 
 
-def old_categ_format(kind):
+def mceq_categ_format(kind):
     _c, _d = kind.split()
     if 'bar' in _d:
         _d = 'anti'+_d.replace('bar', '')

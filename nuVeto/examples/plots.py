@@ -4,7 +4,7 @@ from pkg_resources import resource_filename
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import nuVeto, passing, fluxes
-from nuVeto.utils import Units, ParticleProperties, amu, centers, Geometry, calc_bins, old_categ_format
+from nuVeto.utils import Units, ParticleProperties, Geometry, amu, centers, calc_bins, mceq_categ_format
 from nuVeto.uncertainties import BARR
 from matplotlib import pyplot as plt
 from matplotlib import colors
@@ -211,7 +211,7 @@ def corsika(cos_theta_bin=-1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, '
 
     cfile = pickle.load(open(resource_filename('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl'))))
     fraction = 'eff' in corsika_file
-    eff, elow, eup, xedges, yedges = cfile[old_categ_format(kind)]
+    eff, elow, eup, xedges, yedges = cfile[mceq_categ_format(kind)]
     cos_theta = centers(yedges)[cos_theta_bin]
     clean = eff[:,cos_theta_bin]>0
     xcenters = 10**centers(xedges)[clean]
@@ -387,7 +387,7 @@ def nu_flux(cos_theta, kinds='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'),
         plt.legend()
 
         try:
-            theirs = sv.mceq.get_solution(old_categ_format(mkind))
+            theirs = sv.mceq.get_solution(mceq_categ_format(kind))
             pr = plt.plot(sv.mceq.e_grid, theirs*sv.mceq.e_grid**mag,
                           linestyle='--', color=pr[0].get_color())
 
