@@ -26,7 +26,8 @@ class nuVeto(object):
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m,
-                 density=('CORSIKA', ('SouthPole', 'June'))):
+                 density=('CORSIKA', ('SouthPole', 'June')),
+                 debug_level=1):
         """Initializes the nuVeto object for a particular costheta, CR Flux,
         hadronic model, barr parameters, and depth
 
@@ -46,7 +47,7 @@ class nuVeto(object):
         self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
 
-        # config.debug_level = 1
+        config.debug_level = debug_level
         # config.enable_em = False
         config.enable_muon_energy_loss = False
         config.return_as = 'total energy'
