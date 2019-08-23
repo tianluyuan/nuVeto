@@ -51,14 +51,10 @@ def test_pdet():
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
 def test_pnmshower(cth):
     particle = 14
-    ecrs = amu(particle)*np.logspace(3, 10, 10)
-    ecrs_fine = amu(particle)*np.logspace(3, 10, 1000)
+    ecrs = amu(particle)*np.logspace(3, 10, 15)
     sv = nuVeto(cth)
     nmu = [sv.nmu(ecr, particle) for ecr in ecrs]
-    nmufn = interpolate.interp1d(ecrs, nmu, kind='linear',
-                                 assume_sorted=True, fill_value=(0,np.nan))
-    pnmshower = np.exp(-nmufn(ecrs_fine))
-    assert np.all(0 <= pnmshower) and np.all(pnmshower <= 1)
+    assert not np.any(nmu < 0)
 
 
 @pytest.mark.parametrize('enu,l_ice,mother',
@@ -82,29 +78,31 @@ def test_elbert(cth):
     assert np.all(np.abs(theirs-mine)<0.022)
 
 
-@pytest.mark.parametrize('cth,kind', product([0.1,0.3,0.8],
-                                             ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']))
-def test_nuflux(cth,kind):
+@pytest.mark.parametrize('cth', [0.1,0.3,0.8])
+def test_nuflux(cth):
     sv = nuVeto(cth)
     sv.grid_sol()
-    _c, _d = kind.split()
-    # thres = 1e7 if _c == 'pr' else 1e6
-    thres = 1e7
-    ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
-    theirs = sv.mceq.get_solution(mceq_categ_format(kind))[ensel]
-    mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
+    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
+    for kind in kinds:
+        _c, _d = kind.split()
+        # thres = 1e7 if _c == 'pr' else 1e6
+        thres = 1e7
+        ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
+        theirs = sv.mceq.get_solution(mceq_categ_format(kind))[ensel]
+        mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
 
-    print kind, cth, theirs/mine
-    if _c == 'conv':
-        assert np.all(np.abs(theirs/mine - 1) < 0.2)
-    else:
-        assert np.all(np.abs(theirs/mine - 1) < 0.8)
+        print kind, cth, theirs/mine
+        if _c == 'conv':
+            assert np.all(np.abs(theirs/mine - 1) < 0.2)
+        else:
+            assert np.all(np.abs(theirs/mine - 1) < 0.8)
 
 
-@pytest.mark.parametrize('cth,enu,kind',
-                         product([0.9,1], [6.2e6, 1e7],
-                                 ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']))
-def test_nonneg(cth, enu, kind):
+@pytest.mark.parametrize('cth', [0.9,1])
+def test_nonneg(cth):
     sv = nuVeto(cth)
-    n, d = sv.get_fluxes(enu, kind)
-    assert n > 0 and d > 0
+    enus = [1e7]
+    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
+    for enu, kind in product(enus, kinds):
+        n, d = sv.get_fluxes(enu, kind)
+        assert n > 0 and d > 0

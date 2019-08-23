@@ -53,7 +53,7 @@ class nuVeto(object):
         config.adv_set['allowed_projectiles'] = [2212, 2112,
                                                  211, -211,
                                                  321, -321,
-                                                 130, 310,
+                                                 130,
                                                  -2212, -2112]#, 11, 22]
         config.ctau = 2.5
         self.mceq = MCEqRun(
@@ -347,11 +347,11 @@ class nuVeto(object):
 
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
+        sec = self.mceq.pman[p_pdg]
         for prim in self.projectiles():
             prim_flux = sol[:,ref[prim].lidx:
                             ref[prim].uidx]
             proj = self.mceq.pman[ParticleProperties.pdg_id[prim]]
-            sec = self.mceq.pman[p_pdg]
             prim_xs = proj.inel_cross_section()
             try:
                 int_yields = proj.hadr_yields[sec]
