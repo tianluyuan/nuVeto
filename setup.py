@@ -21,6 +21,6 @@ setup(
         'resources':  ['pythia8', 'matplotlib', 'argparse', 'pandas']
     },
     setup_requires=['pytest-runner'],
-    python_requires='~=3.3',
+    python_requires='>=3.3',
     tests_require=['pytest==4.6.4'],
     )
