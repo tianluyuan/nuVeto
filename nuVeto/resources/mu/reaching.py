@@ -38,5 +38,5 @@ for distance in 1/xvec:
         # roughly assume 1GeV/4m minimum energy loss
         if emui < distance/4.:
             continue
-        for i in xrange(nsamples):
-            print emui, distance
+        for i in range(nsamples):
+            print(emui, distance)

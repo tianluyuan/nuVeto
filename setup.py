@@ -13,9 +13,8 @@ setup(
         'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl'],
         'nuVeto.resources.mu':['mmc/ice*.pklz']
     },
-    install_requires=['functools32',
-                      'scipy<1.3.0',
-                      'numpy<1.17.0',
+    install_requires=['scipy',
+                      'numpy',
                       'MCEq[MKL]'],
     extras_require={
         'plotting':  ['matplotlib'],

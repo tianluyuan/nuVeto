@@ -74,7 +74,7 @@ def test_elbert(cth):
                  pmodel=(pm.GaisserHonda, None), prpl=None, corr_only=True) for en in ens])
     emu = extsv.minimum_muon_energy(extsv.overburden(cth))
     theirs = exthp.corr('conv nu_mu')(ens, emu, cth)
-    print 'test_elbert', cth
+    print('test_elbert', cth)
     assert np.all(np.abs(theirs-mine)<0.022)
 
 
@@ -91,7 +91,7 @@ def test_nuflux(cth):
         theirs = sv.mceq.get_solution(mceq_categ_format(kind))[ensel]
         mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1] for en in sv.mceq.e_grid[ensel]])
 
-        print kind, cth, theirs/mine
+        print(kind, cth, theirs/mine)
         if _c == 'conv':
             assert np.all(np.abs(theirs/mine - 1) < 0.2)
         else:

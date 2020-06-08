@@ -7,7 +7,7 @@ given depth.
 
 """
 
-from functools32 import lru_cache
+from functools import lru_cache
 from pkg_resources import resource_filename
 import numpy as np
 import scipy.integrate as integrate
@@ -18,8 +18,8 @@ import MCEq.data
 from MCEq.core import MCEqRun
 import crflux.models as pm
 import mceq_config as config
-from nuVeto.utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
-from nuVeto.uncertainties import BARR, barr_unc
+from .utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
+from .uncertainties import BARR, barr_unc
 
 class nuVeto(object):
     """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))"""
@@ -178,8 +178,8 @@ class nuVeto(object):
                 esamp, enu, fn, l_ice)
         else:
             # Assuming muon energy is E_parent - E_nu
-            reaching = 1. - fn.prpl(zip((esamp-enu)*Units.GeV,
-                                    [l_ice]*len(esamp)))
+            reaching = 1. - fn.prpl(list(zip((esamp-enu)*Units.GeV,
+                                    [l_ice]*len(esamp))))
         return reaching
 
             
@@ -227,7 +227,8 @@ class nuVeto(object):
         l_ice = self.geom.overburden(self.costh)
         mu = np.abs(self.get_solution('mu-', grid_sol)) + np.abs(self.get_solution('mu+', grid_sol)) # np.abs hack to prevent negative fluxes
         fn = MuonProb(prpl)
-        coords = zip(self.mceq.e_grid*Units.GeV, [l_ice]*len(self.mceq.e_grid))
+        coords = list(zip(self.mceq.e_grid*Units.GeV,
+                          [l_ice]*len(self.mceq.e_grid)))
         ### DEBUG ###
         # if np.trapz(mu*fn.prpl(coords)*self.mceq.e_grid, np.log(self.mceq.e_grid)) < 0:
         #     import pdb
@@ -262,13 +263,13 @@ class nuVeto(object):
             # from matplotlib import pyplot as plt
             # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),
             #          np.log(rescale_phi[:,0][rescale_phi[:,0]>0]))
-            # rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', bounds_error=False, fill_value=0)(esamp) for i in xrange(rescale_phi.shape[1])]).T
+            # rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', bounds_error=False, fill_value=0)(esamp) for i in range(rescale_phi.shape[1])]).T
             ###
             # TODO: optimize to only run when esamp[0] is non-zero
             rescale_phi = np.exp(np.array([interpolate.interp1d(
                 np.log(self.mceq.e_grid[rescale_phi[:,i]>0]),
                 np.log(rescale_phi[:,i][rescale_phi[:,i]>0]),
-                kind='quadratic', bounds_error=False, fill_value=-np.inf)(np.log(esamp)) for i in xrange(rescale_phi.shape[1])])).T
+                kind='quadratic', bounds_error=False, fill_value=-np.inf)(np.log(esamp)) for i in range(rescale_phi.shape[1])])).T
             # DEBUG
             # print rescale_phi.min(), rescale_phi.max()
             # print np.log(esamp)

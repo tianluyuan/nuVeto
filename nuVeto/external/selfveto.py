@@ -161,7 +161,7 @@ def gaisser_flux(energy, ptype):
 	else:
 		z = ptype % 100
 	
-	codes = sorted(filter(lambda v: isinstance(v, int), ParticleType.__dict__.values()))
+	codes = sorted([v for v in list(ParticleType.__dict__.values()) if isinstance(v, int)])
 	idx = codes.index(ptype)
 	
 	# normalizations for each element
@@ -211,7 +211,7 @@ def response_function(enu, emu, cos_theta, kind='numu'):
 	:returns: a tuple (response, muonyield)
 	"""
 	# make everything an array
-	enu, emu, cos_theta = map(numpy.asarray, (enu, emu, cos_theta))
+	enu, emu, cos_theta = list(map(numpy.asarray, (enu, emu, cos_theta)))
 	shape = numpy.broadcast(enu, emu, cos_theta).shape
 	# contributions to the differential neutrino flux from chunks of the
 	# primary spectrum for each element
@@ -219,7 +219,7 @@ def response_function(enu, emu, cos_theta, kind='numu'):
 	# mean integral muon yield from same chunks
 	muyield = numpy.zeros(shape+(5, 100))
 	energy_per_nucleon = logspace(numpy.log10(enu), numpy.log10(enu)+3, 101)
-	ptypes = [getattr(ParticleType, pt) for pt in 'PPlus', 'He4Nucleus', 'N14Nucleus', 'Al27Nucleus', 'Fe56Nucleus']
+	ptypes = [getattr(ParticleType, pt) for pt in ('PPlus', 'He4Nucleus', 'N14Nucleus', 'Al27Nucleus', 'Fe56Nucleus')]
 	A = [[pt/100, 1][pt == ParticleType.PPlus] for pt in ptypes]
 	for i, (ptype, a) in enumerate(zip(ptypes, A)):
 		# primary energies that contribute to the neutrino flux at given energy
@@ -390,7 +390,7 @@ def plot_response_function(enu, depth, cos_theta, kind):
 	
 	ax = pylab.subplot(grid[0])
 	elements = ['H', 'He', 'C, N, O', 'Mg, Si, Al', 'Fe']
-	for i, color, label in zip(range(5), colors, elements):
+	for i, color, label in zip(list(range(5)), colors, elements):
 		pylab.plot(energy_per_nucleon, response[i,:], color=color, lw=0.5, label=label)
 		pylab.plot(energy_per_nucleon, numpy.exp(-muyield[i,:])*response[i,:], color=color, ls='--', lw=0.5)
 	
@@ -410,7 +410,7 @@ def plot_response_function(enu, depth, cos_theta, kind):
 	ax.yaxis.set_ticks(ax.yaxis.get_ticklocs()[2:-1])
 	
 	ax = pylab.subplot(grid[1])
-	for i, color, label in zip(range(5), colors, elements):
+	for i, color, label in zip(list(range(5)), colors, elements):
 		pylab.plot(energy_per_nucleon, muyield[i,:], color=color, lw=0.5, label=label)
 	pylab.loglog()
 	logmax = numpy.ceil(numpy.log10(muyield.max()))
@@ -420,7 +420,7 @@ def plot_response_function(enu, depth, cos_theta, kind):
 	ax.yaxis.set_ticks(ax.yaxis.get_ticklocs()[2:-1])
 	
 	ax = pylab.subplot(grid[2])
-	for i, color, label in zip(range(5), colors, elements):
+	for i, color, label in zip(list(range(5)), colors, elements):
 		pylab.plot(energy_per_nucleon, numpy.exp(-muyield[i,:]), color=color, lw=0.5, label=label)
 	pylab.semilogx()
 	ax.set_ylabel(r'$P(N_{\mu} = 0)$')
@@ -497,7 +497,7 @@ if __name__ == "__main__":
 		kind = opts.flavor
 	passrate *= uncorrelated_passing_rate(enu, emu, cos_theta, kind=kind)
 	
-	data = numpy.vstack(map(numpy.ndarray.flatten, (cos_theta, overburden(cos_theta, opts.depth), emu, enu, passrate))).T
+	data = numpy.vstack(list(map(numpy.ndarray.flatten, (cos_theta, overburden(cos_theta, opts.depth), emu, enu, passrate)))).T
 	fields = ['cos_theta', 'overburden', 'emu_min', 'energy', 'passrate']
 	
-	numpy.savetxt(sys.stdout, data, fmt='%12.3e', header='\t'.join(map(lambda s: '%12s' % s, fields))[1:])
+	numpy.savetxt(sys.stdout, data, fmt='%12.3e', header='\t'.join(['%12s' % s for s in fields])[1:])

@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 import pandas as pd
 from scipy import interpolate
-import pl
+from . import pl
 from nuVeto.utils import calc_bins, centers
 
 
@@ -74,4 +74,4 @@ if __name__ == '__main__':
     else:
         intp = interp(args.mmc, getattr(pl, args.plight))
         pickle.dump(intp, open(args.output, 'wb'), protocol=-1)
-    print 'Output pickled into {}'.format(args.output)
+    print('Output pickled into {}'.format(args.output))

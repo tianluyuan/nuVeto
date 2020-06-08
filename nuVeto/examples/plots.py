@@ -112,7 +112,7 @@ def samples(slice_val=1, kind='nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), had
     params = params.split(' ')
     pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label='{} {}'.format(tex(kind), tex(slice_val)))
     np.random.seed(seed)
-    for i in xrange(nsamples-1):
+    for i in range(nsamples-1):
         # max(-1, throw) prevents throws that dip below -100%
         errors = [max(-1, np.random.normal(scale=BARR[param].error)) for param in params]
         barr_mods = tuple(zip(params, errors))
@@ -217,10 +217,10 @@ def corsika(cos_theta_bin=-1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, '
     xcenters = 10**centers(xedges)[clean]
 
     pr = plt.errorbar(xcenters, eff[:,cos_theta_bin][clean],
-                     xerr=np.asarray(zip(xcenters-10**xedges[:-1][clean],
-                                         10**xedges[1:][clean]-xcenters)).T,
-                     yerr=np.asarray(zip(elow[:,cos_theta_bin][clean],
-                                         eup[:,cos_theta_bin][clean])).T,
+                     xerr=np.asarray(list(zip(xcenters-10**xedges[:-1][clean],
+                                         10**xedges[1:][clean]-xcenters))).T,
+                     yerr=np.asarray(list(zip(elow[:,cos_theta_bin][clean],
+                                         eup[:,cos_theta_bin][clean]))).T,
                      label='CORSIKA {} {}'.format(tex(kind), tex(cos_theta)),
                      fmt='.')
     if plot_legacy_veto_lines and fraction:
@@ -259,7 +259,7 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     emui = centers(emui_edges)
     l_ice = centers(l_ice_edges)
     xx, yy = np.meshgrid(emui, l_ice)
-    prpls = prplfn(zip(xx.flatten(), yy.flatten()))
+    prpls = prplfn(list(zip(xx.flatten(), yy.flatten())))
     plt.figure()
     plt.pcolormesh(emui_edges, l_ice_edges/1e3, prpls.reshape(xx.shape), cmap='magma')
     if include_cbar:
