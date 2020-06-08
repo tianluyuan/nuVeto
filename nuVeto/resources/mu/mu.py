@@ -36,7 +36,7 @@ def int_ef(preach, plight):
     """
     if isinstance(preach, str) and os.path.isfile(preach):
         try:
-            preach = pickle.load(gzip.open(preach, 'rb'))
+            preach = pickle.load(gzip.open(preach, 'rb'), encoding='latin1')
         except IOError:
             preach = hist_preach(preach)
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())

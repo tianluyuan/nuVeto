@@ -209,7 +209,7 @@ def corsika(cos_theta_bin=-1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, '
         [corsika(cth, kind, pmodel, hadr, density, prpl, corsika_file, plot_nuveto_lines, plot_legacy_veto_lines) for cth in cos_theta_bin]
         return
 
-    cfile = pickle.load(open(resource_filename('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl'))))
+    cfile = pickle.load(open(resource_filename('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl')), 'rb'), encoding='latin1')
     fraction = 'eff' in corsika_file
     eff, elow, eup, xedges, yedges = cfile[mceq_categ_format(kind)]
     cos_theta = centers(yedges)[cos_theta_bin]
@@ -253,7 +253,7 @@ def dndee(mother, daughter):
 
 def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     depth = 1950*Units.m
-    prplfn = pickle.load(open(interp_pkl))
+    prplfn = pickle.load(open(interp_pkl, 'rb'), encoding='latin1')
     emui_edges = np.logspace(2, 8, 101)
     l_ice_edges = np.linspace(1e3, 4e4, 101)
     emui = centers(emui_edges)

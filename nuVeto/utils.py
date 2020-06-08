@@ -72,7 +72,7 @@ class MuonProb(object):
         if pklfile is None:
             self.mu_int = self.median_approx
         elif os.path.isfile(pklfile):
-            self.mu_int = pickle.load(open(pklfile, 'rb'))
+            self.mu_int = pickle.load(open(pklfile, 'rb'), encoding='latin1')
         else:
             self.mu_int = pickle.load(open(resource_filename('nuVeto', os.path.join('data', 'prpl', pklfile+'.pkl')), 'rb'), encoding='latin1')
 
