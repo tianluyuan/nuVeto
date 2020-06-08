@@ -26,7 +26,7 @@ class nuVeto(object):
     def __init__(self, costh,
                  pmodel=(pm.HillasGaisser2012, 'H3a'),
                  hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m,
-                 density=('CORSIKA', ('SouthPole', 'June')),
+                 density=('CORSIKA', ('SouthPole', 'December')),
                  debug_level=1):
         """Initializes the nuVeto object for a particular costheta, CR Flux,
         hadronic model, barr parameters, and depth
@@ -115,7 +115,7 @@ class nuVeto(object):
         """
         # TODO: replace 1e8 with MMC-prpl interpolated bounds
         return np.logspace(np.log10(enu),
-                           np.log10(enu+1e8), 1000*accuracy)
+                           np.log10(enu+1e8), int(1000*accuracy))
 
 
     @staticmethod
@@ -350,9 +350,17 @@ class nuVeto(object):
         # number of targets per cm2
         ndens = rho_air*Units.Na/Units.mol_air
         sec = self.mceq.pman[p_pdg]
+        prim2mceq = {'p+-bar':'pbar-',
+                     'n0-bar':'nbar0',
+                     'D0-bar':'Dbar0',
+                     'Lambda0-bar':'Lambdabar0'}
         for prim in self.projectiles():
-            prim_flux = sol[:,ref[prim].lidx:
-                            ref[prim].uidx]
+            if prim in prim2mceq:
+                _ = prim2mceq[prim]
+            else:
+                _ = prim
+            prim_flux = sol[:,ref[_].lidx:
+                            ref[_].uidx]
             proj = self.mceq.pman[ParticleProperties.pdg_id[prim]]
             prim_xs = proj.inel_cross_section()
             try:
@@ -412,7 +420,7 @@ class nuVeto(object):
             # amu --> atomic mass of primary
 
             # evaluation points in E_CR
-            ecrs = amu(particle)*np.logspace(2, 10, 10*accuracy)
+            ecrs = amu(particle)*np.logspace(2, 10, int(10*accuracy))
 
             # pnm --> probability of no muon (just a poisson probability)
             nmu = [self.nmu(ecr, particle, prpl) for ecr in ecrs]
@@ -457,12 +465,12 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
     return nuVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
 
-def passing(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
+def passing(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'December')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num/den if fraction else num
 
 
-def fluxes(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'June')), accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
+def fluxes(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'December')), accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     return sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)

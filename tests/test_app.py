@@ -41,7 +41,7 @@ def test_pdet():
     l_ice = np.linspace(1000, 200000, 500)
     emui = np.logspace(3, 8, 500)*Units.GeV
     coords = np.stack(np.meshgrid(emui, l_ice), axis=-1)
-    root, subdir, fpaths = os.walk(resource_filename('nuVeto','data/prpl/')).next()
+    root, subdir, fpaths = next(os.walk(resource_filename('nuVeto','data/prpl/')))
     for fpath in fpaths:
         muprob = MuonProb(os.path.splitext(fpath)[0])
         pdets = muprob.prpl(coords)
@@ -53,7 +53,7 @@ def test_pnmshower(cth):
     particle = 14
     ecrs = amu(particle)*np.logspace(3, 10, 15)
     sv = nuVeto(cth)
-    nmu = [sv.nmu(ecr, particle) for ecr in ecrs]
+    nmu = np.asarray([sv.nmu(ecr, particle) for ecr in ecrs])
     assert not np.any(nmu < 0)
 
 
