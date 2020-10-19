@@ -1,6 +1,6 @@
-# nuVeto
-
 [![PyPI version](https://img.shields.io/pypi/v/nuveto)](https://pypi.org/project/nuveto) [![Build Status](https://travis-ci.com/tianluyuan/nuVeto.svg?branch=master)](https://travis-ci.com/tianluyuan/nuVeto) [![Python versions](https://img.shields.io/pypi/pyversions/nuveto)](https://pypi.org/project/nuveto)
+
+# nuVeto
 
 This package calculates the effect of a detector veto on the high-energy atmospheric neutrino flux via detection of muons that reach the detector. The result calculated is the passing-flux or passing-fraction of atmospheric neutrinos as a function of energy and zenith angle.
 
