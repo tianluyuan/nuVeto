@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='nuVeto',
-    version='2.1',
+    version='2.1.1',
     maintainer='Tianlu Yuan',
     maintainer_email='tyuan@icecube.wisc.edu',
     description='Package implements the formalism for calculating passing fraction as discussed in JCAP07(2018)047.',
