@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 
+
 setup(
     name='nuVeto',
     version='2.1.1',
@@ -13,17 +14,14 @@ setup(
         'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl'],
         'nuVeto.resources.mu':['mmc/ice*.pklz']
     },
-    install_requires=['scipy',
-                      'numpy',
-                      'MCEq[MKL]'],
+    install_requires=['numpy', 'scipy', 'MCEq[MKL]'],
     extras_require={
         'plotting':  ['matplotlib'],
-        'resources':  ['pythia8', 'matplotlib', 'argparse', 'pandas']
+        'resources':  ['pythia8', 'matplotlib', 'argparse', 'pandas'],
+        'testing': ['pytest==4.6.4']
     },
-    setup_requires=['pytest-runner'],
     python_requires='>=3.3',
     license=open('LICENSE').readline().split()[0],
-    tests_require=['pytest==4.6.4'],
     classifiers=[
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)',
