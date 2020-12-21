@@ -259,21 +259,17 @@ class nuVeto(object):
             rescale_phi = self.get_rescale_phi(mother, ecr, particle)
             if not np.any(rescale_phi > 0):
                 continue
-            try:
-                # DEBUG
-                # from matplotlib import pyplot as plt
-                # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),
-                #          np.log(rescale_phi[:,0][rescale_phi[:,0]>0]))
-                # rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', bounds_error=False, fill_value=0)(esamp) for i in range(rescale_phi.shape[1])]).T
-                ###
-                # TODO: optimize to only run when esamp[0] is non-zero
-                rescale_phi = np.exp(np.array([interpolate.interp1d(
-                    np.log(self.mceq.e_grid[rescale_phi[:,i]>0]),
-                    np.log(rescale_phi[:,i][rescale_phi[:,i]>0]),
-                    kind='quadratic', bounds_error=False, fill_value=-np.inf)(np.log(esamp)) for i in range(rescale_phi.shape[1])])).T
-            except ValueError as e:
-                print(e)
-                pass
+            # DEBUG
+            # from matplotlib import pyplot as plt
+            # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),
+            #          np.log(rescale_phi[:,0][rescale_phi[:,0]>0]))
+            # rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', bounds_error=False, fill_value=0)(esamp) for i in range(rescale_phi.shape[1])]).T
+            ###
+            # TODO: optimize to only run when esamp[0] is non-zero
+            rescale_phi = np.exp(np.array([interpolate.interp1d(
+                np.log(self.mceq.e_grid[rescale_phi[:,i]>0]),
+                np.log(rescale_phi[:,i][rescale_phi[:,i]>0]),
+                kind='quadratic', bounds_error=False, fill_value=-np.inf)(np.log(esamp)) for i in range(rescale_phi.shape[1])])).T
             # DEBUG
             # print rescale_phi.min(), rescale_phi.max()
             # print np.log(esamp)
