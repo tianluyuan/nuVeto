@@ -269,7 +269,10 @@ class nuVeto(object):
             rescale_phi = np.exp(np.array([interpolate.interp1d(
                 np.log(self.mceq.e_grid[rescale_phi[:,i]>0]),
                 np.log(rescale_phi[:,i][rescale_phi[:,i]>0]),
-                kind='quadratic', bounds_error=False, fill_value=-np.inf)(np.log(esamp)) for i in range(rescale_phi.shape[1])])).T
+                kind='quadratic', bounds_error=False, fill_value=-np.inf)(np.log(esamp))
+                                           if np.any(rescale_phi[:,i] > 0)
+                                           else [-np.inf,]*esamp.shape[0]
+                                           for i in range(rescale_phi.shape[1])])).T
             # DEBUG
             # print rescale_phi.min(), rescale_phi.max()
             # print np.log(esamp)
