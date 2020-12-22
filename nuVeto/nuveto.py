@@ -257,8 +257,6 @@ class nuVeto(object):
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, ecr, particle)
-            if not np.any(rescale_phi > 0):
-                continue
             # DEBUG
             # from matplotlib import pyplot as plt
             # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),

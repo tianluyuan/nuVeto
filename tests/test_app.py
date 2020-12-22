@@ -46,7 +46,16 @@ def test_pdet():
         muprob = MuonProb(os.path.splitext(fpath)[0])
         pdets = muprob.prpl(coords)
         assert np.all(pdets >=0) and np.all(pdets <=1)
-    
+
+
+def test_edge():
+    """ Test edge case where MCEq yields are all <= 0.
+    """
+    sv = nuVeto(0., pmodel=(pm.ZatsepinSokolskaya, 'pamela'), hadr='DPMJET-III-19.1',
+                density=('MSIS00_IC', ('SouthPole','June')))
+    _ = sv.get_rescale_phi('D-', 508.0218046913023, 14)
+    assert not np.any(_[:,-1] > 0)
+
 
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
 def test_pnmshower(cth):
