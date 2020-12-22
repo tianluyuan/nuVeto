@@ -268,7 +268,7 @@ class nuVeto(object):
                 np.log(self.mceq.e_grid[rescale_phi[:,i]>0]),
                 np.log(rescale_phi[:,i][rescale_phi[:,i]>0]),
                 kind='quadratic', bounds_error=False, fill_value=-np.inf)(np.log(esamp))
-                                           if np.any(rescale_phi[:,i] > 0)
+                                           if np.count_nonzero(rescale_phi[:,i] > 0) > 2
                                            else [-np.inf,]*esamp.shape[0]
                                            for i in range(rescale_phi.shape[1])])).T
             # DEBUG
