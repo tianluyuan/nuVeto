@@ -273,7 +273,7 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
             plt.setp(text, color = 'w', fontsize='medium')
     plt.xlabel(r'$E_\mu^{\rm i}$ [GeV]')
     plt.ylabel(r'$l_{\rm ice}$ [km]')
-    plt.locator_params(axis='y', nticks=8)
+    plt.locator_params(axis='y', nbins=8)
     # # plt.yscale('log')
     # # plt.gca().yaxis.set_major_formatter(ScalarFormatter())
     # plt.ticklabel_format(style='plain', axis='y')
