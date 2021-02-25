@@ -46,6 +46,11 @@ class nuVeto(object):
         self.pmodel = pmodel
         self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
+        if density[0] == 'MSIS00_IC':
+            print('Passing "MSIS00_IC" assumes IceCube-centered coordinates, '
+                  'which obviates the depth used here. Switching to "MSIS00" '
+                  'for identical results.')
+            density = ('MSIS00', density[1])
 
         config.debug_level = debug_level
         # config.enable_em = False
