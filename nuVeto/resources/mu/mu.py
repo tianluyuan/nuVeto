@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import os
 from collections import namedtuple
@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 import pandas as pd
 from scipy import interpolate
-from . import pl
+from nuVeto.resources.mu import pl
 from nuVeto.utils import calc_bins, centers
 
 
