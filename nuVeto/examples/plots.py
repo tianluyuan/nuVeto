@@ -19,8 +19,10 @@ def tex(inp):
         categ, daughter = inp.split()
         daughter_trans = {'nu_mu':r'$\nu_\mu$',
                           'nu_e':r'$\nu_e$',
+                          'nu_tau':r'$\nu_\tau$',
                           'nu_mubar':r'$\overline{\nu}_\mu$',
-                          'nu_ebar':r'$\overline{\nu}_e$'}
+                          'nu_ebar':r'$\overline{\nu}_e$',
+                          'nu_taubar':r'$\overline{\nu}_\tau$'}
         return r'{} {}'.format(categ, daughter_trans[daughter])
     else:
         if inp > 1:
