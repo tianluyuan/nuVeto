@@ -14,11 +14,11 @@ setup(
         'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl'],
         'nuVeto.resources.mu':['mmc/ice*.pklz']
     },
-    install_requires=['numpy', 'scipy', 'MCEq[MKL]'],
+    install_requires=['numpy', 'scipy', 'MCEq'],
     extras_require={
         'plotting':  ['matplotlib'],
         'resources':  ['pythia8', 'matplotlib', 'argparse', 'pandas'],
-        'testing': ['pytest==4.6.4']
+        'testing': ['pytest']
     },
     python_requires='>=3.3',
     license=open('LICENSE').readline().split()[0],
