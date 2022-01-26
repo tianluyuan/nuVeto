@@ -16,7 +16,7 @@ This now relies on the updated version of [MCEq](https://github.com/afedynitch/M
 pip install nuVeto
 ```
 
-This will install [MCEq](https://github.com/afedynitch/MCEq) with MKL.
+This will install [MCEq](https://github.com/afedynitch/MCEq).
 
 Extras are `pip install nuVeto[plotting, resources]` which will install some packages for plotting and generating muon reaching probabilities.
 
