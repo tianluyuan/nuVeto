@@ -12,14 +12,13 @@ from pkg_resources import resource_filename
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
-import MCEq.core
-import MCEq.data
 
 from MCEq.core import MCEqRun
 import crflux.models as pm
 import mceq_config as config
 from .utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
 from .uncertainties import BARR, barr_unc
+
 
 class nuVeto(object):
     """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))"""
@@ -86,7 +85,6 @@ class nuVeto(object):
         self.dX_vec = np.diff(X_vec)
         self.X_vec = 10**centers(np.log10(X_vec))
 
-
     @staticmethod
     def categ_to_mothers(categ, daughter):
         """Get the parents for this category"""
@@ -113,7 +111,6 @@ class nuVeto(object):
             mothers = [categ,]
         return mothers
 
-
     @staticmethod
     def esamp(enu, accuracy):
         """ returns the sampling of parent energies for a given enu
@@ -121,7 +118,6 @@ class nuVeto(object):
         # TODO: replace 1e8 with MMC-prpl interpolated bounds
         return np.logspace(np.log10(enu),
                            np.log10(enu+1e8), int(1000*accuracy))
-
 
     @staticmethod
     def projectiles():
@@ -137,7 +133,6 @@ class nuVeto(object):
                 continue
         return allowed
 
-
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
         with np.load(fpath) as dfile:
@@ -152,7 +147,6 @@ class nuVeto(object):
             reaching = 1-np.sum(pmu_mat*fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape)*l_ice], axis=-1)), axis=0)
             reaching[reaching < 0.] = 0.
             return reaching
-
 
     @staticmethod
     @lru_cache(2**12)
@@ -187,7 +181,6 @@ class nuVeto(object):
                                     [l_ice]*len(esamp))))
         return reaching
 
-            
     @lru_cache(maxsize=2**12)
     def get_dNdEE(self, mother, daughter):
         """Differential parent-->neutrino (mother--daughter) yield"""
@@ -213,7 +206,6 @@ class nuVeto(object):
             extrapolate=True)(x_) * np.heaviside(1-rr-x_, 1)
         return x_range, dNdEE, dNdEE_interp
 
-
     @lru_cache(maxsize=2**12)
     def grid_sol(self, ecr=None, particle=None):
         """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
@@ -224,7 +216,6 @@ class nuVeto(object):
         self.mceq.solve(int_grid=self.X_vec, grid_var="X")
         return self.mceq.grid_sol
 
-
     @lru_cache(maxsize=2**12)
     def nmu(self, ecr, particle, prpl='ice_allm97_step_1'):
         """Poisson probability of getting no muons"""
@@ -234,13 +225,8 @@ class nuVeto(object):
         fn = MuonProb(prpl)
         coords = list(zip(self.mceq.e_grid*Units.GeV,
                           [l_ice]*len(self.mceq.e_grid)))
-        ### DEBUG ###
-        # if np.trapz(mu*fn.prpl(coords)*self.mceq.e_grid, np.log(self.mceq.e_grid)) < 0:
-        #     import pdb
-        #     pdb.set_trace()
-        ###
-        return np.trapz(mu*fn.prpl(coords)*self.mceq.e_grid, np.log(self.mceq.e_grid))
 
+        return integrate.trapezoid(mu*fn.prpl(coords)*self.mceq.e_grid, np.log(self.mceq.e_grid))
 
     @lru_cache(maxsize=2**12)
     def get_rescale_phi(self, mother, ecr=None, particle=None):
@@ -252,7 +238,6 @@ class nuVeto(object):
         rescale_phi = dX[None,:]* inv_decay_length_array * self.get_solution(mother, grid_sol, grid_idx=False).T
         return rescale_phi
 
-
     def get_integrand(self, categ, daughter, enu, accuracy, prpl, ecr=None, particle=None):
         """flux*yield"""
         esamp = self.esamp(enu, accuracy)
@@ -262,11 +247,7 @@ class nuVeto(object):
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, ecr, particle)
-            # DEBUG
-            # from matplotlib import pyplot as plt
-            # plt.plot(np.log(self.mceq.e_grid[rescale_phi[:,0]>0]),
-            #          np.log(rescale_phi[:,0][rescale_phi[:,0]>0]))
-            # rescale_phi = np.array([interpolate.interp1d(self.mceq.e_grid, rescale_phi[:,i], kind='quadratic', bounds_error=False, fill_value=0)(esamp) for i in range(rescale_phi.shape[1])]).T
+
             ###
             # TODO: optimize to only run when esamp[0] is non-zero
             rescale_phi = np.exp(np.array([interpolate.interp1d(
@@ -276,15 +257,7 @@ class nuVeto(object):
                                            if np.count_nonzero(rescale_phi[:,i] > 0) > 2
                                            else [-np.inf,]*esamp.shape[0]
                                            for i in range(rescale_phi.shape[1])])).T
-            # DEBUG
-            # print rescale_phi.min(), rescale_phi.max()
-            # print np.log(esamp)
-            # plt.plot(np.log(esamp),
-            #          np.log(rescale_phi[:,0]), label='intp')
-            # plt.legend()
-            # import pdb
-            # pdb.set_trace()
-            ###
+
             if 'nu_mu' in daughter:
                 # muon accompanies nu_mu only
                 pnmsib = self.psib(self.geom.overburden(self.costh),
@@ -296,7 +269,6 @@ class nuVeto(object):
             dens += (dnde)[:,None]*rescale_phi
 
         return nums, dens
-
 
     def get_solution(self,
                      particle_name,
@@ -392,7 +364,6 @@ class nuVeto(object):
             res = res[0]
         return res
 
-
     def get_fluxes(self, enu, kind='conv nu_mu', accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
         """Returns the flux and passing fraction
         for a particular neutrino energy, flux, and p_light
@@ -411,10 +382,10 @@ class nuVeto(object):
             nums, dens = self.get_integrand(categ, daughter, enu, accuracy, prpl)
             num = np.sum(nums, axis=1)
             den = np.sum(dens, axis=1)
-            passed = integrate.trapz(num, esamp)
-            total = integrate.trapz(den, esamp)
+            passed = integrate.trapezoid(num, esamp)
+            total = integrate.trapezoid(den, esamp)
             return passed, total
-                
+
         pmodel = self.pmodel[0](self.pmodel[1])
 
         #loop over primary particles
