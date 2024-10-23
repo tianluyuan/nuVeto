@@ -398,7 +398,7 @@ def plot_response_function(enu, depth, cos_theta, kind):
 	ax.plot(energy_per_nucleon, (numpy.exp(-muyield)*response).sum(axis=-2), color='k', ls='--', lw=1, label='(no muons)')
 		
 	pylab.loglog()
-	ax.set_ylabel('Partial flux $[GeV^{-1}\, m^{-2}\, sr^{-1}\, s^{-1}]$')
+	ax.set_ylabel(r'Partial flux $[GeV^{-1}\, m^{-2}\, sr^{-1}\, s^{-1}]$')
 	ax.legend(loc='best', prop=dict(size='small'), title='Flux contributions')
 	passrate = (numpy.exp(-muyield)*response).sum(axis=(-2, -1))/response.sum(axis=(-2, -1))
 	ax.set_title('%s %s from %d deg at %d m depth: %d%% passing rate' %
