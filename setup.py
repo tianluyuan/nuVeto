@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='nuVeto',
-    version='2.2.3',
+    version='2.2.4',
     maintainer='Tianlu Yuan',
     maintainer_email='tyuan@icecube.wisc.edu',
     description='Package implements the formalism for calculating passing fraction as discussed in JCAP07(2018)047.',
@@ -14,7 +14,7 @@ setup(
         'nuVeto':['data/decay_distributions/*.npz','data/prpl/*.pkl','data/corsika/*.pkl'],
         'nuVeto.resources.mu':['mmc/ice*.pklz']
     },
-    install_requires=['numpy<2.0.0', 'scipy<1.14.0', 'MCEq'],
+    install_requires=['numpy<2.0.0', 'scipy', 'MCEq'],
     extras_require={
         'plotting':  ['matplotlib'],
         'resources':  ['pythia8', 'matplotlib', 'argparse', 'pandas'],
