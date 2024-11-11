@@ -8,7 +8,7 @@ given depth.
 """
 
 from functools import lru_cache
-from pkg_resources import resource_filename
+from importlib import resources
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -93,18 +93,18 @@ class nuVeto(object):
         rbar = 'bar' if 'bar' in daughter else ''
         lbar = '' if 'bar' in daughter else 'bar'
         if categ == 'conv':
-            mothers = ['pi'+rcharge, 'K'+rcharge, 'K_L0']
+            mothers = [f"pi{rcharge}", f"K{rcharge}", 'K_L0']
             if 'nu_tau' in daughter:
                 mothers = []
             elif 'nu_e' in daughter:
-                mothers.extend(['K_S0', 'mu'+rcharge])
+                mothers.extend(['K_S0', f"mu{rcharge}"])
             elif 'nu_mu' in daughter:
-                mothers.extend(['mu'+lcharge])
+                mothers.extend([f"mu{lcharge}"])
         elif categ == 'pr':
             if 'nu_tau' in daughter:
-                mothers = ['D'+rcharge, 'D_s'+rcharge]
+                mothers = [f"D{rcharge}", f"D_s{rcharge}"]
             else:
-                mothers = ['D'+rcharge, 'D_s'+rcharge, 'D'+rbar+'0']#, 'Lambda'+lbar+'0']#, 'Lambda_c'+rcharge]
+                mothers = [f"D{rcharge}", f"D_s{rcharge}", f"D{rbar}0"]#, 'Lambda'+lbar+'0']#, 'Lambda_c'+rcharge]
         elif categ == 'total':
             mothers = nuVeto.categ_to_mothers('conv', daughter)+nuVeto.categ_to_mothers('pr', daughter)
         else:
@@ -157,23 +157,19 @@ class nuVeto(object):
         fn = MuonProb(prpl)
         if mother in ['D0', 'D0-bar']:
             reaching = nuVeto.nbody(
-                resource_filename(
-                'nuVeto','data/decay_distributions/D0_numu.npz'),
+                resources.files('nuVeto') / 'data' / 'decay_distributions' / 'D0_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother in ['D+', 'D-']:
             reaching = nuVeto.nbody(
-                resource_filename(
-                'nuVeto','data/decay_distributions/D+_numu.npz'),
+                resources.files('nuVeto') / 'data' / 'decay_distributions' / 'D+_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother in ['Ds+', 'Ds-']:
             reaching = nuVeto.nbody(
-                resource_filename(
-                'nuVeto','data/decay_distributions/Ds_numu.npz'),
+                resources.files('nuVeto') / 'data' / 'decay_distributions' / 'Ds_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother == 'K0L':
             reaching = nuVeto.nbody(
-                resource_filename(
-                'nuVeto','data/decay_distributions/K0L_numu.npz'),
+                resources.files('nuVeto') / 'data' / 'decay_distributions' / 'K0L_numu.npz',
                 esamp, enu, fn, l_ice)
         else:
             # Assuming muon energy is E_parent - E_nu
@@ -352,11 +348,11 @@ class nuVeto(object):
         res[direct != 0] = direct[direct != 0]
 
         if particle_name[:-1] == 'mu':
-            for _ in ['k_'+particle_name, 'pi_'+particle_name]:
-                res += sol[:,ref[_+'_l'].lidx:
-                           ref[_+'_l'].uidx]
-                res += sol[:,ref[_+'_r'].lidx:
-                           ref[_+'_r'].uidx]
+            for _ in [f"k_{particle_name}", f"pi_{particle_name}"]:
+                res += sol[:,ref[f"{_}_l"].lidx:
+                           ref[f"{_}_l"].uidx]
+                res += sol[:,ref[f"{_}_r"].lidx:
+                           ref[f"{_}_r"].uidx]
 
         res *= self.mceq.e_grid[None,:] ** mag
 

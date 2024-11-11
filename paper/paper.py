@@ -1,8 +1,7 @@
 import os
 import sys
-from pkg_resources import resource_filename
+from importlib import resources
 from nuVeto.examples import plots
-from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
 from nuVeto.external import helper as exthp
 from nuVeto.nuveto import pm, fluxes
@@ -54,9 +53,9 @@ def earth_attenuation(enu, cos_theta, kind='conv nu_mu'):
 
         
 def fig_prpl():
-    step1000 = resource_filename('nuVeto', 'data/prpl/ice_allm97_step_1.pkl')
-    step750 = resource_filename('nuVeto', 'data/prpl/ice_allm97_step_0.75.pkl')
-    sigmoid = resource_filename('nuVeto', 'data/prpl/ice_allm97_sigmoid_0.75_0.25.pkl')
+    step1000 = resources.files('nuVeto') / 'data' / 'prpl' / 'ice_allm97_step_1.pkl'
+    step750 = resources.files('nuVeto') / 'data' / 'prpl' / 'ice_allm97_step_0.75.pkl'
+    sigmoid = resources.files('nuVeto') / 'data' / 'prpl' / 'ice_allm97_sigmoid_0.75_0.25.pkl'
     plt.figure()
     plots.plot_prpl(step1000, True, False)
     plt.title(r'Heaviside $\cal P_{\rm light}$')
@@ -111,7 +110,7 @@ def fig_prs_ratio():
                     label='ALLM97/BB')
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/prs_ratio_{}.eps'.format(kind))
+        save(f'fig/prs_ratio_{kind}.eps')
 
 
 def fig_prs():
@@ -135,7 +134,7 @@ def fig_prs():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/prs_{}.eps'.format(kind))
+        save(f'fig/prs_{kind}.eps')
 
 
 def fig_pls():
@@ -159,7 +158,7 @@ def fig_pls():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/pls_{}.eps'.format(kind))
+        save(f'fig/pls_{kind}.eps')
 
 
 def fig_medium():
@@ -188,7 +187,7 @@ def fig_medium():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/medium_{}.eps'.format(kind))
+        save(f'fig/medium_{kind}.eps')
 
         
 def fig_hadrs():
@@ -211,7 +210,7 @@ def fig_hadrs():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/hadrs_{}.eps'.format(kind))
+        save(f'fig/hadrs_{kind}.eps')
 
 
 def fig_density():
@@ -231,7 +230,7 @@ def fig_density():
                                  label=clabel, linestyle=linestyles[idx])
 
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
-                        label='{}'.format(dmodel[2]))
+                        label=f'{dmodel[2]}')
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
@@ -287,7 +286,7 @@ def fig_extsv():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/extsv_{}.eps'.format(kind))
+        save(f'fig/extsv_{kind}.eps')
 
 
 def fig_flux():
@@ -342,4 +341,4 @@ def fig_flux():
             plt.legend([lpassing, ltotal], ['Passing', 'Total'])
         plt.gca().add_artist(leg1)
         plt.tight_layout(0.3)
-        save('fig/fluxes_{:.0f}.eps'.format(enu/1e3))
+        save(f'fig/fluxes_{enu / 1000.0:.0f}.eps')
