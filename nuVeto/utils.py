@@ -1,6 +1,6 @@
 import os
 import pickle
-from pkg_resources import resource_filename
+from importlib import resources
 from MCEq.geometry.geometry import EarthGeometry
 import mceq_config as config
 import numpy as np
@@ -74,7 +74,7 @@ class MuonProb(object):
         elif os.path.isfile(pklfile):
             self.mu_int = pickle.load(open(pklfile, 'rb'), encoding='latin1')
         else:
-            self.mu_int = pickle.load(open(resource_filename('nuVeto', os.path.join('data', 'prpl', pklfile+'.pkl')), 'rb'), encoding='latin1')
+            self.mu_int = pickle.load(open(resources('nuVeto', os.path.join('data', 'prpl', pklfile+'.pkl')), 'rb'), encoding='latin1')
 
 
     def median_emui(self, distance):

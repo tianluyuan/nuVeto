@@ -20,7 +20,7 @@ setup(
         'resources':  ['pythia8', 'matplotlib', 'argparse', 'pandas'],
         'testing': ['pytest']
     },
-    python_requires='>=3.3',
+    python_requires='>=3.7',
     license=open('LICENSE').readline().split()[0],
     classifiers=[
         'Intended Audience :: Science/Research',

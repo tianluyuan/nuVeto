@@ -8,7 +8,7 @@ given depth.
 """
 
 from functools import lru_cache
-from pkg_resources import resource_filename
+from importlib import resources
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -157,22 +157,22 @@ class nuVeto(object):
         fn = MuonProb(prpl)
         if mother in ['D0', 'D0-bar']:
             reaching = nuVeto.nbody(
-                resource_filename(
+                resources(
                 'nuVeto','data/decay_distributions/D0_numu.npz'),
                 esamp, enu, fn, l_ice)
         elif mother in ['D+', 'D-']:
             reaching = nuVeto.nbody(
-                resource_filename(
+                resources(
                 'nuVeto','data/decay_distributions/D+_numu.npz'),
                 esamp, enu, fn, l_ice)
         elif mother in ['Ds+', 'Ds-']:
             reaching = nuVeto.nbody(
-                resource_filename(
+                resources(
                 'nuVeto','data/decay_distributions/Ds_numu.npz'),
                 esamp, enu, fn, l_ice)
         elif mother == 'K0L':
             reaching = nuVeto.nbody(
-                resource_filename(
+                resources(
                 'nuVeto','data/decay_distributions/K0L_numu.npz'),
                 esamp, enu, fn, l_ice)
         else:

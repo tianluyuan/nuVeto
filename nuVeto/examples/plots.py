@@ -1,6 +1,6 @@
 import pickle
 import os
-from pkg_resources import resource_filename
+from importlib import resources
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import nuVeto, passing, fluxes
@@ -211,7 +211,7 @@ def corsika(cos_theta_bin=-1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, '
         [corsika(cth, kind, pmodel, hadr, density, prpl, corsika_file, plot_nuveto_lines, plot_legacy_veto_lines) for cth in cos_theta_bin]
         return
 
-    cfile = pickle.load(open(resource_filename('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl')), 'rb'), encoding='latin1')
+    cfile = pickle.load(open(resources('nuVeto', os.path.join('/data/corsika', corsika_file+'.pkl')), 'rb'), encoding='latin1')
     fraction = 'eff' in corsika_file
     eff, elow, eup, xedges, yedges = cfile[mceq_categ_format(kind)]
     cos_theta = centers(yedges)[cos_theta_bin]

@@ -1,6 +1,6 @@
 import os
 import sys
-from pkg_resources import resource_filename
+from importlib import resources
 from nuVeto.examples import plots
 from nuVeto.resources.mu import mu
 from nuVeto.external import selfveto as extsv
@@ -54,9 +54,9 @@ def earth_attenuation(enu, cos_theta, kind='conv nu_mu'):
 
         
 def fig_prpl():
-    step1000 = resource_filename('nuVeto', 'data/prpl/ice_allm97_step_1.pkl')
-    step750 = resource_filename('nuVeto', 'data/prpl/ice_allm97_step_0.75.pkl')
-    sigmoid = resource_filename('nuVeto', 'data/prpl/ice_allm97_sigmoid_0.75_0.25.pkl')
+    step1000 = resources('nuVeto', 'data/prpl/ice_allm97_step_1.pkl')
+    step750 = resources('nuVeto', 'data/prpl/ice_allm97_step_0.75.pkl')
+    sigmoid = resources('nuVeto', 'data/prpl/ice_allm97_sigmoid_0.75_0.25.pkl')
     plt.figure()
     plots.plot_prpl(step1000, True, False)
     plt.title(r'Heaviside $\cal P_{\rm light}$')
