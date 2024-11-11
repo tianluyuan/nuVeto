@@ -74,4 +74,4 @@ if __name__ == '__main__':
     else:
         intp = interp(args.mmc, getattr(pl, args.plight))
         pickle.dump(intp, open(args.output, 'wb'), protocol=-1)
-    print('Output pickled into {}'.format(args.output))
+    print(f'Output pickled into {args.output}')

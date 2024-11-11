@@ -193,5 +193,5 @@ def calc_bins(x):
 def mceq_categ_format(kind):
     _c, _d = kind.split()
     if 'bar' in _d:
-        _d = 'anti'+_d.replace('bar', '')
-    return _c+'_'+_d.replace('_', '')
+        _d = f"anti{_d.replace('bar', '')}"
+    return f"{_c}_{_d.replace('_', '')}"

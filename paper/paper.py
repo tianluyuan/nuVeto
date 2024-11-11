@@ -110,7 +110,7 @@ def fig_prs_ratio():
                     label='ALLM97/BB')
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/prs_ratio_{}.eps'.format(kind))
+        save(f'fig/prs_ratio_{kind}.eps')
 
 
 def fig_prs():
@@ -134,7 +134,7 @@ def fig_prs():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/prs_{}.eps'.format(kind))
+        save(f'fig/prs_{kind}.eps')
 
 
 def fig_pls():
@@ -158,7 +158,7 @@ def fig_pls():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/pls_{}.eps'.format(kind))
+        save(f'fig/pls_{kind}.eps')
 
 
 def fig_medium():
@@ -187,7 +187,7 @@ def fig_medium():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/medium_{}.eps'.format(kind))
+        save(f'fig/medium_{kind}.eps')
 
         
 def fig_hadrs():
@@ -210,7 +210,7 @@ def fig_hadrs():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/hadrs_{}.eps'.format(kind))
+        save(f'fig/hadrs_{kind}.eps')
 
 
 def fig_density():
@@ -230,7 +230,7 @@ def fig_density():
                                  label=clabel, linestyle=linestyles[idx])
 
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
-                        label='{}'.format(dmodel[2]))
+                        label=f'{dmodel[2]}')
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
@@ -286,7 +286,7 @@ def fig_extsv():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/extsv_{}.eps'.format(kind))
+        save(f'fig/extsv_{kind}.eps')
 
 
 def fig_flux():
@@ -341,4 +341,4 @@ def fig_flux():
             plt.legend([lpassing, ltotal], ['Passing', 'Total'])
         plt.gca().add_artist(leg1)
         plt.tight_layout(0.3)
-        save('fig/fluxes_{:.0f}.eps'.format(enu/1e3))
+        save(f'fig/fluxes_{enu / 1000.0:.0f}.eps')

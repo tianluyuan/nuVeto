@@ -93,26 +93,26 @@ def depth(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'),
     for depth in depths:
         fn(slice_val)(slice_val, kind, pmodel, hadr,
                       depth=depth, fraction=fraction,
-                      label='depth {:.0f} m'.format(depth/Units.m))
-    plt.title('{} {} {}'.format(hadr, tex(kind), tex(slice_val)))
+                      label=f'depth {depth / Units.m:.0f} m')
+    plt.title(f'{hadr} {tex(kind)} {tex(slice_val)}')
     plt.legend()
-        
+
 
 def brackets(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
     uppers = [BARR[param].error for param in params]
     lowers = [-BARR[param].error for param in params]
     all_barr_mods = [tuple(zip(params, uppers)), tuple(zip(params, lowers))]
-    pr = fn(slice_val)(slice_val, kind, pmodel, hadr, label='{} {}'.format(tex(kind), tex(slice_val)))
+    pr = fn(slice_val)(slice_val, kind, pmodel, hadr, label=f'{tex(kind)} {tex(slice_val)}')
     for barr_mods in all_barr_mods:
         fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, fraction=fraction,
                       color=pr.get_color(), alpha=1-abs(barr_mods[0][-1]))
 
 
 def samples(slice_val=1, kind='nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
-                 seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
+            seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
-    pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label='{} {}'.format(tex(kind), tex(slice_val)))
+    pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr, label=f'{tex(kind)} {tex(slice_val)}')
     np.random.seed(seed)
     for i in range(nsamples-1):
         # max(-1, throw) prevents throws that dip below -100%
@@ -128,15 +128,15 @@ def accuracy(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a
     for accuracy in accuracies:
         fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr,
                       accuracy=accuracy, fraction=fraction,
-                      label='accuracy {}'.format(accuracy))
-    plt.title('{} {} {}'.format(hadr, tex(kind), tex(slice_val)))
+                      label=f'accuracy {accuracy}')
+    plt.title(f'{hadr} {tex(kind)} {tex(slice_val)}')
     plt.legend()
 
 
 def prpls(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', compare=(None, 'ice_allm97_step_1', 'sigmoid_0.75_0.1')):
     for prpl in compare:
         fn(slice_val)(slice_val, kind, pmodel=pmodel, hadr=hadr, prpl=prpl,
-                      label='{} {} {}'.format(prpl, tex(kind), tex(slice_val)))
+                      label=f'{prpl} {tex(kind)} {tex(slice_val)}')
     plt.legend()
 
 
@@ -147,16 +147,16 @@ def elbert(slice_val=1., kind='conv nu_mu', pmodel=(pm.GaisserHonda, None), prpl
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
         plt.plot(cths, echoice(kind)(slice_val, emu, cths), 'k--',
-                 label='Analytic approx. {} {}'.format(tex(kind), tex(slice_val)))
+                 label=f'Analytic approx. {tex(kind)} {tex(slice_val)}')
     else:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(slice_val))
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--',
-                 label='Analytic approx. {} {}'.format(tex(kind), tex(slice_val)))
+                 label=f'Analytic approx. {tex(kind)} {tex(slice_val)}')
 
     for hadr in hadrs:
         fn(slice_val)(slice_val, kind, pmodel, hadr, prpl=prpl, corr_only=corr_only,
-                      label='{} {} {}'.format(hadr, tex(kind), tex(slice_val)))
+                      label=f'{hadr} {tex(kind)} {tex(slice_val)}')
     plt.legend()
     plt.tight_layout(0.3)
 
@@ -166,7 +166,7 @@ def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III-3.0.6', prp
                (pm.PolyGonato, False, 'poly-gonato'),
                (pm.GaisserHonda, None, 'GH')]
     echoice = exthp.corr if corr_only else exthp.passrates
-    label = extlabel(corr_only)+' {} {}'.format(tex(kind), tex(slice_val))
+    label = f'{extlabel(corr_only)} {tex(kind)} {tex(slice_val)}'
     if slice_val > 1:
         cths = np.linspace(0,1, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cths))
@@ -179,7 +179,7 @@ def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III-3.0.6', prp
                  label=label)
     for pmodel in pmodels:
         pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
-                     label='{} {} {}'.format(pmodel[2], tex(kind), tex(slice_val)))
+                     label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
     plt.tight_layout(0.3)
 
@@ -191,7 +191,7 @@ def pmodels(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice_allm97
                (pm.ZatsepinSokolskaya, 'default', 'ZS')]
     for pmodel in pmodels:
         pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
-                           label='{} {} {}'.format(pmodel[2], tex(kind), tex(slice_val)))
+                           label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
 
 
@@ -202,7 +202,7 @@ def density_models(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice
               ('MSIS00_IC',('SouthPole', 'January'))]
     for model in models:
         pr = fn(slice_val)(slice_val, kind, density=model, hadr=hadr, prpl=prpl, fraction=fraction,
-                           label='{} {} {} {} {}'.format(model[0], model[1][0], model[1][1], tex(kind), tex(slice_val)))
+                           label=f'{model[0]} {model[1][0]} {model[1][1]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
 
 
@@ -223,16 +223,16 @@ def corsika(cos_theta_bin=-1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, '
                                          10**xedges[1:][clean]-xcenters))).T,
                      yerr=np.asarray(list(zip(elow[:,cos_theta_bin][clean],
                                          eup[:,cos_theta_bin][clean]))).T,
-                     label='CORSIKA {} {}'.format(tex(kind), tex(cos_theta)),
+                     label=f'CORSIKA {tex(kind)} {tex(cos_theta)}',
                      fmt='.')
     if plot_legacy_veto_lines and fraction:
         ens = np.logspace(2,9, 100)
         emu = extsv.minimum_muon_energy(extsv.overburden(cos_theta))
         plt.plot(ens, exthp.passrates(kind)(ens, emu, cos_theta), 'k--',
-                 label='Analytic approx. {} {}'.format(tex(kind), tex(cos_theta)))
+                 label=f'Analytic approx. {tex(kind)} {tex(cos_theta)}')
     if plot_nuveto_lines:
         pr_enu(cos_theta, kind, pmodel=pmodel, hadr=hadr, prpl=prpl, density=density,
-               fraction=fraction, label='{} {} {}'.format(hadr, tex(kind), tex(cos_theta)), color=pr[0].get_color())
+               fraction=fraction, label=f'{hadr} {tex(kind)} {tex(cos_theta)}', color=pr[0].get_color())
     plt.legend()
 
 
@@ -243,8 +243,8 @@ def dndee(mother, daughter):
 
     # print x_range[0], x_range[-1]
     x_samp = np.logspace(1, -9, 5000)
-    c = plt.plot(x_samp, dNdEE_interp(x_samp), label = "Interpolated {} to {}".format(mother, daughter))
-    plt.plot(x_range,dNdEE, '.', color=c[0].get_color(), label = "MCEq {} to {}".format(mother, daughter))
+    c = plt.plot(x_samp, dNdEE_interp(x_samp), label = f"Interpolated {mother} to {daughter}")
+    plt.plot(x_range,dNdEE, '.', color=c[0].get_color(), label = f"MCEq {mother} to {daughter}")
     plt.semilogx()
     plt.xlabel(r"$x=E_\nu/E_p$")
     plt.ylabel(r"$ \frac{dN}{dE_\nu} E_p$")
@@ -332,8 +332,7 @@ def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3
         calc0 = sv.get_solution(parents.split()[0], gsol, grid_idx=idx)
         calc1 = sv.get_solution(parents.split()[1], gsol, grid_idx=idx)
         plt.plot(sv.mceq.e_grid, calc0/calc1,
-                 label='X={:.3g} km'.format(
-                     float(sv.mceq.density_model.X2h(x_val))/1e5))
+                 label=f'X={float(sv.mceq.density_model.X2h(x_val)) / 100000.0:.3g} km')
 
     plt.xlabel(r'$E_p$')
     plt.ylabel(r'{}/{} flux ratio'.format(*parents.split()))
@@ -368,7 +367,7 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
     plt.ylabel(r'$E_p^{} \Phi_p$'.format(mag))
     plt.ylim(ymin=1e-20)
     plt.legend()
-    plt.title('{} {}'.format(parent, tex(cos_theta)))
+    plt.title(f'{parent} {tex(cos_theta)}')
     plt.tight_layout(0.3)
     # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
         
@@ -381,7 +380,7 @@ def nu_flux(cos_theta, kinds='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'),
         plt.sca(axs[0])
         mine = np.asarray([fluxes(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only)[1] for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
-                      label='{} {} {}'.format(hadr, tex(kind), tex(cos_theta)))
+                      label=f'{hadr} {tex(kind)} {tex(cos_theta)}')
         plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
         plt.loglog()
         plt.xlim(*np.power(10,logxlim))
@@ -466,7 +465,7 @@ def hist_preach(infile, plotdir=None):
                 plt.tight_layout()
                 if plotdir is not None:
                     plt.savefig(os.path.join(
-                        os.path.expanduser(plotdir), '{}.png'.format((idx-1)/napf)))
+                        os.path.expanduser(plotdir), f'{(idx - 1) / napf}.png'))
             fig, axs = plt.subplots(6, 6, figsize=(10,10))
             # fig.text(0.5, 0.04, r'$E_f$', ha='center', va='center')
             # fig.text(0.06, 0.5, r'$P(E_f|E_i, l)$', ha='center', va='center', rotation='vertical')
@@ -478,11 +477,11 @@ def hist_preach(infile, plotdir=None):
         for l, efs in sdf.groupby('l'):
             bins = calc_bins(efs['ef'])
             counts, edges = np.histogram(efs['ef'], bins=bins, density=True)
-            plt.plot(centers(edges), counts, label='{:.3g} km'.format(l/1e3))
+            plt.plot(centers(edges), counts, label=f'{l / 1000.0:.3g} km')
         plt.yscale('log')
         # plt.xlim(sdf['ef'].min(), sdf['ef'].max()*1.1)
     # plt.legend(fontsize=6)
     plt.tight_layout()
     if plotdir is not None:
         plt.savefig(os.path.join(
-            os.path.expanduser(plotdir), '{}.png'.format((idx-1)/napf)))
+            os.path.expanduser(plotdir), f'{(idx - 1) / napf}.png'))
