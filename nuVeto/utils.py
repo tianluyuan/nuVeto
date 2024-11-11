@@ -74,7 +74,7 @@ class MuonProb(object):
         elif os.path.isfile(pklfile):
             self.mu_int = pickle.load(open(pklfile, 'rb'), encoding='latin1')
         else:
-            self.mu_int = pickle.load(open(resources('nuVeto', os.path.join('data', 'prpl', pklfile+'.pkl')), 'rb'), encoding='latin1')
+            self.mu_int = pickle.load(open(resources.files('nuVeto') / 'data' / 'prpl' / pklfile+'.pkl', 'rb'), encoding='latin1')
 
 
     def median_emui(self, distance):
