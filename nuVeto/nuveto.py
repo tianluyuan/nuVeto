@@ -157,23 +157,19 @@ class nuVeto(object):
         fn = MuonProb(prpl)
         if mother in ['D0', 'D0-bar']:
             reaching = nuVeto.nbody(
-                resources(
-                'nuVeto','data/decay_distributions/D0_numu.npz'),
+                resources.files('nuVeto') / 'data' / 'decay_distributions' / 'D0_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother in ['D+', 'D-']:
             reaching = nuVeto.nbody(
-                resources(
-                'nuVeto','data/decay_distributions/D+_numu.npz'),
+                resources.files('nuVeto') / 'data' / 'decay_distributions' / 'D+_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother in ['Ds+', 'Ds-']:
             reaching = nuVeto.nbody(
-                resources(
-                'nuVeto','data/decay_distributions/Ds_numu.npz'),
+                resources.files('nuVeto') / 'data' / 'decay_distributions' / 'Ds_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother == 'K0L':
             reaching = nuVeto.nbody(
-                resources(
-                'nuVeto','data/decay_distributions/K0L_numu.npz'),
+                resources.files('nuVeto') / 'data' / 'decay_distributions' / 'K0L_numu.npz',
                 esamp, enu, fn, l_ice)
         else:
             # Assuming muon energy is E_parent - E_nu

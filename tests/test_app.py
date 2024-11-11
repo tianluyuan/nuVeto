@@ -41,7 +41,7 @@ def test_pdet():
     l_ice = np.linspace(1000, 200000, 500)
     emui = np.logspace(3, 8, 500)*Units.GeV
     coords = np.stack(np.meshgrid(emui, l_ice), axis=-1)
-    root, subdir, fpaths = next(os.walk(resources('nuVeto','data/prpl/')))
+    root, subdir, fpaths = next(os.walk(resources.files('nuVeto') / 'data' / 'prpl'))
     for fpath in fpaths:
         muprob = MuonProb(os.path.splitext(fpath)[0])
         pdets = muprob.prpl(coords)
