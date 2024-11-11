@@ -19,14 +19,15 @@ def hist_preach(infile):
     df = pd.read_csv(infile, delim_whitespace=True, header=None,
                      names='ei l ef'.split())
     # If the muon doesn't reach, MMC saves ef as -distance traveled
-    df[df<0] = 0
+    df[df < 0] = 0
     preach = []
     for (ei, l), efs in df.groupby(['ei', 'l']):
         bins = calc_bins(efs['ef'])
         histo = Hist(*np.histogram(efs['ef'], bins=bins, density=True))
-        [preach.append((ei, l, ef, ew, val)) for ef,ew,val in zip(centers(histo.edges),
-                                                                  np.ediff1d(histo.edges),
-                                                                      histo.counts)]
+        [preach.append((ei, l, ef, ew, val)) for ef, ew, val in zip(centers(histo.edges),
+                                                                    np.ediff1d(
+            histo.edges),
+            histo.counts)]
 
     return np.asarray(preach)
 
@@ -51,14 +52,14 @@ def interp(preach, plight):
     intg = int_ef(preach, plight)
     df = pd.DataFrame(intg, columns='ei l prpl'.split())
     df = df.pivot_table(index='ei', columns='l', values='prpl').fillna(0)
-    return interpolate.RegularGridInterpolator((df.index,df.columns), df.values, bounds_error=False, fill_value=None)
+    return interpolate.RegularGridInterpolator((df.index, df.columns), df.values, bounds_error=False, fill_value=None)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Generate muon detection probability')
     parser.add_argument('mmc', metavar='MMC',
-                    help='text file or pickled histogram containing MMC simulated data')
+                        help='text file or pickled histogram containing MMC simulated data')
     parser.add_argument('--plight', default='pl_step_1000',
                         choices=[fn for fn in dir(pl) if fn.startswith('pl_')],
                         help='choice of a plight function to apply as defined in pl.py')

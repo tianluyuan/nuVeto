@@ -44,7 +44,8 @@ def pl_noearlymu(emu):
         '/Users/tianlu/Projects/icecube/studies/hydrangea/lh/n_str_prob_pspl_full_flat_caus_30_combined.txt', sep=' ')
     nstrarr = nstrarr.reshape(2, nstrarr.shape[0]/2)
     # take P(Nstr|Ee) likelihood from chaack
-    nstr = lambda ee: 10**interpolate.interp1d(
+
+    def nstr(ee): return 10**interpolate.interp1d(
         np.log10(nstrarr[0]), np.log10(nstrarr[1]),
         kind='linear', bounds_error=False, fill_value='extrapolate')(np.log10(ee))
     return 1-nstr(emu)
