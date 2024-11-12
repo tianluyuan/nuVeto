@@ -6,11 +6,13 @@ on:
   push:
     branches: [ main ]
     paths:
+      - '**/*.toml'
       - '**/*.py'
       - '.github/workflows/*'
   pull_request:
     branches: [ main ]
     paths:
+      - '**/*.toml'
       - '**/*.py'
       - '.github/workflows/*'
   schedule:
