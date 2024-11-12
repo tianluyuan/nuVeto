@@ -7,25 +7,31 @@ This package calculates the effect of a detector veto on the high-energy atmosph
 ![Fluxes](/paper/figs_for_readme/fluxes_100.png?raw=true)
 
 ## Getting started
+It is recommended to work within a Python virtual environment.
+
+```
+python3 -m venv vdir
+source vdir/bin/activate
+```
 
 ### Installing
-
-This now relies on the updated version of [MCEq](https://github.com/afedynitch/MCEq). For the legacy version that relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) do `git checkout v1.5` and see the README.
 
 ```bash
 pip install nuVeto
 ```
 
-This will install [MCEq](https://github.com/afedynitch/MCEq).
+This will install `numpy`, `scipy` and [`MCEq`](https://github.com/afedynitch/MCEq).
 
-Since v2.3.1, a suite of tests is also installed with an optional dependency on `pytest`. The follow command should test if the installation worked as expected.
+As of v2.3.1 a suite of tests is also packaged. It uses [`pytest`](https://docs.pytest.org/en/stable/), which can be optionally installed and run as follows.
 
 ```bash
 pip install nuVeto[testing]
 pytest --pyargs nuVeto
 ```
 
-Extras are `pip install nuVeto[plotting, resources]` which will install some packages for making example plots and generating muon reaching probabilities.
+Extras are `pip install nuVeto[plotting, resources]` which will install necessary packages for making plots and generating alternative detector response parameterizations (muon reaching probabilities).
+
+Note that v2.0 and higher rely on the updated version of [MCEq](https://github.com/afedynitch/MCEq). For the legacy version that relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) do `git checkout v1.5` and see the README.
 
 ### Usage
 
