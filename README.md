@@ -18,7 +18,14 @@ pip install nuVeto
 
 This will install [MCEq](https://github.com/afedynitch/MCEq).
 
-Extras are `pip install nuVeto[plotting, resources]` which will install some packages for plotting and generating muon reaching probabilities.
+Since v2.3.1, a suite of tests is also installed with an optional dependency on `pytest`. The follow command should test if the installation worked as expected.
+
+```bash
+pip install nuVeto[testing]
+pytest --pyargs nuVeto
+```
+
+Extras are `pip install nuVeto[plotting, resources]` which will install some packages for making example plots and generating muon reaching probabilities.
 
 ### Usage
 

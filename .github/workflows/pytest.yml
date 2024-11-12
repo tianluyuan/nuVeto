@@ -5,8 +5,14 @@ name: status
 on:
   push:
     branches: [ main ]
+    paths:
+      - '**/*.py'
+      - '.github/workflows/*'
   pull_request:
     branches: [ main ]
+    paths:
+      - '**/*.py'
+      - '.github/workflows/*'
   schedule:
     # * is a special character in YAML so you have to quote this string
     - cron:  '25 9 * * 2'
