@@ -36,6 +36,6 @@ testing = ["pytest"]
 Repository = "https://github.com/tianluyuan/nuVeto.git"
 
 [tool.setuptools.packages.find]
-exclude = ["paper*"]
+exclude = ["paper*", "tests*"]
 
 [tool.setuptools_scm]
