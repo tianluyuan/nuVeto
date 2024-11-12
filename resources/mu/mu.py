@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-
-import os
+from pathlib import Path
 from collections import namedtuple
 import pickle
 import gzip
 import argparse
 import numpy as np
 import pandas as pd
+import logging
 from scipy import interpolate
-from nuVeto.resources.mu import pl
+from importlib import resources
 from nuVeto.utils import calc_bins, centers
+import pl
 
 
 def hist_preach(infile):
@@ -35,7 +36,7 @@ def hist_preach(infile):
 def int_ef(preach, plight):
     """ integate p_reach*p_light over e_f to reduce dimensionality for interpolator
     """
-    if isinstance(preach, str) and os.path.isfile(preach):
+    if isinstance(preach, str) and Path(preach).is_file():
         try:
             preach = pickle.load(gzip.open(preach, 'rb'), encoding='latin1')
         except IOError:
@@ -55,7 +56,9 @@ def interp(preach, plight):
     return interpolate.RegularGridInterpolator((df.index, df.columns), df.values, bounds_error=False, fill_value=None)
 
 
-if __name__ == '__main__':
+def main():
+    logger = logging.getLogger('mu.py')
+    logging.basicConfig(encoding='utf-8', level=logging.INFO)
     parser = argparse.ArgumentParser(
         description='Generate muon detection probability')
     parser.add_argument('mmc', metavar='MMC',
@@ -65,14 +68,22 @@ if __name__ == '__main__':
                         help='choice of a plight function to apply as defined in pl.py')
     parser.add_argument('--noconvolution', default=False, action='store_true',
                         help='Generate pdfs of preach from raw MMC output and save to pklz')
-    parser.add_argument('-o', dest='output', default='mu.pkl',
-                        help='output file. To be read in this needs to be in "nuVeto/data/prpl/"')
+    parser.add_argument('-o', dest='output', default='mu.pkl', type=Path,
+                        help='output file. If --noconvolution is False this will be saved into the necessary package directory.')
 
     args = parser.parse_args()
     if args.noconvolution:
+        output = args.output
         hpr = hist_preach(args.mmc)
-        pickle.dump(hpr, gzip.open(args.output, 'wb'), protocol=-1)
+        pickle.dump(hpr, gzip.open(output, 'wb'), protocol=-1)
     else:
+        output = resources.files('nuVeto') / 'data' / 'prpl' / args.output.name
+        if args.output.name != str(args.output):
+            logger.warning(f'Overriding {args.output} to {output}. To suppress this warning pass the filename only.')
         intp = interp(args.mmc, getattr(pl, args.plight))
-        pickle.dump(intp, open(args.output, 'wb'), protocol=-1)
-    print(f'Output pickled into {args.output}')
+        pickle.dump(intp, open(output, 'wb'), protocol=-1)
+    logger.info(f'Output pickled into {output}')
+
+
+if __name__ == '__main__':
+    main()

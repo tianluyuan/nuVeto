@@ -57,14 +57,16 @@ See `examples/plots.py` for more detailed examples.
 
 ![Pdet](/paper/figs_for_readme/prpl_step1000.png?raw=true)
 
-To calculate the passing fraction requires knowing the muon detection pdf as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice in `resources/mu/mmc/ice.pklz`. The detector response probability must be defined in `resources/mu/pl.py` as a function of the muon energy (at detector). Then, construct the overall muon detection pdf and place it into the correct location.
+To calculate the passing fraction requires knowing the muon detection probability as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The scripts for generating the necessary files are not packaged but provided in the `resources/` directory, which can be obtained with a clone of this repository. They also require some extra dependencies, which can be installed with `pip install nuVeto[resources]`.
+
+The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice in `resources/mu/mmc/ice_(allm97|bb).pklz` for two different cross section parameterizations. The detector response probability must be defined in `resources/mu/pl.py` as a function of the muon energy (at detector). Then, construct the overall muon detection probability.
 
 ```bash
-cd nuVeto/resources/mu
-./mu.py -o ../../prpl/mymudet.pkl --plight pl_step_1000 mmc/ice_allm97.pklz
+cd resources/mu
+./mu.py -o mymudet.pkl --plight pl_step_1000 mmc/ice_allm97.pklz
 ```
 
-To use the newly generated file, pass it as a string to the `prpl` argument.
+To use the newly generated file, pass the stem without file extension as a string to the `prpl` argument.
 ```bash
 passing(enu, cos_theta, prpl='mymudet')`.
 ```
