@@ -19,9 +19,9 @@ on:
     # * is a special character in YAML so you have to quote this string
     - cron:  '25 9 * * 2'
 
-  concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
