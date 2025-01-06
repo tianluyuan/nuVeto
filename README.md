@@ -1,4 +1,4 @@
-[![PyPI version](https://img.shields.io/pypi/v/nuveto)](https://pypi.org/project/nuveto) [![Build Status](https://github.com/tianluyuan/nuVeto/actions/workflows/pytest.yml/badge.svg)](https://github.com/tianluyuan/nuVeto/actions) [![Python versions](https://img.shields.io/pypi/pyversions/nuveto)](https://pypi.org/project/nuveto)
+[![PyPI version](https://img.shields.io/pypi/v/nuveto)](https://pypi.org/project/nuveto) [![Build Status](https://github.com/tianluyuan/nuVeto/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/tianluyuan/nuVeto/actions) [![Python versions](https://img.shields.io/pypi/pyversions/nuveto)](https://pypi.org/project/nuveto)
 
 # nuVeto
 
