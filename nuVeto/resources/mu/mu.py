@@ -41,7 +41,7 @@ def int_ef(preach, plight):
             preach = pickle.load(gzip.open(preach, 'rb'), encoding='latin1')
         except IOError:
             preach = hist_preach(preach)
-    elif isinstance(preach, str) and ".pklz" in preach:
+    elif Path(preach).suffix == '.pklz' in preach:
         # search in default directory
         preach = resources.files('nuVeto') / 'resources' / "mu" / 'mmc' / preach
         preach = pickle.load(gzip.open(preach, 'rb'), encoding='latin1')
