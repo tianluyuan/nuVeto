@@ -30,7 +30,7 @@ classifiers = [
 
 [project.optional-dependencies]
 plotting = ["matplotlib"]
-resources = ["pythia8mc", "matplotlib"]
+pythia8 = ["pythia8mc", "matplotlib"]
 testing = ["pytest"]
 
 [project.urls]
