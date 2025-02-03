@@ -20,7 +20,7 @@ source vdir/bin/activate
 pip install nuVeto
 ```
 
-This will install `numpy`, `scipy` and [`MCEq`](https://github.com/afedynitch/MCEq).
+This will install `numpy`, `scipy`, `pandas` and [`MCEq`](https://github.com/afedynitch/MCEq).
 
 As of v2.3.1 a suite of tests is also packaged. It uses [`pytest`](https://docs.pytest.org/en/stable/), which can be optionally installed and run as follows.
 
@@ -29,7 +29,7 @@ pip install nuVeto[testing]
 pytest --pyargs nuVeto
 ```
 
-Extras are `pip install nuVeto[plotting, resources]` which will install necessary packages for making plots and generating alternative detector response parameterizations (muon reaching probabilities).
+Extra options are `pip install nuVeto[plotting, pythia8]` which will install necessary packages for making example plots (`from nuVeto.examples import plots`), and generating alternative hadron decay rates with PYTHIA.
 
 Note that v2.0 and higher rely on the updated version of [MCEq](https://github.com/afedynitch/MCEq). For the legacy version that relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) do `git checkout v1.5` and see the README.
 
