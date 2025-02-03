@@ -1,4 +1,4 @@
-[![PyPI version](https://img.shields.io/pypi/v/nuveto)](https://pypi.org/project/nuveto) [![Build Status](https://github.com/tianluyuan/nuVeto/actions/workflows/pytest.yml/badge.svg)](https://github.com/tianluyuan/nuVeto/actions) [![Python versions](https://img.shields.io/pypi/pyversions/nuveto)](https://pypi.org/project/nuveto)
+[![PyPI version](https://img.shields.io/pypi/v/nuveto)](https://pypi.org/project/nuveto) [![Build Status](https://github.com/tianluyuan/nuVeto/actions/workflows/build_and_test.yml/badge.svg)](https://github.com/tianluyuan/nuVeto/actions) [![Python versions](https://img.shields.io/pypi/pyversions/nuveto)](https://pypi.org/project/nuveto)
 
 # nuVeto
 
@@ -59,7 +59,7 @@ See `examples/plots.py` for more detailed examples.
 
 To calculate the passing fraction requires knowing the muon detection probability as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The scripts for generating the necessary files are provided in the `resources` subpackage. They require some extra dependencies, which can be installed with `pip install nuVeto[resources]`.
 
-The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice in `resources/mu/mmc/ice_(allm97|bb).pklz` for two different cross section parameterizations. The detector response probability must be defined in `resources/mu/pl.py` as a function of the muon energy (at detector). Then, construct the overall muon detection probability.
+The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice and water in `resources/mu/mmc/(ice|water)_(allm97|bb).pklz` for two different cross section parameterizations. The detector response probability must first be defined in `resources/mu/pl.py` as a function of the muon energy **at the detector**. Then, pass the function name to the `--plight` argument and construct the overall muon reaching and detection probability with the following command, for example.
 
 ```bash
 cd resources/mu
