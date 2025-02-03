@@ -10,7 +10,7 @@ import logging
 from scipy import interpolate
 from importlib import resources
 from nuVeto.utils import calc_bins, centers
-import pl
+from nuVeto.resources.mu import pl
 
 
 def hist_preach(infile):
@@ -41,6 +41,11 @@ def int_ef(preach, plight):
             preach = pickle.load(gzip.open(preach, 'rb'), encoding='latin1')
         except IOError:
             preach = hist_preach(preach)
+    elif Path(preach).suffix == '.pklz' in preach:
+        # search in default directory
+        preach = resources.files('nuVeto') / 'resources' / "mu" / 'mmc' / preach
+        preach = pickle.load(gzip.open(preach, 'rb'), encoding='latin1')
+
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
     for (ei, l), sdf in df.groupby(['ei', 'l']):

@@ -57,7 +57,7 @@ See `examples/plots.py` for more detailed examples.
 
 ![Pdet](/paper/figs_for_readme/prpl_step1000.png?raw=true)
 
-To calculate the passing fraction requires knowing the muon detection probability as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The scripts for generating the necessary files are not packaged but provided in the `resources/` directory, which can be obtained with a clone of this repository. They also require some extra dependencies, which can be installed with `pip install nuVeto[resources]`.
+To calculate the passing fraction requires knowing the muon detection probability as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The scripts for generating the necessary files are provided in the `resources` subpackage.
 
 The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice and water in `resources/mu/mmc/(ice|water)_(allm97|bb).pklz` for two different cross section parameterizations. The detector response probability must first be defined in `resources/mu/pl.py` as a function of the muon energy **at the detector**. Then, pass the function name to the `--plight` argument and construct the overall muon reaching and detection probability with the following command, for example.
 
@@ -67,8 +67,20 @@ cd resources/mu
 ```
 
 To use the newly generated file, pass the stem without file extension as a string to the `prpl` argument.
-```bash
+```python
 passing(enu, cos_theta, prpl='mymudet')`.
+```
+
+For many different characterisations of the detector response (e.g. for different depths or different directions) this process can be inconvenient. In this case one can also directly use a function for pl:
+```python
+from nuVeto.resources.mu.mu import interp
+
+pl=lambda emu: #some function of muon energy
+
+prpl=interp("ice_allm97.pklz",pl)
+enu=1e3
+cos_theta=0.5
+pf = passing(enu, cos_theta, prpl=prpl)
 ```
 
 ## Contributers
