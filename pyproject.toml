@@ -16,7 +16,8 @@ requires-python = ">= 3.7"
 dependencies = [
   "numpy<2.0.0",
   "scipy<1.14.0",
-  "MCEq"
+  "MCEq",
+  "pandas"
 ]
 
 classifiers = [
@@ -29,7 +30,7 @@ classifiers = [
 
 [project.optional-dependencies]
 plotting = ["matplotlib"]
-resources = ["pythia8mc", "matplotlib", "pandas"]
+resources = ["pythia8mc", "matplotlib"]
 testing = ["pytest"]
 
 [project.urls]
