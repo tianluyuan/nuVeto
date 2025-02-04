@@ -51,8 +51,8 @@ jobs:
       run: pytest
     - name: Test mu.py
       run: |
-        pip install -e .[resources]
-        nuVeto/resources/mu/mu.py -o fake/path/mymudet.pkl --plight pl_step_1000 nuVeto/resources/mu/mmc/ice_allm97.pklz
+        pip install -e .
+        ./scripts/mu/mu.py ice_allm97.pklz -o fake/path/mymudet.pkl --plight pl_step_1000
         pytest -k test_pdet
 
   results:

@@ -3,12 +3,22 @@ import pytest
 from itertools import product
 from importlib import resources
 import numpy as np
-from scipy import interpolate
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import passing, fluxes, nuVeto
 from nuVeto.utils import Geometry, Units, MuonProb, amu, mceq_categ_format
+from nuVeto.mu import interp
 import crflux.models as pm
+
+
+def test_interp():
+    prpl = interp("ice_allm97.pklz", lambda emu: np.heaviside(emu - 1000, 1))
+
+    geo = Geometry(1950*Units.m)
+    psib = nuVeto.psib(geo.overburden(0.3), 'pi+', 1e5*Units.GeV, 3.5, prpl)
+    pref = nuVeto.psib(geo.overburden(0.3), 'pi+', 1e5*Units.GeV, 3.5, 'ice_allm97_step_1')
+
+    assert np.all(np.isclose(psib, pref))
 
 
 def test_categ():
