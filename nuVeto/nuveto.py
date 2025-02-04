@@ -439,15 +439,15 @@ class nuVeto(object):
                 # integral in Ep
                 nums_ecr, dens_ecr = self.get_integrand(
                     categ, daughter, enu, accuracy, prpl, ecr, particle)
-                num_ecr = integrate.trapz(
+                num_ecr = integrate.trapezoid(
                     np.sum(nums_ecr, axis=1)*pnmarr, esamp)
-                den_ecr = integrate.trapz(np.sum(dens_ecr, axis=1), esamp)
+                den_ecr = integrate.trapezoid(np.sum(dens_ecr, axis=1), esamp)
 
                 nums.append(num_ecr*cr_flux/Units.phicm2)
                 dens.append(den_ecr*cr_flux/Units.phicm2)
             # dEcr
-            passed += integrate.trapz(nums, ecrs[istart:])
-            total += integrate.trapz(dens, ecrs[istart:])
+            passed += integrate.trapezoid(nums, ecrs[istart:])
+            total += integrate.trapezoid(dens, ecrs[istart:])
 
         return passed, total
 
