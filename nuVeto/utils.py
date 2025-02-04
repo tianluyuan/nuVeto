@@ -74,7 +74,7 @@ class MuonProb(object):
     def __init__(self, pklfile):
         if pklfile is None:
             self.mu_int = self.median_approx
-        elif type(pklfile) is RegularGridInterpolator:
+        elif isinstance(pklfile, RegularGridInterpolator):
             self.mu_int = pklfile
         elif os.path.isfile(pklfile):
             self.mu_int = pickle.load(open(pklfile, 'rb'), encoding='latin1')
