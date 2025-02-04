@@ -4,7 +4,6 @@ from importlib import resources
 from MCEq.geometry.geometry import EarthGeometry
 import mceq_config as config
 import numpy as np
-from scipy import stats
 from scipy.interpolate import RegularGridInterpolator
 from particletools.tables import SibyllParticleTable, PYTHIAParticleData
 
