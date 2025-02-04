@@ -374,7 +374,7 @@ def format_energy(fmt, energy):
 		unit = 'PeV'
 	elif places == 9:
 		unit = 'EeV'
-	return (fmt % (energy/10**(places))) + ' ' + unit
+	return f"{fmt % (energy / 10 ** places)} {unit}"
 
 def plot_response_function(enu, depth, cos_theta, kind):
 	

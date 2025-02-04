@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nuVeto"
+dynamic = ["version"]
+maintainers = [
+  {name = "Tianlu Yuan", email = "tyuan@icecube.wisc.edu"},
+]
+description = "Package implements the formalism for calculating passing fraction as discussed in JCAP07(2018)047."
+readme = "README.md"
+license = {file = "LICENSE"}
+
+requires-python = ">= 3.7"
+dependencies = [
+  "numpy<2.0.0",
+  "scipy",
+  "MCEq",
+  "pandas"
+]
+
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3",
+  "Topic :: Scientific/Engineering",
+]
+
+[project.optional-dependencies]
+plotting = ["matplotlib"]
+pythia8 = ["pythia8mc", "matplotlib"]
+testing = ["pytest"]
+
+[project.urls]
+Repository = "https://github.com/tianluyuan/nuVeto.git"
+
+[tool.setuptools.packages.find]
+exclude = ["paper*", "scripts*", "build*"]
+
+[tool.setuptools_scm]
