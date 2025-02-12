@@ -13,7 +13,7 @@ def hist_preach(infile):
     """ Builds histograms of P_reach based on MMC output text
     """
     Hist = namedtuple('Hist', 'counts edges')
-    df = pd.read_csv(infile, delim_whitespace=True, header=None,
+    df = pd.read_csv(infile, sep=r'\s+', header=None,
                      names='ei l ef'.split())
     # If the muon doesn't reach, MMC saves ef as -distance traveled
     df[df < 0] = 0
