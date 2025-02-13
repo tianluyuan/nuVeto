@@ -6,9 +6,21 @@ import numpy as np
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
 from nuVeto.nuveto import passing, fluxes, nuVeto
-from nuVeto.utils import Geometry, Units, MuonProb, amu, mceq_categ_format
+from nuVeto.utils import (Geometry,
+                          Units,
+                          MuonProb,
+                          amu,
+                          mceq_categ_format,
+                          calc_bins)
 from nuVeto.mu import interp
 import crflux.models as pm
+
+
+def test_calc_bins():
+    bins = calc_bins(np.random.uniform(size=100))
+    assert bins.min() > 0
+    assert bins.max() < 3
+    assert np.all(np.ediff1d(bins) > 0)
 
 
 def test_interp():
