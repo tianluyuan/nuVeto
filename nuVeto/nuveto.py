@@ -338,7 +338,7 @@ class nuVeto(object):
                   / Units.cm)
 
         # number of targets per cm2
-        ndens = rho_air*Units.Na/Units.mol_air
+        ndens = rho_air*Units.Na/config.A_target
         sec = self.mceq.pman[p_pdg]
         prim2mceq = {'p+-bar': 'pbar-',
                      'n0-bar': 'nbar0',
