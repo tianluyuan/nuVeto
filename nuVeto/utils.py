@@ -177,7 +177,7 @@ def calc_nbins(x):
     if ptile == 0:
         return 10
     n = (np.max(x) - np.min(x)) / (2 * len(x)**(-1./3) * ptile)
-    return np.floor(n)
+    return np.floor(n).astype(int)
 
 
 def calc_bins(x):

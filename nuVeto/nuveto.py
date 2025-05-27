@@ -224,7 +224,8 @@ class nuVeto(object):
 
     @lru_cache(maxsize=2**12)
     def nmu(self, ecr, particle, prpl='ice_allm97_step_1'):
-        """Poisson probability of getting no muons"""
+        """Number of expected muons for a given primary energy / particle.
+        Used to compute the Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
         # np.abs hack to prevent negative fluxes
@@ -412,7 +413,7 @@ class nuVeto(object):
             # evaluation points in E_CR
             ecrs = amu(particle)*np.logspace(2, 10, int(10*accuracy))
 
-            # pnm --> probability of no muon (just a poisson probability)
+            # pnm (exp(-nmu)) --> probability of no muon (just a poisson probability)
             nmu = [self.nmu(ecr, particle, prpl) for ecr in ecrs]
 
             # nmufn --> fine grid interpolation of pnm
