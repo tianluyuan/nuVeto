@@ -2,7 +2,7 @@ import os
 import pickle
 from importlib import resources
 from MCEq.geometry.geometry import EarthGeometry
-import mceq_config as config
+from MCEq import config
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 from particletools.tables import SibyllParticleTable, PYTHIAParticleData

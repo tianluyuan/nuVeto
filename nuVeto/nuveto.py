@@ -1,4 +1,4 @@
-"""nuVeto calculation [ref.]
+"""nuVeto calculation [ref. JCAP07(2018)047]
 
 This module computes the probability that an atmospheric neutrino will be
 accompanied by a sibling muon produced in the same cosmic ray airshower at a
@@ -14,8 +14,8 @@ import scipy.integrate as integrate
 import scipy.interpolate as interpolate
 
 from MCEq.core import MCEqRun
+from MCEq import config
 import crflux.models as pm
-import mceq_config as config
 from .utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
 from .uncertainties import BARR, barr_unc
 
