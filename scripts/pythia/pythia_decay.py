@@ -1,7 +1,6 @@
 import pythia8
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import rc
 pythia = pythia8.Pythia()
 
 pythia.readString("ProcessLevel:all = off")
