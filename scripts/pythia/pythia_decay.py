@@ -1,4 +1,4 @@
-import pythia8
+import pythia8mc as pythia8
 import numpy as np
 import matplotlib.pyplot as plt
 pythia = pythia8.Pythia()
@@ -65,8 +65,9 @@ for parent in UnstableParents:
                             pythia.event[sister].e()/energy)
 
 plt.figure(figsize=(6, 5))
-H, xedges, yedges, fig = plt.hist2d(np.array(resultsNuMu[421]), np.array(resultsMuons[421]),
+H, xedges, yedges, fig = plt.hist2d(np.array(resultsNuMu[411]), np.array(resultsMuons[411]),
                                     bins=[np.arange(0., 1.001, 0.01), np.arange(0., 1.001, 0.01)])
+plt.show()
 plt.close()
 
 H_norm_rows = H / H.max(axis=1, keepdims=True)
@@ -87,6 +88,7 @@ histogramas = np.array(histogramas)
 plt.legend()
 plt.xlim(0, 1)
 plt.xlabel(r"$E_\mu/E_D$", fontsize=20)
+plt.show()
 plt.close()
 
 ceros = np.zeros(len(xcenters))
