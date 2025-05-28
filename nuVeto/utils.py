@@ -2,7 +2,6 @@ import os
 import pickle
 from importlib import resources
 from MCEq.geometry.geometry import EarthGeometry
-from MCEq import config
 import numpy as np
 from scipy.interpolate import RegularGridInterpolator
 from particletools.tables import SibyllParticleTable, PYTHIAParticleData
@@ -22,7 +21,6 @@ class Units(object):
     MeV = 1e-3*GeV
     TeV = 1.e3*GeV
     PeV = 1.e3*TeV
-    mol_air = config.A_target
     phim2 = (m**2*GeV*sec)**-1
     phicm2 = (cm**2*GeV*sec)**-1
 
