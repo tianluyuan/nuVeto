@@ -34,13 +34,13 @@ def int_ef(preach, plight):
     """
     if Path(preach).is_file():
         try:
-            preach = pickle.load(gzip.open(preach, 'rb'), encoding='latin1')
+            preach = pickle.load(gzip.open(preach, 'rb'))
         except IOError:
             preach = hist_preach(preach)
     elif Path(preach).suffix == '.pklz':
         # search in default directory
         preach = resources.files('nuVeto') / 'data' / 'mmc' / preach
-        preach = pickle.load(gzip.open(preach, 'rb'), encoding='latin1')
+        preach = pickle.load(gzip.open(preach, 'rb'))
 
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
