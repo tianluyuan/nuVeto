@@ -74,10 +74,12 @@ class MuonProb(object):
         elif isinstance(pklfile, RegularGridInterpolator):
             self.mu_int = pklfile
         elif os.path.isfile(pklfile):
-            self.mu_int = pickle.load(open(pklfile, 'rb'), encoding='latin1')
+            with open(pklfile, 'rb') as f:
+                self.mu_int = pickle.load(f)
         else:
-            self.mu_int = pickle.load(open(resources.files(
-                'nuVeto') / 'data' / 'prpl' / f'{pklfile}.pkl', 'rb'), encoding='latin1')
+            with open(resources.files(
+                    'nuVeto') / 'data' / 'prpl' / f'{pklfile}.pkl', 'rb') as f:
+                self.mu_int = pickle.load(f)
 
     def median_emui(self, distance):
         """
