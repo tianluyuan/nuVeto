@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import pickle
 from importlib import resources
 from MCEq.geometry.geometry import EarthGeometry
@@ -73,7 +73,7 @@ class MuonProb(object):
             self.mu_int = self.median_approx
         elif isinstance(pklfile, RegularGridInterpolator):
             self.mu_int = pklfile
-        elif os.path.isfile(pklfile):
+        elif Path(pklfile).is_file():
             with open(pklfile, 'rb') as f:
                 self.mu_int = pickle.load(f)
         else:

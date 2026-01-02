@@ -25,7 +25,7 @@ def save(fname):
     try:
         os.makedirs('fig')
         plt.savefig(fname)
-    except OSError as e:
+    except OSError:
         plt.savefig(fname)
 
 
@@ -245,7 +245,7 @@ def fig_density():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/dmodels_{}.eps'.format(kind, cos_th))
+        save('fig/dmodels_{}.eps'.format(kind, ))
 
 
 def fig_pmodels():
@@ -272,7 +272,7 @@ def fig_pmodels():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/pmodels_{}.eps'.format(kind, cos_th))
+        save('fig/pmodels_{}.eps'.format(kind, ))
 
 
 def fig_extsv():

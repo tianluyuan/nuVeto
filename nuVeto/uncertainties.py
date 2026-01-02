@@ -1,5 +1,4 @@
 from collections import namedtuple
-import numpy as np
 
 
 ParamInfo = namedtuple('ParamInfo', 'regions error pdg')

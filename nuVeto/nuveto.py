@@ -357,7 +357,7 @@ class nuVeto(object):
                 int_yields = proj.hadr_yields[sec]
                 res += np.sum(int_yields[None, :, :]*prim_flux[:, None, :]
                               * prim_xs[None, None, :]*ndens[:, None, None], axis=2)
-            except KeyError as e:
+            except KeyError:
                 continue
 
         res *= decayl[None, :]
