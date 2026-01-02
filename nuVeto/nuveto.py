@@ -178,7 +178,7 @@ class nuVeto(object):
         elif mother == 'K0L':
             reaching = nuVeto.nbody(
                 as_file(files('nuVeto') / 'data' /
-                 'decay_distributions' / 'K0L_numu.npz'),
+                'decay_distributions' / 'K0L_numu.npz'),
                 esamp, enu, fn, l_ice)
         else:
             # Assuming muon energy is E_parent - E_nu
