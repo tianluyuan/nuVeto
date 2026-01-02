@@ -3,7 +3,7 @@ import logging
 import argparse
 import pickle
 import gzip
-from importlib import resources
+from importlib.resources import as_file, files
 from pathlib import Path
 from nuVeto.mu import hist_preach, interp
 import pl
@@ -30,11 +30,11 @@ def main():
         hpr = hist_preach(args.mmc)
         pickle.dump(hpr, gzip.open(output, 'wb'), protocol=-1)
     else:
-        output = resources.as_file(resources.files('nuVeto') / 'data' / 'prpl' / args.output.name)
-        if args.output.name != str(args.output):
-            logger.warning(f'Overriding {args.output} to {output}. To suppress this warning pass the filename only.')
-        intp = interp(args.mmc, getattr(pl, args.plight))
-        pickle.dump(intp, open(output, 'wb'), protocol=-1)
+        with as_file(files('nuVeto') / 'data' / 'prpl' / args.output.name) as output:
+            if args.output.name != str(args.output):
+                logger.warning(f'Overriding {args.output} to {output}. To suppress this warning pass the filename only.')
+            intp = interp(args.mmc, getattr(pl, args.plight))
+            pickle.dump(intp, open(output, 'wb'), protocol=-1)
     logger.info(f'Output pickled into {output}')
 
 
