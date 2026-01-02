@@ -245,7 +245,7 @@ def fig_density():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/dmodels_{}.eps'.format(kind, ))
+        save('fig/dmodels_{}.eps'.format(kind))
 
 
 def fig_pmodels():
@@ -272,7 +272,7 @@ def fig_pmodels():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/pmodels_{}.eps'.format(kind, ))
+        save('fig/pmodels_{}.eps'.format(kind))
 
 
 def fig_extsv():
