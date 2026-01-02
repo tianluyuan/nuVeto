@@ -8,7 +8,7 @@ given depth.
 """
 
 from functools import lru_cache
-from importlib.resources import as_file, files
+from importlib.resources import files
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -138,7 +138,7 @@ class nuVeto(object):
 
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
-        with np.load(fpath) as dfile:
+        with np.load(fpath.open('rb')) as dfile:
             xmus = centers(dfile['xedges'])
             xnus = np.concatenate([xmus, [1]])
             vals = np.nan_to_num(dfile['histograms'])
@@ -162,23 +162,23 @@ class nuVeto(object):
         fn = MuonProb(prpl)
         if mother in ['D0', 'D0-bar']:
             reaching = nuVeto.nbody(
-                as_file(files('nuVeto') / 'data' /
-                'decay_distributions' / 'D0_numu.npz'),
+                files('nuVeto') / 'data' /
+                'decay_distributions' / 'D0_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother in ['D+', 'D-']:
             reaching = nuVeto.nbody(
-                as_file(files('nuVeto') / 'data' /
-                'decay_distributions' / 'D+_numu.npz'),
+                files('nuVeto') / 'data' /
+                'decay_distributions' / 'D+_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother in ['Ds+', 'Ds-']:
             reaching = nuVeto.nbody(
-                as_file(files('nuVeto') / 'data' /
-                'decay_distributions' / 'Ds_numu.npz'),
+                files('nuVeto') / 'data' /
+                'decay_distributions' / 'Ds_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother == 'K0L':
             reaching = nuVeto.nbody(
-                as_file(files('nuVeto') / 'data' /
-                'decay_distributions' / 'K0L_numu.npz'),
+                files('nuVeto') / 'data' /
+                'decay_distributions' / 'K0L_numu.npz',
                 esamp, enu, fn, l_ice)
         else:
             # Assuming muon energy is E_parent - E_nu
