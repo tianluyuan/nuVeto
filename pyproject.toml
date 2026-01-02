@@ -40,3 +40,6 @@ Repository = "https://github.com/tianluyuan/nuVeto.git"
 exclude = ["paper*", "scripts*", "build*"]
 
 [tool.setuptools_scm]
+
+[tool.ruff]
+exclude = ["external"]

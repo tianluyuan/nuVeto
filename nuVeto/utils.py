@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import pickle
 from importlib import resources
 from MCEq.geometry.geometry import EarthGeometry
@@ -73,12 +73,11 @@ class MuonProb(object):
             self.mu_int = self.median_approx
         elif isinstance(pklfile, RegularGridInterpolator):
             self.mu_int = pklfile
-        elif os.path.isfile(pklfile):
+        elif Path(pklfile).is_file():
             with open(pklfile, 'rb') as f:
                 self.mu_int = pickle.load(f)
         else:
-            with open(resources.files('nuVeto') /
-                      'data' / 'prpl' / f'{pklfile}.pkl', 'rb') as f:
+            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{pklfile}.pkl').open('rb') as f:
                 self.mu_int = pickle.load(f)
 
     def median_emui(self, distance):
@@ -132,7 +131,7 @@ class Geometry(EarthGeometry):
         z = r-d
         return (np.sqrt(z**2*cos_theta**2+d*(2*r-d))-z*cos_theta)/Units.m
 
-    def overburden_to_cos_theta(self, l):
+    def overburden_to_cos_theta(self, l_over):
         """Returns the theta for a given overburden for a detector at 
         *depth* below some surface at *elevation*.
 
@@ -146,7 +145,7 @@ class Geometry(EarthGeometry):
         d = self.depth
         r = self.r_E
         z = r-d
-        return (2*d*r-d**2-l**2)/(2*l*z)
+        return (2*d*r-d**2-l_over**2)/(2*l_over*z)
 
     def cos_theta_eff(self, cos_theta):
         """ Returns the effective cos_theta relative the the normal at earth surface.

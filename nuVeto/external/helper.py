@@ -1,4 +1,3 @@
-import numpy as np
 from functools import partial
 from nuVeto.external import selfveto
 

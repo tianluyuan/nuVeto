@@ -20,7 +20,7 @@ StableDaughters = {-13: "mu+", 13: "mu-",
                    12: "nue", -12: "antinue",
                    16: "nutau", -16: "antinutau",
                    211: "pi+", -211: "pi-",
-                   321: "k+", 321: "k-",
+                   321: "k+", -321: "k-",
                    130: "k0l", 310: "k0s"}
 
 GuysWeWant = {-13: "mu+", 13: "mu-",

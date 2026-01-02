@@ -8,7 +8,7 @@ given depth.
 """
 
 from functools import lru_cache
-from importlib import resources
+from importlib.resources import files
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -92,7 +92,6 @@ class nuVeto(object):
         rcharge = '-' if 'bar' in daughter else '+'
         lcharge = '+' if 'bar' in daughter else '-'
         rbar = 'bar' if 'bar' in daughter else ''
-        lbar = '' if 'bar' in daughter else 'bar'
         if categ == 'conv':
             mothers = [f"pi{rcharge}", f"K{rcharge}", 'K_L0']
             if 'nu_tau' in daughter:
@@ -138,7 +137,7 @@ class nuVeto(object):
 
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
-        with np.load(fpath) as dfile:
+        with np.load(fpath.open('rb')) as dfile:
             xmus = centers(dfile['xedges'])
             xnus = np.concatenate([xmus, [1]])
             vals = np.nan_to_num(dfile['histograms'])
@@ -162,22 +161,22 @@ class nuVeto(object):
         fn = MuonProb(prpl)
         if mother in ['D0', 'D0-bar']:
             reaching = nuVeto.nbody(
-                resources.files('nuVeto') / 'data' /
+                files('nuVeto') / 'data' /
                 'decay_distributions' / 'D0_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother in ['D+', 'D-']:
             reaching = nuVeto.nbody(
-                resources.files('nuVeto') / 'data' /
+                files('nuVeto') / 'data' /
                 'decay_distributions' / 'D+_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother in ['Ds+', 'Ds-']:
             reaching = nuVeto.nbody(
-                resources.files('nuVeto') / 'data' /
+                files('nuVeto') / 'data' /
                 'decay_distributions' / 'Ds_numu.npz',
                 esamp, enu, fn, l_ice)
         elif mother == 'K0L':
             reaching = nuVeto.nbody(
-                resources.files('nuVeto') / 'data' /
+                files('nuVeto') / 'data' /
                 'decay_distributions' / 'K0L_numu.npz',
                 esamp, enu, fn, l_ice)
         else:
@@ -357,7 +356,7 @@ class nuVeto(object):
                 int_yields = proj.hadr_yields[sec]
                 res += np.sum(int_yields[None, :, :]*prim_flux[:, None, :]
                               * prim_xs[None, None, :]*ndens[:, None, None], axis=2)
-            except KeyError as e:
+            except KeyError:
                 continue
 
         res *= decayl[None, :]
