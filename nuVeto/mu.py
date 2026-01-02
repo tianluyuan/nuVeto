@@ -18,10 +18,10 @@ def hist_preach(infile):
     # If the muon doesn't reach, MMC saves ef as -distance traveled
     df[df < 0] = 0
     preach = []
-    for (ei, l), efs in df.groupby(['ei', 'l']):
+    for (ei, _l), efs in df.groupby(['ei', 'l']):
         bins = calc_bins(efs['ef'])
         histo = Hist(*np.histogram(efs['ef'], bins=bins, density=True))
-        [preach.append((ei, l, ef, ew, val)) for ef, ew, val in zip(centers(histo.edges),
+        [preach.append((ei, _l, ef, ew, val)) for ef, ew, val in zip(centers(histo.edges),
                                                                     np.ediff1d(
             histo.edges),
             histo.counts)]
@@ -44,8 +44,8 @@ def int_ef(preach, plight):
 
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
-    for (ei, l), sdf in df.groupby(['ei', 'l']):
-        intg.append((ei, l, np.sum(sdf['ew']*sdf['pdf']*plight(sdf['ef']))))
+    for (ei, _l), sdf in df.groupby(['ei', 'l']):
+        intg.append((ei, _l, np.sum(sdf['ew']*sdf['pdf']*plight(sdf['ef']))))
 
     return np.asarray(intg)
 

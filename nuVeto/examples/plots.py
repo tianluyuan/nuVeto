@@ -184,7 +184,7 @@ def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III-3.0.6', prp
         plt.plot(ens, echoice(kind)(ens, emu, slice_val), 'k--',
                  label=label)
     for pmodel in pmodels:
-        pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
+        fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
                            label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
     plt.tight_layout(0.3)
@@ -196,7 +196,7 @@ def pmodels(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice_allm97
                (pm.GaisserHonda, None, 'GH'),
                (pm.ZatsepinSokolskaya, 'default', 'ZS')]
     for pmodel in pmodels:
-        pr = fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
+        fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
                            label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
 
@@ -207,7 +207,7 @@ def density_models(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice
               ('MSIS00_IC', ('SouthPole', 'June')),
               ('MSIS00_IC', ('SouthPole', 'January'))]
     for model in models:
-        pr = fn(slice_val)(slice_val, kind, density=model, hadr=hadr, prpl=prpl, fraction=fraction,
+        fn(slice_val)(slice_val, kind, density=model, hadr=hadr, prpl=prpl, fraction=fraction,
                            label=f'{model[0]} {model[1][0]} {model[1][1]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
 
@@ -491,10 +491,10 @@ def hist_preach(infile, plotdir=None):
         ax.set_prop_cycle('color', plt.cm.Blues(np.linspace(0.3, 1, 100)))
         plt.sca(ax)
         plt.title(r'${:.2g}$ GeV'.format(ei), fontdict={'fontsize': 8})
-        for l, efs in sdf.groupby('l'):
+        for _l, efs in sdf.groupby('l'):
             bins = calc_bins(efs['ef'])
             counts, edges = np.histogram(efs['ef'], bins=bins, density=True)
-            plt.plot(centers(edges), counts, label=f'{l / 1000.0:.3g} km')
+            plt.plot(centers(edges), counts, label=f'{_l / 1000.0:.3g} km')
         plt.yscale('log')
         # plt.xlim(sdf['ef'].min(), sdf['ef'].max()*1.1)
     # plt.legend(fontsize=6)

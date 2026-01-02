@@ -92,7 +92,6 @@ class nuVeto(object):
         rcharge = '-' if 'bar' in daughter else '+'
         lcharge = '+' if 'bar' in daughter else '-'
         rbar = 'bar' if 'bar' in daughter else ''
-        lbar = '' if 'bar' in daughter else 'bar'
         if categ == 'conv':
             mothers = [f"pi{rcharge}", f"K{rcharge}", 'K_L0']
             if 'nu_tau' in daughter:
