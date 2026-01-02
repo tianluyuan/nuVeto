@@ -30,7 +30,7 @@ def main():
         hpr = hist_preach(args.mmc)
         pickle.dump(hpr, gzip.open(output, 'wb'), protocol=-1)
     else:
-        output = resources.files('nuVeto') / 'data' / 'prpl' / args.output.name
+        output = resources.as_file(resources.files('nuVeto') / 'data' / 'prpl' / args.output.name)
         if args.output.name != str(args.output):
             logger.warning(f'Overriding {args.output} to {output}. To suppress this warning pass the filename only.')
         intp = interp(args.mmc, getattr(pl, args.plight))

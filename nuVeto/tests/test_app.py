@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import pytest
 from itertools import product
 from importlib import resources
@@ -66,10 +67,8 @@ def test_pdet():
     l_ice = np.linspace(1000, 200000, 500)
     emui = np.logspace(3, 8, 500)*Units.GeV
     coords = np.stack(np.meshgrid(emui, l_ice), axis=-1)
-    _, _, fpaths = next(
-        os.walk(resources.files('nuVeto') / 'data' / 'prpl'))
-    for fpath in fpaths:
-        muprob = MuonProb(os.path.splitext(fpath)[0])
+    for fpath in (resources.files('nuVeto') / 'data' / 'prpl').iterdir():
+        muprob = MuonProb(Path(fpath.name).stem)
         pdets = muprob.prpl(coords)
         assert np.all(pdets >= 0) and np.all(pdets <= 1)
 
