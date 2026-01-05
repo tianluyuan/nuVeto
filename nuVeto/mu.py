@@ -51,6 +51,8 @@ def int_ef(preach, plight):
 
 
 def interp(preach, plight):
+    """ returns an interpolate.RegularGridInterpolator of integral preach * plight over e_f, yields prpl
+    """
     intg = int_ef(preach, plight)
     df = pd.DataFrame(intg, columns='ei l prpl'.split())
     df = df.pivot_table(index='ei', columns='l', values='prpl').fillna(0)
