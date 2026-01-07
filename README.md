@@ -4,7 +4,7 @@
 
 This package calculates the effect of a detector veto on the high-energy atmospheric neutrino flux via detection of muons that reach the detector. The result calculated is the passing-flux or passing-fraction of atmospheric neutrinos as a function of energy and zenith angle.
 
-![Fluxes](/paper/figs_for_readme/fluxes_100.png?raw=true)
+<img width="100%" alt="fluxes" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/fluxes_100.png?raw=true">
 
 ## Getting started
 It is recommended to work within a Python virtual environment.
@@ -55,7 +55,7 @@ See `examples/plots.py` for more detailed examples.
 
 ## Building muon detection probabilities
 
-![Pdet](/paper/figs_for_readme/prpl_step1000.png?raw=true)
+<img width="100%" alt="Pdet" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/prpl_step1000.png?raw=true">
 
 To calculate the passing fraction requires knowing the muon detection probability as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The scripts for generating the necessary files are provided in the `scripts/mu/` subdirectory, which can be obtained with a download or clone of this repository.
 
