@@ -16,7 +16,8 @@ import scipy.interpolate as interpolate
 from MCEq.core import MCEqRun
 from MCEq import config
 import crflux.models as pm
-from .utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
+from .utils import Units, ParticleProperties, Geometry, amu, centers
+from .mu import MuonProb
 from .uncertainties import BARR, barr_unc
 
 
