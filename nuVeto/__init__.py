@@ -3,13 +3,11 @@ from . import utils
 from . import uncertainties
 from . import external
 from . import examples
-from .nuveto import nuVeto, passing, fluxes
+from . import nuveto
 
 __all__ = ['mu',
            'utils',
-           'nuVeto',
+           'nuveto',
            'uncertainties',
            'external',
-           'examples',
-           'passing',
-           'fluxes']
+           'examples']
