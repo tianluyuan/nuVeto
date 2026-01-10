@@ -1,7 +1,6 @@
-from MCEq.geometry.geometry import EarthGeometry
 import numpy as np
+from MCEq.geometry.geometry import EarthGeometry
 from particletools.tables import SibyllParticleTable, PYTHIAParticleData
-from .mu import MuonProb # noqa: F401
 
 
 class Units(object):
