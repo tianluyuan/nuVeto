@@ -5,7 +5,7 @@ from importlib import resources
 import numpy as np
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto.nuveto import passing, fluxes, nuVeto
+from nuVeto import passing, fluxes, nuVeto
 from nuVeto.utils import (Geometry,
                           Units,
                           MuonProb,

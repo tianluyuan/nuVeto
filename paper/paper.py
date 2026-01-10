@@ -1,13 +1,14 @@
 import os
 import sys
 from importlib import resources
+import numpy as np
+from scipy.interpolate import interp1d
+import crflux.models as pm
 from nuVeto.examples import plots
 from nuVeto.external import selfveto as extsv
 from nuVeto.external import helper as exthp
-from nuVeto.nuveto import pm, fluxes
+from nuVeto import fluxes
 from nuVeto.utils import Units
-import numpy as np
-from scipy.interpolate import interp1d
 import matplotlib as mpl
 from matplotlib import pyplot as plt
 

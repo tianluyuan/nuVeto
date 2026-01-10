@@ -1,9 +1,9 @@
 import pickle
 import os
 from importlib import resources
+from nuVeto import nuVeto, passing, fluxes
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto.nuveto import nuVeto, passing, fluxes
 from nuVeto.utils import Units, ParticleProperties, Geometry, amu, centers, calc_bins, mceq_categ_format
 from nuVeto.uncertainties import BARR
 from matplotlib import pyplot as plt
