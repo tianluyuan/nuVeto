@@ -3,16 +3,16 @@ import pytest
 from itertools import product
 from importlib import resources
 import numpy as np
-from nuVeto.external import helper as exthp
-from nuVeto.external import selfveto as extsv
-from nuVeto import passing, fluxes, nuVeto
-from nuVeto.utils import (Geometry,
-                          Units,
-                          MuonProb,
-                          amu,
-                          mceq_categ_format,
-                          calc_bins)
-from nuVeto.mu import interp
+from ..external import helper as exthp
+from ..external import selfveto as extsv
+from .. import passing, fluxes, nuVeto
+from ..utils import (Geometry,
+                     Units,
+                     MuonProb,
+                     amu,
+                     mceq_categ_format,
+                     calc_bins)
+from ..mu import interp
 import crflux.models as pm
 
 

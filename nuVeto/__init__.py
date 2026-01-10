@@ -3,6 +3,7 @@ from . import utils
 from . import uncertainties
 from . import external
 from . import examples
+from . import nuveto
 from .nuveto import nuVeto, passing, fluxes
 
 __all__ = ['mu',
