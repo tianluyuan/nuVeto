@@ -4,7 +4,7 @@ from . import uncertainties
 from . import external
 from . import examples
 from . import nuveto
-from .nuveto import nuVeto, passing, fluxes
+from .nuveto import nuVeto, passing, fluxes, builder
 
 __all__ = ['mu',
            'utils',
@@ -14,4 +14,5 @@ __all__ = ['mu',
            'examples',
            'nuVeto',
            'passing',
-           'fluxes']
+           'fluxes',
+           'builder']
