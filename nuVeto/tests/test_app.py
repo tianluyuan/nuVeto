@@ -80,6 +80,11 @@ def test_edge():
     assert not np.any(_[:, -1] > 0)
 
 
+def test_projectiles():
+    projs = nuVeto(1.).projectiles()
+    assert len(projs) == len(set(projs))
+
+
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
 def test_pnmshower(cth):
     particle = 14
