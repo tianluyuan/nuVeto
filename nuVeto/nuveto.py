@@ -59,9 +59,10 @@ class nuVeto(object):
         config.adv_set['allowed_projectiles'] = [2212, 2112,
                                                  211, -211,
                                                  321, -321,
-                                                 130,
-                                                 -2212, -2112]  # , 11, 22]
-        config.ctau = 2.5
+                                                 3122, -3122,
+                                                 -2212, -2112,
+                                                 310,
+                                                 130]
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
@@ -125,15 +126,7 @@ class nuVeto(object):
     def projectiles():
         """Get allowed pimaries"""
         pdg_ids = config.adv_set['allowed_projectiles']
-        namer = ParticleProperties.modtab.pdg2modname
-        allowed = []
-        for pdg_id in pdg_ids:
-            allowed.append(namer[pdg_id])
-            try:
-                allowed.append(namer[-pdg_id])
-            except KeyError:
-                continue
-        return allowed
+        return [ParticleProperties.modtab.pdg2modname[_] for _ in pdg_ids]
 
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
