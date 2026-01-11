@@ -164,7 +164,7 @@ def elbert(slice_val=1., kind='conv nu_mu', pmodel=(pm.GaisserHonda, None), prpl
         fn(slice_val)(slice_val, kind, pmodel, hadr, prpl=prpl, corr_only=corr_only,
                       label=f'{hadr} {tex(kind)} {tex(slice_val)}')
     plt.legend()
-    plt.tight_layout(0.3)
+    plt.tight_layout(pad=0.3)
 
 
 def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III-3.0.6', prpl='ice_allm97_step_1', corr_only=False):
@@ -187,7 +187,7 @@ def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III-3.0.6', prp
         fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
                            label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
-    plt.tight_layout(0.3)
+    plt.tight_layout(pad=0.3)
 
 
 def pmodels(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice_allm97_step_1', fraction=True):
@@ -384,8 +384,7 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
     plt.ylim(ymin=1e-20)
     plt.legend()
     plt.title(f'{parent} {tex(cos_theta)}')
-    plt.tight_layout(0.3)
-    # plt.savefig('/Users/tianlu/Desktop/selfveto/parent_flux/combined/{}.png'.format(parent))
+    plt.tight_layout(pad=0.3)
 
 
 def nu_flux(cos_theta, kinds='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3, 7), corr_only=False):
@@ -465,7 +464,7 @@ def elbert_only(slice_val=1., kind='conv nu_mu'):
     plt.xscale('log')
     plt.xlabel(r'$E_\nu$ [GeV]')
     plt.legend()
-    plt.tight_layout(0.3)
+    plt.tight_layout(pad=0.3)
 
 
 def hist_preach(infile, plotdir=None):
