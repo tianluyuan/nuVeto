@@ -56,13 +56,12 @@ class nuVeto(object):
         # config.enable_em = False
         config.enable_muon_energy_loss = False
         config.return_as = 'total energy'
-        config.adv_set['allowed_projectiles'] = [2212, 2112,
+        config.adv_set['allowed_projectiles'] = [2212, -2212,
+                                                 2112, -2112,
                                                  211, -211,
                                                  321, -321,
                                                  3122, -3122,
-                                                 -2212, -2112,
-                                                 310,
-                                                 130]
+                                                 310, 130]
         self.mceq = MCEqRun(
             # provide the string of the interaction model
             interaction_model=hadr,
