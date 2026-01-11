@@ -38,7 +38,7 @@ Note that v2.0 and higher rely on the updated version of [MCEq](https://github.c
 The simplest way to run is
 
 ```python
-from nuVeto.nuveto import passing
+from nuVeto import passing
 from nuVeto.utils import Units
 import crflux.models as pm
 

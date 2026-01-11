@@ -2,11 +2,12 @@ from pathlib import Path
 from collections import namedtuple
 import pickle
 import gzip
+from importlib import resources
 import numpy as np
 import pandas as pd
 from scipy import interpolate
-from importlib import resources
-from nuVeto.utils import calc_bins, centers
+from scipy.interpolate import RegularGridInterpolator
+from .utils import calc_bins, centers, Units
 
 
 def hist_preach(infile):
@@ -57,3 +58,39 @@ def interp(preach, plight):
     df = pd.DataFrame(intg, columns='ei l prpl'.split())
     df = df.pivot_table(index='ei', columns='l', values='prpl').fillna(0)
     return interpolate.RegularGridInterpolator((df.index, df.columns), df.values, bounds_error=False, fill_value=None)
+
+
+class MuonProb(object):
+    def __init__(self, pklfile):
+        if pklfile is None:
+            self.mu_int = self.median_approx
+        elif isinstance(pklfile, RegularGridInterpolator):
+            self.mu_int = pklfile
+        elif Path(pklfile).is_file():
+            with open(pklfile, 'rb') as f:
+                self.mu_int = pickle.load(f)
+        else:
+            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{pklfile}.pkl').open('rb') as f:
+                self.mu_int = pickle.load(f)
+
+    def median_emui(self, distance):
+        """
+        Minimum muon energy required to survive the given thickness of ice with at
+        least 1 TeV 50% of the time.
+
+        :returns: minimum muon energy [GeV] for 1 TeV
+        """
+        # require that the muon have median energy 1 TeV
+        b, c = 2.52151, 7.13834
+        return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
+
+    def median_approx(self, coord):
+        coord = np.asarray(coord)
+        muon_energy, ice_distance = coord[..., 0], coord[..., 1]
+        min_mue = self.median_emui(ice_distance)*Units.GeV
+        return muon_energy > min_mue
+
+    def prpl(self, coord):
+        pdets = self.mu_int(coord)
+        pdets[pdets > 1] = 1
+        return pdets

@@ -16,7 +16,8 @@ import scipy.interpolate as interpolate
 from MCEq.core import MCEqRun
 from MCEq import config
 import crflux.models as pm
-from .utils import Units, ParticleProperties, MuonProb, Geometry, amu, centers
+from .utils import Units, ParticleProperties, Geometry, amu, centers
+from .mu import MuonProb
 from .uncertainties import BARR, barr_unc
 
 
@@ -33,14 +34,13 @@ class nuVeto(object):
 
         Note:
             A separate MCEq instance needs to be created for each
-            combination of __init__'s arguments. To access pmodel and hadr,
-            use mceq.pm_params and mceq.yields_params
+            combination of __init__'s arguments. Available fluxes in crflux.models.pm.
         Args:
             costh (float): Cos(theta), the cosine of the neutrino zenith at the detector
             pmodel (tuple(CR model class, arguments)): CR Flux
             hadr (str): hadronic interaction model
             barr_mods: barr parameters
-            depth (float): the depth at which the veto probability is computed below the ice
+            depth (float): the depth at which the veto probability is computed below the surface
         """
         self.costh = costh
         self.pmodel = pmodel
@@ -454,15 +454,60 @@ class nuVeto(object):
 
 @lru_cache(maxsize=2**12)
 def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
+    """ Creates and caches (LRU) a nuVeto object for the given costheta, CR Flux,
+    hadronic model, barr parameters, and depth
+
+    Note:
+        A separate MCEq instance needs to be created for each
+        combination of the arguments. The cache will use an existing instance if available.
+        Available fluxes in crflux.models.pm.
+    Args:
+        costh (float): Cos(theta), the cosine of the neutrino zenith in detector coordinates
+        pmodel (tuple(CR model class, arguments)): CR Flux from crflux.models
+        hadr (str): hadronic interaction model
+        barr_mods: barr parameters
+        depth (float): the depth at which the veto probability is computed below the surface (supply units with e.g depth*Units.m)
+    """
     return nuVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
 
 def passing(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'December')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False):
+    """ Returns the passing atmospheric neutrino flux or passing fraction if fraction=True
+
+    Args:
+        enu (float): neutrino energy
+        costh (float): Cos(theta), the cosine of the neutrino zenith in detector coordinates
+        kind (str): specifier for what type of atmos. nu to assume, can be '(conv|pr|_parent_) nu_(e|mu)(bar)'
+        pmodel (tuple(CR model class, arguments)): CR Flux from crflux.models
+        hadr (str): hadronic interaction model
+        barr_mods: barr parameters
+        depth (float): the depth at which the veto probability is computed below the surface (supply units with e.g depth*Units.m)
+        density (tuple(model class, (location, season))): atmospheric density specifier for MCEq
+        accuracy (float): higher values will increase density of parent-energy sampling
+        fraction (bool): if True, returns the passing fraction, else the passing flux
+        prpl (str, RegularGridInterpolator, None): the muon detection probability, can be string filename stem, an object, or if None will use median approximation
+        corr_only (bool): whether or not to include the uncorrelated muons contribution
+    """
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num/den if fraction else num
 
 
 def fluxes(enu, cos_theta, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'December')), accuracy=3.5, prpl='ice_allm97_step_1', corr_only=False):
+    """ Returns passing and total atmospheric neutrino fluxes
+
+    Args:
+        enu (float): neutrino energy
+        costh (float): Cos(theta), the cosine of the neutrino zenith in detector coordinates
+        kind (str): specifier for what type of atmos. nu to assume, can be '(conv|pr|_parent_) nu_(e|mu)(bar)'
+        pmodel (tuple(CR model class, arguments)): CR Flux from crflux.models
+        hadr (str): hadronic interaction model
+        barr_mods: barr parameters
+        depth (float): the depth at which the veto probability is computed below the surface (supply units with e.g depth*Units.m)
+        density (tuple(model class, (location, season))): atmospheric density specifier for MCEq
+        accuracy (float): higher values will increase density of parent-energy sampling
+        prpl (str, RegularGridInterpolator, None): the muon detection probability, can be string filename stem, an object, or if None will use median approximation
+        corr_only (bool): whether or not to include the uncorrelated muons contribution
+    """
     sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
     return sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
