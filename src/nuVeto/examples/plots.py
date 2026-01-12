@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 from importlib import resources
 from .. import nuVeto, passing, fluxes
 from ..external import helper as exthp
@@ -23,12 +23,12 @@ def tex(inp):
                           'nu_mubar': r'$\overline{\nu}_\mu$',
                           'nu_ebar': r'$\overline{\nu}_e$',
                           'nu_taubar': r'$\overline{\nu}_\tau$'}
-        return r'{} {}'.format(categ, daughter_trans[daughter])
+        return rf'{categ} {daughter_trans[daughter]}'
     else:
         if inp > 1:
-            return r'$E_\nu={:.2g}$'.format(inp)
+            return rf'$E_\nu={inp:.2g}$'
         else:
-            return r'$\cos \theta_z={:.2g}$'.format(inp)
+            return rf'$\cos \theta_z={inp:.2g}$'
 
 
 def extlabel(corr_only):
@@ -331,8 +331,7 @@ def plot_prpl_ratio(interp_num, interp_den, include_cbar=True):
     plt.ticklabel_format(style='plain', axis='y')
     plt.xlim(1e2, 1e8)
     plt.ylim(1, 40)
-    plt.title('{}/{}'.format(os.path.splitext(os.path.basename(interp_num))[0],
-                             os.path.splitext(os.path.basename(interp_den))[0]))
+    plt.title(f'{Path(interp_num).stem}/{Path(interp_den).stem}')
 
 
 def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c',
@@ -352,10 +351,9 @@ def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3
     plt.xscale('log')
     plt.legend()
     if ecr is None or particle is None:
-        plt.title(r'$\cos \theta = {:.2g}$'.format(cos_theta))
+        plt.title(rf'$\cos \theta = {cos_theta:.2g}$')
     else:
-        plt.title(r'{} at {:.2g} GeV and $\cos \theta = {:.2g}$'.format(
-            particle, ecr, cos_theta))
+        plt.title(rf'{particle} at {ecr:.2g} GeV and $\cos \theta = {cos_theta:.2g}$')
 
 
 def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c',
@@ -378,7 +376,7 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
                    color=pout[0].get_color())
 
     plt.xlabel(r'$E_p$')
-    plt.ylabel(r'$E_p^{} \Phi_p$'.format(mag))
+    plt.ylabel(rf'$E_p^{mag} \Phi_p$')
     plt.ylim(ymin=1e-20)
     plt.legend()
     plt.title(f'{parent} {tex(cos_theta)}')
@@ -395,7 +393,7 @@ def nu_flux(cos_theta, kinds='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'),
                           1] for en in sv.mceq.e_grid])
         pr = plt.plot(sv.mceq.e_grid, mine*sv.mceq.e_grid**mag,
                       label=f'{hadr} {tex(kind)} {tex(cos_theta)}')
-        plt.ylabel(r'$E_\nu^{} \Phi_\nu$'.format(mag))
+        plt.ylabel(rf'$E_\nu^{mag} \Phi_\nu$')
         plt.loglog()
         plt.xlim(*np.power(10, logxlim))
         plt.ylim(ymin=1e-8)
@@ -455,7 +453,7 @@ def elbert_only(slice_val=1., kind='conv nu_mu'):
         for echoice, name in zip(echoices, names):
             plt.plot(ens, echoice(kind)(ens, emu, slice_val), '--',
                      label=name)
-    plt.title(r'{}, {}'.format(tex(kind), tex(slice_val)))
+    plt.title(rf'{tex(kind)}, {tex(slice_val)}')
     plt.ylim(0., 1.)
     plt.ylabel(r'Passing fraction')
     plt.xlim(10**3, 10**7)
@@ -478,8 +476,7 @@ def hist_preach(infile, plotdir=None):
                 # plt.legend(fontsize=6)
                 plt.tight_layout()
                 if plotdir is not None:
-                    plt.savefig(os.path.join(
-                        os.path.expanduser(plotdir), f'{(idx - 1) / napf}.png'))
+                    plt.savefig(Path(plotdir).expanduser() /  f'{(idx - 1) / napf}.png')
             fig, axs = plt.subplots(6, 6, figsize=(10, 10))
             # fig.text(0.5, 0.04, r'$E_f$', ha='center', va='center')
             # fig.text(0.06, 0.5, r'$P(E_f|E_i, l)$', ha='center', va='center', rotation='vertical')
@@ -487,7 +484,7 @@ def hist_preach(infile, plotdir=None):
         ax = axs[idx % napf]
         ax.set_prop_cycle('color', plt.cm.Blues(np.linspace(0.3, 1, 100)))
         plt.sca(ax)
-        plt.title(r'${:.2g}$ GeV'.format(ei), fontdict={'fontsize': 8})
+        plt.title(rf'${ei:.2g}$ GeV', fontdict={'fontsize': 8})
         for _l, efs in sdf.groupby('l'):
             bins = calc_bins(efs['ef'])
             counts, edges = np.histogram(efs['ef'], bins=bins, density=True)
@@ -497,5 +494,4 @@ def hist_preach(infile, plotdir=None):
     # plt.legend(fontsize=6)
     plt.tight_layout()
     if plotdir is not None:
-        plt.savefig(os.path.join(
-            os.path.expanduser(plotdir), f'{(idx - 1) / napf}.png'))
+        plt.savefig(Path(plotdir).expanduser() /  f'{(idx - 1) / napf}.png')
