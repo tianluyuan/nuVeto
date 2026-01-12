@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='Generate muon detection probability')
     parser.add_argument('mmc', metavar='MMC',
-                        help='text file or pickled histogram containing MMC simulated data (fullpath or filename in data/mmc)')
+                        help='text file or saved (e.g. npz) histogram containing MMC simulated data (fullpath or filename in data/mmc)')
     parser.add_argument('--plight', default='pl_step_1000',
                         choices=[fn for fn in dir(pl) if fn.startswith('pl_')],
                         help='choice of a plight function to apply as defined in pl.py')
