@@ -53,7 +53,7 @@ jobs:
     - name: Test mu.py
       run: |
         pip install -e .
-        ./scripts/mu/mu.py ice_allm97.pklz -o fake/path/mymudet.pkl --plight pl_step_1000
+        ./scripts/mu/mu.py ice_allm97.pklz -o fake/path/mymudet.npz --plight pl_step_1000
         pytest -k test_pdet
 
   results:

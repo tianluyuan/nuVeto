@@ -59,11 +59,11 @@ See `examples/plots.py` for more detailed examples.
 
 To calculate the passing fraction requires knowing the muon detection probability as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The scripts for generating the necessary files are provided in the `scripts/mu/` subdirectory, which can be obtained with a download or clone of this repository.
 
-The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice and water in `data/mmc/(ice|water)_(allm97|bb).pklz` for two different cross section parameterizations. The detector response probability must first be defined in `scripts/mu/pl.py` as a function of the muon energy **at the detector**. Then, pass the function name to the `--plight` argument and construct the overall muon reaching and detection probability with the following command, for example.
+The muon reaching probability is constructed from MMC simulations and is provided for propagation in ice and water in `data/mmc/(ice|water)_(allm97|bb).npz` for two different cross section parameterizations. The detector response probability must first be defined in `scripts/mu/pl.py` as a function of the muon energy **at the detector**. Then, pass the function name to the `--plight` argument and construct the overall muon reaching and detection probability with the following command, for example.
 
 ```bash
 cd scripts/mu
-./mu.py ice_allm97.pklz -o mymudet.pkl --plight pl_step_1000
+./mu.py ice_allm97 -o mymudet.npz --plight pl_step_1000
 ```
 
 To use the newly generated file, pass the stem without file extension as a string to the `prpl` argument.
@@ -77,7 +77,7 @@ from nuVeto.mu import interp
 
 pl=lambda emu: #some function of muon energy
 
-prpl=interp("ice_allm97.pklz",pl)
+prpl=interp("ice_allm97",pl)
 enu=1e3
 cos_theta=0.5
 pf = passing(enu, cos_theta, prpl=prpl)
