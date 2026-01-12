@@ -61,18 +61,36 @@ def interp(preach, plight):
 
 
 class MuonProb(object):
-    def __init__(self, pklfile):
-        if pklfile is None:
+    def __init__(self, rginterpolator):
+        if rginterpolator is None:
             self.mu_int = self.median_approx
-        elif isinstance(pklfile, RegularGridInterpolator):
-            self.mu_int = pklfile
-        elif Path(pklfile).is_file():
-            with open(pklfile, 'rb') as f:
-                self.mu_int = pickle.load(f)
+        elif isinstance(rginterpolator, RegularGridInterpolator):
+            self.mu_int = rginterpolator
+        elif (fpath := Path(rginterpolator)).is_file():
+            with open(fpath, 'rb') as f:
+                if fpath.suffix.lower() == '.npz':
+                    self.mu_int = self.load_from_npz(f)
+                else:
+                    self.mu_int = pickle.load(fpath)
         else:
-            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{pklfile}.pkl').open('rb') as f:
-                self.mu_int = pickle.load(f)
+            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{rginterpolator}.npz').open('rb') as f:
+                self.mu_int = self.load_from_npz(f)
 
+    @staticmethod
+    def load_from_npz(f):
+        data = np.load(f)
+        ngrid_keys = len([_ for _ in data.keys() if _.startswith('grid_')])
+        grid = tuple(data[f'grid_{_}'] for _ in range(ngrid_keys))
+
+        interp = RegularGridInterpolator(
+            grid,
+            data['values'],
+            method=data['method'].item(),
+            fill_value=None if data['fill_value'] == 'None' else data['fill_value'].item(),
+            bounds_error=data['bounds_error'].item()
+        )
+        return interp
+                
     def median_emui(self, distance):
         """
         Minimum muon energy required to survive the given thickness of ice with at

@@ -5,6 +5,7 @@ import pickle
 import gzip
 from importlib.resources import as_file, files
 from pathlib import Path
+import numpy as np
 from nuVeto.mu import hist_preach, interp
 import pl
 
@@ -34,8 +35,18 @@ def main():
             if args.output.name != str(args.output):
                 logger.warning(f'Overriding {args.output} to {output}. To suppress this warning pass the filename only.')
             intp = interp(args.mmc, getattr(pl, args.plight))
-            pickle.dump(intp, open(output, 'wb'), protocol=-1)
-    logger.info(f'Output pickled into {output}')
+            data_dict = {
+                'values': intp.values,
+                'method': str(intp.method),
+                'fill_value': np.array(str(intp.fill_value) if intp.fill_value is None else intp.fill_value),
+                'bounds_error': np.array(intp.bounds_error)
+            }
+
+            for i, dim_array in enumerate(intp.grid):
+                data_dict[f'grid_{i}'] = dim_array
+
+            np.savez_compressed(output, **data_dict, allow_pickle=False)
+    logger.info(f'Output saved into {output}')
 
 
 if __name__ == '__main__':
