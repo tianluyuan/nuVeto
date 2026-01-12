@@ -63,7 +63,7 @@ The muon reaching probability is constructed from MMC simulations and is provide
 
 ```bash
 cd scripts/mu
-./mu.py ice_allm97.pklz -o mymudet.pkl --plight pl_step_1000
+./mu.py ice_allm97.pklz -o mymudet.npz --plight pl_step_1000
 ```
 
 To use the newly generated file, pass the stem without file extension as a string to the `prpl` argument.
