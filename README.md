@@ -63,7 +63,7 @@ The muon reaching probability is constructed from MMC simulations and is provide
 
 ```bash
 cd scripts/mu
-./mu.py ice_allm97.pklz -o mymudet.npz --plight pl_step_1000
+./mu.py ice_allm97 -o mymudet.npz --plight pl_step_1000
 ```
 
 To use the newly generated file, pass the stem without file extension as a string to the `prpl` argument.
@@ -77,7 +77,7 @@ from nuVeto.mu import interp
 
 pl=lambda emu: #some function of muon energy
 
-prpl=interp("ice_allm97.pklz",pl)
+prpl=interp("ice_allm97",pl)
 enu=1e3
 cos_theta=0.5
 pf = passing(enu, cos_theta, prpl=prpl)

@@ -33,15 +33,19 @@ def hist_preach(infile):
 def int_ef(preach, plight):
     """ integate p_reach*p_light over e_f to reduce dimensionality for interpolator
     """
-    if Path(preach).is_file():
-        try:
+    if isinstance(preach, np.ndarray):
+        pass
+    elif (preach := Path(preach)).is_file():
+        if preach.suffix == '.npz':
+            preach = np.load(preach)['data']
+        elif preach.suffix == '.pklz':
             preach = pickle.load(gzip.open(preach, 'rb'))
-        except IOError:
+        else:
             preach = hist_preach(preach)
-    elif Path(preach).suffix == '.pklz':
+    else:
         # search in default directory
-        preach = resources.files('nuVeto') / 'data' / 'mmc' / preach
-        preach = pickle.load(gzip.open(preach, 'rb'))
+        with (resources.files('nuVeto') / 'data' / 'mmc' / f'{preach.stem}.npz').open('rb') as f:
+            preach = np.load(f)['data']
 
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
     intg = []
@@ -82,14 +86,13 @@ class MuonProb(object):
         ngrid_keys = len([_ for _ in data.keys() if _.startswith('grid_')])
         grid = tuple(data[f'grid_{_}'] for _ in range(ngrid_keys))
 
-        interp = RegularGridInterpolator(
+        return RegularGridInterpolator(
             grid,
             data['values'],
             method=data['method'].item(),
             fill_value=None if data['fill_value'] == 'None' else data['fill_value'].item(),
             bounds_error=data['bounds_error'].item()
         )
-        return interp
                 
     def median_emui(self, distance):
         """

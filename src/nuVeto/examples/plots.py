@@ -5,6 +5,7 @@ from .. import nuVeto, passing, fluxes
 from ..external import helper as exthp
 from ..external import selfveto as extsv
 from ..utils import Units, ParticleProperties, Geometry, amu, centers, calc_bins, mceq_categ_format
+from nuVeto.mu import MuonProb
 from nuVeto.uncertainties import BARR
 from matplotlib import pyplot as plt
 from matplotlib import colors
@@ -264,15 +265,14 @@ def dndee(mother, daughter):
     plt.legend()
 
 
-def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
+def plot_prpl(interpolator, include_mean=False, include_cbar=True):
     depth = 1950*Units.m
-    prplfn = pickle.load(open(interp_pkl, 'rb'), encoding='latin1')
     emui_edges = np.logspace(2, 8, 101)
     l_ice_edges = np.linspace(1e3, 4e4, 101)
     emui = centers(emui_edges)
     l_ice = centers(l_ice_edges)
     xx, yy = np.meshgrid(emui, l_ice)
-    prpls = prplfn(list(zip(xx.flatten(), yy.flatten())))
+    prpls = MuonProb(interpolator).prpl(list(zip(xx.flatten(), yy.flatten())))
     plt.figure()
     plt.pcolormesh(emui_edges, l_ice_edges/1e3,
                    prpls.reshape(xx.shape), cmap='magma')
@@ -311,11 +311,11 @@ def plot_prpl(interp_pkl, include_mean=False, include_cbar=True):
     return emui_edges, l_ice_edges, prpls.reshape(xx.shape)
 
 
-def plot_prpl_ratio(interp_pkl_num, interp_pkl_den, include_cbar=True):
+def plot_prpl_ratio(interp_num, interp_den, include_cbar=True):
     emui_edges, l_ice_edges, prpls_num = plot_prpl(
-        interp_pkl_num, False, False)
+        interp_num, False, False)
     emui_edges, l_ice_edges, prpls_den = plot_prpl(
-        interp_pkl_den, False, False)
+        interp_den, False, False)
     plt.figure()
     plt.pcolormesh(emui_edges, l_ice_edges/1e3, np.ma.masked_invalid(prpls_num/prpls_den),
                    norm=colors.LogNorm(vmin=1e-2, vmax=1e2),
@@ -333,8 +333,8 @@ def plot_prpl_ratio(interp_pkl_num, interp_pkl_den, include_cbar=True):
     plt.ticklabel_format(style='plain', axis='y')
     plt.xlim(1e2, 1e8)
     plt.ylim(1, 40)
-    plt.title('{}/{}'.format(os.path.splitext(os.path.basename(interp_pkl_num))[0],
-                             os.path.splitext(os.path.basename(interp_pkl_den))[0]))
+    plt.title('{}/{}'.format(os.path.splitext(os.path.basename(interp_num))[0],
+                             os.path.splitext(os.path.basename(interp_den))[0]))
 
 
 def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c',

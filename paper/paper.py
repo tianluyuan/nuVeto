@@ -56,11 +56,11 @@ def earth_attenuation(enu, cos_theta, kind='conv nu_mu'):
 
 def fig_prpl():
     step1000 = resources.files('nuVeto') / 'data' / \
-        'prpl' / 'ice_allm97_step_1.pkl'
+        'prpl' / 'ice_allm97_step_1.npz'
     step750 = resources.files('nuVeto') / 'data' / \
-        'prpl' / 'ice_allm97_step_0.75.pkl'
+        'prpl' / 'ice_allm97_step_0.75.npz'
     sigmoid = resources.files('nuVeto') / 'data' / \
-        'prpl' / 'ice_allm97_sigmoid_0.75_0.25.pkl'
+        'prpl' / 'ice_allm97_sigmoid_0.75_0.25.npz'
     plt.figure()
     plots.plot_prpl(step1000, True, False)
     plt.title(r'Heaviside $\cal P_{\rm light}$')
