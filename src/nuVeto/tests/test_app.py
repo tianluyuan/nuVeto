@@ -23,7 +23,7 @@ def test_calc_bins():
 
 
 def test_interp():
-    prpl = interp("ice_allm97.pklz", lambda emu: np.heaviside(emu - 1000, 1))
+    prpl = interp("ice_allm97.npz", lambda emu: np.heaviside(emu - 1000, 1))
 
     geo = Geometry(1950*Units.m)
     psib = nuVeto.psib(geo.overburden(0.3), 'pi+', 1e5*Units.GeV, 3.5, prpl)
