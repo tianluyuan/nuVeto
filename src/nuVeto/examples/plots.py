@@ -347,7 +347,7 @@ def parent_ratio(cos_theta, parents='pi+ pi-', pmodel=(pm.HillasGaisser2012, 'H3
                  label=f'X={float(sv.mceq.density_model.X2h(x_val)) / 100000.0:.3g} km')
 
     plt.xlabel(r'$E_p$')
-    plt.ylabel(r'{}/{} flux ratio'.format(*parents.split()))
+    plt.ylabel(rf'{parents.split()[0]}/{parents.split()[1]} flux ratio')
     plt.xscale('log')
     plt.legend()
     if ecr is None or particle is None:
@@ -369,9 +369,9 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
         mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)
         mceq[mceq == 0] = np.nan
         calc = sv.get_solution(parent, gsol, mag, grid_idx=idx)
-        pout = plt.loglog(sv.mceq.e_grid, mceq,
-                          label='$X={:.3g}$ km'.format(
-                              float(sv.mceq.density_model.X2h(x_val))/1e5))
+        pout = plt.loglog(
+            sv.mceq.e_grid, mceq,
+            label=rf'$X={float(sv.mceq.density_model.X2h(x_val))/1e5:.3g}$ km')
         plt.loglog(sv.mceq.e_grid, calc, '--',
                    color=pout[0].get_color())
 
