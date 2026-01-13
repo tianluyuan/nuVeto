@@ -9,6 +9,7 @@ given depth.
 
 from functools import lru_cache
 from importlib.resources import files
+import logging
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -20,6 +21,7 @@ from .utils import Units, ParticleProperties, Geometry, amu, centers
 from .mu import MuonProb
 from .uncertainties import BARR, barr_unc
 
+logger = logging.getLogger(__name__)
 
 class nuVeto(object):
     """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))
@@ -62,7 +64,7 @@ class nuVeto(object):
         self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
         if density[0] == "MSIS00_IC":
-            print(
+            logger.info(
                 'Passing "MSIS00_IC" assumes IceCube-centered coordinates, '
                 'which obviates the depth used here. Switching to "MSIS00" '
                 "for identical results."
@@ -144,9 +146,12 @@ class nuVeto(object):
     def esamp(enu, accuracy, emu_max=1.e8):
         """returns the sampling of parent energies for a given enu
 
-        The sampled parent energy cannot be greater than enu+emu_max, as then the decay-muon energy
-        can exceed the bounds
+        The sampled parent energy cannot exceed enu+emu_max, as then the decay-muon energy
+        can exceed the energy range over which MMC data was tabulated
         """
+        if not np.isfinite(emu_max):
+            logger.warning("The passed emu_max is not finite, assuming 1.e8 for parent-energy sampling.")
+            emu_max = 1.e8
         return np.logspace(np.log10(enu), np.log10(enu+emu_max), int(1000 * accuracy))
 
     @staticmethod
