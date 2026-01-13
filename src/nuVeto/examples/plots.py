@@ -361,9 +361,6 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
     plt.figure()
     sv = nuVeto(cos_theta, pmodel, hadr, density=density)
     gsol = sv.grid_sol(ecr, particle)
-    # hack to convert list to np array
-    sv.mceq.grid_sol = np.asarray(sv.mceq.grid_sol)
-    ###
     X_vec = sv.X_vec
     for idx, x_val in enumerate(X_vec):
         mceq = sv.mceq.get_solution(parent, mag, grid_idx=idx)
@@ -386,7 +383,7 @@ def parent_flux(cos_theta, parent='D0', pmodel=(pm.HillasGaisser2012, 'H3a'), ha
 def nu_flux(cos_theta, kinds='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', mag=3, logxlim=(3, 7), corr_only=False):
     sv = nuVeto(cos_theta, pmodel, hadr)
     sv.grid_sol()
-    fig, axs = plt.subplots(2, 1)
+    _, axs = plt.subplots(2, 1)
     for kind in [_.strip() for _ in kinds.split(',')]:
         plt.sca(axs[0])
         mine = np.asarray([fluxes(en, cos_theta, kind, pmodel, hadr, corr_only=corr_only)[
