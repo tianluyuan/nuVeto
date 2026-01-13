@@ -75,7 +75,7 @@ class MuonProb(object):
                 if fpath.suffix.lower() == '.npz':
                     self.mu_int = self.load_from_npz(f)
                 else:
-                    self.mu_int = pickle.load(fpath)
+                    self.mu_int = pickle.load(f)
         else:
             with (resources.files('nuVeto') / 'data' / 'prpl' / f'{rginterpolator}.npz').open('rb') as f:
                 self.mu_int = self.load_from_npz(f)
@@ -115,3 +115,11 @@ class MuonProb(object):
         pdets = self.mu_int(coord)
         pdets[pdets > 1] = 1
         return pdets
+
+    @property
+    def eis(self):
+        return self.mu_int.grid[0]
+
+    @property
+    def ldists(self):
+        return self.mu_int.grid[1]
