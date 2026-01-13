@@ -162,23 +162,24 @@ class nuVeto(object):
 
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
-        with np.load(fpath.open("rb")) as dfile:
-            xmus = centers(dfile["xedges"])
+        with fpath.open("rb") as dfile:
+            data = np.load(dfile)
+            xmus = centers(data["xedges"])
             xnus = np.concatenate([xmus, [1]])
-            vals = np.nan_to_num(dfile["histograms"])
+            vals = np.nan_to_num(data["histograms"])
 
-            ddec = interpolate.RegularGridInterpolator(
-                (xnus, xmus), vals, bounds_error=False, fill_value=None
-            )
-            emu_mat = xmus[:, None] * esamp[None, :] * Units.GeV
-            pmu_mat = ddec(np.stack(np.meshgrid(enu / esamp, xmus), axis=-1))
-            reaching = 1 - np.sum(
-                pmu_mat
-                * fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape) * l_ice], axis=-1)),
-                axis=0,
-            )
-            reaching[reaching < 0.0] = 0.0
-            return reaching
+        ddec = interpolate.RegularGridInterpolator(
+            (xnus, xmus), vals, bounds_error=False, fill_value=None
+        )
+        emu_mat = xmus[:, None] * esamp[None, :] * Units.GeV
+        pmu_mat = ddec(np.stack(np.meshgrid(enu / esamp, xmus), axis=-1))
+        reaching = 1 - np.sum(
+            pmu_mat
+            * fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape) * l_ice], axis=-1)),
+            axis=0,
+        )
+        reaching[reaching < 0.0] = 0.0
+        return reaching
 
     @staticmethod
     @lru_cache(2**12)
