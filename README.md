@@ -2,9 +2,13 @@
 
 # nuVeto
 
-This package calculates the effect of a detector veto on the high-energy atmospheric neutrino flux via detection of muons that reach the detector. The result calculated is the passing-flux or passing-fraction of atmospheric neutrinos as a function of energy and zenith angle.
+This package calculates the effect of a detector veto, triggered by the accompanying muons from the same air shower, on the high-energy atmospheric neutrino flux. The calculated result is the passing-flux or passing-fraction of atmospheric neutrinos as a function of energy and zenith angle.
 
-<img width="100%" alt="fluxes" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/fluxes_100.png?raw=true">
+As a corollary, the total atmospheric neutrino flux as well as parent particle fluxes at various depths in the atmosphere are calculated using [`MCEq`](https://github.com/mceq-project/MCEq). To illustrate, the parent fluxes are accessible as shown in this [example](https://github.com/tianluyuan/nuVeto/blob/eb643373534c289ef11a01c43fc82bceeb76c122/src/nuVeto/examples/plots.py#L359).
+
+<img width="49%" alt="fluxes" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/fluxes_100.png?raw=true" > <img width="49%" alt="Ds+_025" src="https://github.com/user-attachments/assets/5fcdbe94-3fca-4997-9c54-4429b932d97c" >
+
+In the right panel, solid lines are direct calculations from `MCEq` while dashed lines are an extension down to lower energies where the parent particle is assumed to no longer interact and their fluxes are computed based on the CR flux, cross section, yield and parent's decay length.
 
 ## Getting started
 It is recommended to work within a Python virtual environment.
@@ -29,9 +33,9 @@ pip install nuVeto[testing]
 pytest --pyargs nuVeto
 ```
 
-Extra options are `pip install nuVeto[plotting, pythia8]` which will install necessary packages for making example plots (`from nuVeto.examples import plots`), and generating alternative hadron decay rates with PYTHIA.
+Additional optional installations are `[plotting]` and `[pythia8]` which will respectively install needed packages for making example plots (`from nuVeto.examples import plots`), and generating alternative hadron decay rates with PYTHIA.
 
-Note that v2.0 and higher rely on the updated version of [MCEq](https://github.com/afedynitch/MCEq). For the legacy version that relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) do `git checkout v1.5` and see the README.
+Note that v2.0 and higher rely on the updated version of [MCEq](https://github.com/mceq-project/MCEq). For the legacy version that relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) do `git checkout v1.5` and follow the instructions in the README.
 
 ### Usage
 
