@@ -185,7 +185,7 @@ class nuVeto(object):
     @lru_cache(2**12)
     def psib(l_ice, mother, enu, accuracy, prpl):
         """returns the suppression factor due to the sibling muon"""
-        fn = nuVeto.get_muprob(prpl)
+        fn = MuonProb(prpl)
         esamp = nuVeto.esamp(enu, accuracy, fn.eis[-1])
         if mother in ["D0", "D0-bar"]:
             reaching = nuVeto.nbody(
@@ -225,11 +225,6 @@ class nuVeto(object):
                 list(zip((esamp - enu) * Units.GeV, [l_ice] * len(esamp)))
             )
         return reaching
-
-    @staticmethod
-    @lru_cache(maxsize=2**12)
-    def get_muprob(rginterpolator):
-        return MuonProb(rginterpolator)
 
     @lru_cache(maxsize=2**12)
     def get_dNdEE(self, mother, daughter):
@@ -281,7 +276,7 @@ class nuVeto(object):
         mu = np.abs(self.get_solution("mu-", grid_sol)) + np.abs(
             self.get_solution("mu+", grid_sol)
         )
-        fn = self.get_muprob(prpl)
+        fn = MuonProb(prpl)
         coords = list(
             zip(self.mceq.e_grid * Units.GeV, [l_ice] * len(self.mceq.e_grid))
         )
@@ -313,7 +308,7 @@ class nuVeto(object):
         self, categ, daughter, enu, accuracy, prpl, ecr=None, particle=None
     ):
         """flux*yield"""
-        esamp = self.esamp(enu, accuracy, self.get_muprob(prpl).eis[-1])
+        esamp = self.esamp(enu, accuracy, MuonProb(prpl).eis[-1])
         mothers = self.categ_to_mothers(categ, daughter)
         nums = np.zeros((len(esamp), len(self.X_vec)))
         dens = np.zeros((len(esamp), len(self.X_vec)))
@@ -467,7 +462,7 @@ class nuVeto(object):
         # prpl -> None ==> median for muon reaching
         categ, daughter = kind.split()
 
-        esamp = self.esamp(enu, accuracy, self.get_muprob(prpl).eis[-1])
+        esamp = self.esamp(enu, accuracy, MuonProb(prpl).eis[-1])
 
         # Correlated only (no need for the unified calculation here) [really just for testing]
         passed = 0
