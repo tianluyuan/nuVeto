@@ -6,7 +6,7 @@ This package calculates the effect of a detector veto, triggered by the accompan
 
 As a corollary, the total atmospheric neutrino flux as well as parent particle fluxes at various depths in the atmosphere are calculated using [`MCEq`](https://github.com/mceq-project/MCEq). To illustrate, the parent fluxes are accessible as shown in this [example](https://github.com/tianluyuan/nuVeto/blob/eb643373534c289ef11a01c43fc82bceeb76c122/src/nuVeto/examples/plots.py#L359).
 
-<img width="49%" alt="fluxes" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/fluxes_100.png?raw=true" > <img width="49%" alt="Ds+_025" src="https://github.com/user-attachments/assets/5fcdbe94-3fca-4997-9c54-4429b932d97c" >
+<img width="49%" alt="fluxes" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/fluxes_100.png?raw=true" > <img width="49%" alt="Ds+_025" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/Ds+_0.25.png?raw=true" >
 
 In the right panel, solid lines are direct calculations from `MCEq` while dashed lines are an extension down to lower energies where the parent particle is assumed to no longer interact and their fluxes are computed based on the CR flux, cross section, yield and parent's decay length.
 
@@ -59,7 +59,7 @@ See `examples/plots.py` for more detailed examples.
 
 ## Building muon detection probabilities
 
-<img width="100%" alt="Pdet" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/prpl_step1000.png?raw=true">
+<img width="49%" alt="Pdet" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/prpl_step1000.png?raw=true"> <img width="49%" alt="Pdet" src="https://github.com/tianluyuan/nuVeto/blob/main/paper/figs_for_readme/prpl_sigmoid.png?raw=true">
 
 To calculate the passing fraction requires knowing the muon detection probability as a function of the overburden and energy of the muon at the surface. This is constructed from a convolution of the muon reaching probability and the detector response. The scripts for generating the necessary files are provided in the `scripts/mu/` subdirectory, which can be obtained with a download or clone of this repository.
 
