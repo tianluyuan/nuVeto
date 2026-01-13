@@ -24,7 +24,7 @@ source vdir/bin/activate
 pip install nuVeto
 ```
 
-This will install `numpy`, `scipy`, `pandas` and [`MCEq`](https://github.com/afedynitch/MCEq).
+This will install `numpy`, `scipy`, `pandas` and `MCEq`. By default this will not install MKL or CUDA libraries that accelerate `MCEq`. If your system has the right hardware available, it is possible get a substantial speed up with `pip install mkl` or `pip install MCEq[cuda]`. The fastest library is automatically chosen.
 
 As of v2.3.1 a suite of tests is also packaged. It uses [`pytest`](https://docs.pytest.org/en/stable/), which can be optionally installed and run as follows.
 
@@ -33,7 +33,7 @@ pip install nuVeto[testing]
 pytest --pyargs nuVeto
 ```
 
-Additional optional installations are `[plotting]` and `[pythia8]` which will respectively install needed packages for making example plots (`from nuVeto.examples import plots`), and generating alternative hadron decay rates with PYTHIA.
+Additional optional dependencies are `[plotting]` and `[pythia8]` which will respectively install needed packages for making example plots (`from nuVeto.examples import plots`), and generating alternative hadron decay rates with PYTHIA.
 
 Note that v2.0 and higher rely on the updated version of [MCEq](https://github.com/mceq-project/MCEq). For the legacy version that relies on [MCEq_classic](https://github.com/afedynitch/MCEq_classic) do `git checkout v1.5` and follow the instructions in the README.
 
