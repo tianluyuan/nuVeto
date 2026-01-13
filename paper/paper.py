@@ -1,5 +1,5 @@
-import os
 import sys
+from pathlib import Path
 from importlib import resources
 import numpy as np
 from scipy.interpolate import interp1d
@@ -23,15 +23,12 @@ titling = {'conv nu_mu': r'Conventional $\nu_\mu$',
 
 
 def save(fname):
-    try:
-        os.makedirs('fig')
-        plt.savefig(fname)
-    except OSError:
-        plt.savefig(fname)
+    Path('fig').mkdir(parents=True, exist_ok=True)
+    plt.savefig(fname)
 
 
 def earth_attenuation(enu, cos_theta, kind='conv nu_mu'):
-    nufate = os.path.expanduser('~/projects/nuFATE/')
+    nufate = Path('~').expanduser() / 'projects'/ 'nuFATE'
     flavor_dict = {'numu': 2, 'nue': 1, 'antinue': -1, 'antinumu': -2}
     flavor = flavor_dict[kind.split('_')[-1]]
     zenith = np.arccos(cos_theta)
@@ -41,10 +38,8 @@ def earth_attenuation(enu, cos_theta, kind='conv nu_mu'):
     import cascade as cas
     import earth
     w, v, ci, energy_nodes, phi_0 = cas.get_eigs(flavor,
-                                                 os.path.join(nufate,
-                                                              'data/phiHGextrap.dat'),
-                                                 os.path.join(nufate,
-                                                              'data/NuFATECrossSections.h5'))
+                                                 str(nufate / 'data' / 'phiHGextrap.dat'),
+                                                 str(nufate / 'data' / 'NuFATECrossSections.h5'))
     sys.path.pop()
 
     t = earth.get_t_earth(zenith)*Units.Na
@@ -99,7 +94,7 @@ def fig_prs_ratio():
         plt.title(titling[kind])
 
         for cos_th in cos_ths:
-            clabel = r'$\cos \theta_z = {}$'.format(cos_th)
+            clabel = rf'$\cos \theta_z = {cos_th}$'
             allm97 = plots.fn(cos_th)(cos_th, kind, prpl='ice_allm97_step_1',
                                       label=clabel)
             bb = plots.fn(cos_th)(cos_th, kind, prpl='ice_bb_step_1',
@@ -131,8 +126,7 @@ def fig_prs():
         plt.title(titling[kind])
         for idx, prpl in enumerate(prpls):
             for cos_th in cos_ths:
-                clabel = r'$\cos \theta_z = {}$'.format(
-                    cos_th) if idx == 0 else None
+                clabel = rf'$\cos \theta_z = {cos_th}$' if idx == 0 else None
                 plots.fn(cos_th)(cos_th, kind, prpl=prpl,
                                  label=clabel, linestyle=linestyles[idx])
 
@@ -157,8 +151,7 @@ def fig_pls():
         plt.title(titling[kind])
         for idx, prpl in enumerate(prpls):
             for cos_th in cos_ths:
-                clabel = r'$\cos \theta_z = {}$'.format(
-                    cos_th) if idx == 0 else None
+                clabel = rf'$\cos \theta_z = {cos_th}$' if idx == 0 else None
                 plots.fn(cos_th)(cos_th, kind, prpl=prpl,
                                  label=clabel, linestyle=linestyles[idx])
 
@@ -187,8 +180,7 @@ def fig_medium():
         plt.title(titling[kind])
         for idx, prpl in enumerate(prpls):
             for cos_th in cos_ths:
-                clabel = r'$\cos \theta_z = {}$'.format(
-                    cos_th) if idx == 0 else None
+                clabel = rf'$\cos \theta_z = {cos_th}$' if idx == 0 else None
                 plots.fn(cos_th)(cos_th, kind, prpl=prpl[0], depth=prpl[1],
                                  label=clabel, linestyle=linestyles[idx])
 
@@ -211,8 +203,7 @@ def fig_hadrs():
         hadrs = hadrs_conv if kind.split('_')[0] == 'conv' else hadrs_prompt
         for idx, hadr in enumerate(hadrs):
             for cos_th in cos_ths:
-                clabel = r'$\cos \theta_z = {}$'.format(
-                    cos_th) if idx == 0 else None
+                clabel = rf'$\cos \theta_z = {cos_th}$' if idx == 0 else None
                 plots.fn(cos_th)(cos_th, kind, hadr=hadr,
                                  label=clabel, linestyle=linestyles[idx])
 
@@ -236,8 +227,7 @@ def fig_density():
         plt.title(titling[kind])
         for idx, dmodel in enumerate(dmodels):
             for cos_th in cos_ths:
-                clabel = r'$\cos \theta_z = {}$'.format(
-                    cos_th) if idx == 0 else None
+                clabel = rf'$\cos \theta_z = {cos_th}$' if idx == 0 else None
                 plots.fn(cos_th)(cos_th, kind, density=dmodel[:2],
                                  label=clabel, linestyle=linestyles[idx])
 
@@ -246,7 +236,7 @@ def fig_density():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/dmodels_{}.eps'.format(kind))
+        save(f'fig/dmodels_{kind}.eps')
 
 
 def fig_pmodels():
@@ -263,8 +253,7 @@ def fig_pmodels():
         plt.title(titling[kind])
         for idx, pmodel in enumerate(pmodels):
             for cos_th in cos_ths:
-                clabel = r'$\cos \theta_z = {}$'.format(
-                    cos_th) if idx == 0 else None
+                clabel = rf'$\cos \theta_z = {cos_th}$' if idx == 0 else None
                 plots.fn(cos_th)(cos_th, kind, pmodel=pmodel[:-1],
                                  label=clabel, linestyle=linestyles[idx])
 
@@ -273,7 +262,7 @@ def fig_pmodels():
             plt.gca().set_prop_cycle(None)
         plt.legend()
         plt.tight_layout(0.3)
-        save('fig/pmodels_{}.eps'.format(kind))
+        save(f'fig/pmodels_{kind}.eps')
 
 
 def fig_extsv():
@@ -292,8 +281,7 @@ def fig_extsv():
                     plt.plot(ens, exthp.passrates(kind)(
                         ens, emu, cos_th), linestyles[idx])
                 else:
-                    clabel = r'$\cos \theta_z = {}$'.format(
-                        cos_th) if idx == 0 else None
+                    clabel = rf'$\cos \theta_z = {cos_th}$' if idx == 0 else None
                     plots.fn(cos_th)(cos_th, kind, label=clabel)
 
             plt.axvline(np.nan, color='k', linestyle=linestyles[idx],
@@ -313,7 +301,7 @@ def fig_flux():
     cths_plot = np.linspace(-1, 1, 100)
     for enu in ens:
         plt.figure()
-        plt.title(r'$E_\nu = {:.0f}$ TeV'.format(enu/1e3))
+        plt.title(rf'$E_\nu = {enu / 1000.0:.0f}$ TeV')
         astro = np.ones(cths_full.shape)*aachen8(enu*Units.GeV)
         earth = np.asarray(
             [earth_attenuation(enu, cth, 'astro_numu') for cth in cths_full])
