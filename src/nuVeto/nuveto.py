@@ -162,6 +162,7 @@ class nuVeto(object):
 
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
+        """Rely on tabulated decay kinematics for n>2body decays. Returns 1-Pdet."""
         with fpath.open("rb") as dfile:
             data = np.load(dfile)
             xmus = centers(data["xedges"])
