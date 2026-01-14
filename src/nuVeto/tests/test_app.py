@@ -121,7 +121,7 @@ def test_nuflux(cth):
     sv.grid_sol()
     kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
     for kind in kinds:
-        _c, _d = kind.split()
+        _c, _ = kind.split()
         # thres = 1e7 if _c == 'pr' else 1e6
         thres = 1e7
         ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)

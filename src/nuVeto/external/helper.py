@@ -1,5 +1,5 @@
 from functools import partial
-from ..external import selfveto
+from . import selfveto
 
 
 def joint_passing_rate(enu, emu, cth, kind='numu'):
