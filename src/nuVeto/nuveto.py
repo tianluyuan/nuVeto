@@ -182,40 +182,33 @@ class nuVeto(object):
     @lru_cache(2**12)
     def psib(l_ice, mother, enu, accuracy, prpl):
         """returns the suppression factor due to the sibling muon"""
-        print(mother)
         fn = MuonProb(prpl)
         esamp = nuVeto.esamp(enu, accuracy, fn.eis[-1])
+        nbody_args = [esamp,
+                      enu,
+                      fn,
+                      l_ice,
+                      ]
+
         if mother in ["D0", "Dbar0"]:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D0_numu.npz",
-                esamp,
-                enu,
-                fn,
-                l_ice,
+                *nbody_args,
             )
         if mother in ["D+", "D-"]:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D+_numu.npz",
-                esamp,
-                enu,
-                fn,
-                l_ice,
+                *nbody_args,
             )
         if mother in ["D_s+", "D_s-"]:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "Ds_numu.npz",
-                esamp,
-                enu,
-                fn,
-                l_ice,
+                *nbody_args,
             )
         if mother == "K_L0":
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "K0L_numu.npz",
-                esamp,
-                enu,
-                fn,
-                l_ice,
+                *nbody_args,
             )
         if mother in ["mu+", "mu-"]:
             return np.ones_like(esamp)
