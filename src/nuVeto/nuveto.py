@@ -398,17 +398,7 @@ class nuVeto(object):
         # number of targets per cm2
         ndens = rho_air * Units.Na / config.A_target
         sec = self.mceq.pman[p_pdg]
-        prim2mceq = {
-            "p+-bar": "pbar-",
-            "n0-bar": "nbar0",
-            "D0-bar": "Dbar0",
-            "Lambda0-bar": "Lambdabar0",
-        }
         for prim in self.projectiles():
-            if prim in prim2mceq:
-                _ = prim2mceq[prim]
-            else:
-                _ = prim
             prim_flux = sol[:, ref[_].lidx : ref[_].uidx]
             proj = self.mceq.pman[ParticleProperties.pdg_id[prim]]
             prim_xs = proj.inel_cross_section()

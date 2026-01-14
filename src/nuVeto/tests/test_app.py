@@ -83,6 +83,18 @@ def test_edge():
 def test_projectiles():
     projs = nuVeto(1.).projectiles()
     assert len(projs) == len(set(projs))
+    assert set(projs) == set({'K+',
+                              'K-',
+                              'K_L0',
+                              'K_S0',
+                              'Lambda0',
+                              'Lambdabar0',
+                              'n0',
+                              'nbar0',
+                              'p+',
+                              'pbar-',
+                              'pi+',
+                              'pi-'})
 
 
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
