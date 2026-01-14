@@ -42,10 +42,10 @@ class ParticleProperties(object):
         other_masses = []
         mother_pdg = ParticleProperties.pdg_id[mother]
         daughter_pdg = ParticleProperties.pdg_id[daughter]
-        for br, prod in ParticleProperties.pd.decay_channels(mother_pdg):
+        for _, prod in ParticleProperties.pd.decay_channels(mother_pdg):
             if daughter_pdg in prod:
-                mass_tot = sum([ParticleProperties.pd.mass(abs(prod))
-                                for prod in prod])-ParticleProperties.pd.mass(daughter_pdg)
+                mass_tot = sum([ParticleProperties.pd.mass(abs(_p))
+                                for _p in prod])-ParticleProperties.pd.mass(daughter_pdg)
                 other_masses.append(mass_tot)
 
         return (min(other_masses)/ParticleProperties.mass_dict[mother])**2

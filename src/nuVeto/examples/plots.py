@@ -113,18 +113,24 @@ def brackets(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a
                       color=pr.get_color(), alpha=1-abs(barr_mods[0][-1]))
 
 
-def samples(slice_val=1, kind='nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
+def samples(slice_val=1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3c', fraction=True,
             seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
     params = params.split(' ')
     pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr,
                        label=f'{tex(kind)} {tex(slice_val)}')
     np.random.seed(seed)
-    for i in range(nsamples-1):
+    for _ in range(nsamples-1):
         # max(-1, throw) prevents throws that dip below -100%
         errors = [max(-1, np.random.normal(scale=BARR[param].error))
                   for param in params]
         barr_mods = tuple(zip(params, errors))
-        fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, color=pr.get_color(),
+        fn(slice_val)(slice_val,
+                      kind,
+                      pmodel,
+                      hadr,
+                      barr_mods,
+                      fraction=fraction,
+                      color=pr.get_color(),
                       alpha=1-min(np.mean(np.abs(errors)), 0.9))
 
 
@@ -185,7 +191,7 @@ def elbert_pmodels(slice_val=1., kind='conv nu_mu', hadr='DPMJET-III-3.0.6', prp
                  label=label)
     for pmodel in pmodels:
         fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, corr_only=corr_only,
-                           label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
+                      label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
     plt.tight_layout(pad=0.3)
 
@@ -197,7 +203,7 @@ def pmodels(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice_allm97
                (pm.ZatsepinSokolskaya, 'default', 'ZS')]
     for pmodel in pmodels:
         fn(slice_val)(slice_val, kind, pmodel[:2], hadr, prpl=prpl, fraction=fraction,
-                           label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
+                      label=f'{pmodel[2]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
 
 
@@ -208,7 +214,7 @@ def density_models(slice_val=1., kind='conv nu_mu', hadr='SIBYLL2.3c', prpl='ice
               ('MSIS00_IC', ('SouthPole', 'January'))]
     for model in models:
         fn(slice_val)(slice_val, kind, density=model, hadr=hadr, prpl=prpl, fraction=fraction,
-                           label=f'{model[0]} {model[1][0]} {model[1][1]} {tex(kind)} {tex(slice_val)}')
+                      label=f'{model[0]} {model[1][0]} {model[1][1]} {tex(kind)} {tex(slice_val)}')
     plt.legend()
 
 

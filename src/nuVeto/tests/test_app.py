@@ -8,6 +8,7 @@ from nuVeto.external import selfveto as extsv
 from nuVeto import passing, fluxes, nuVeto
 from nuVeto.utils import (Geometry,
                           Units,
+                          ParticleProperties,
                           amu,
                           mceq_categ_format,
                           calc_bins)
@@ -83,6 +84,19 @@ def test_edge():
 def test_projectiles():
     projs = nuVeto(1.).projectiles()
     assert len(projs) == len(set(projs))
+    assert set(projs) == set({'K+',
+                              'K-',
+                              'K_L0',
+                              'K_S0',
+                              'Lambda0',
+                              'Lambdabar0',
+                              'n0',
+                              'nbar0',
+                              'p+',
+                              'pbar-',
+                              'pi+',
+                              'pi-'})
+    assert set(projs) < set(ParticleProperties.pdg_id.keys())
 
 
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
@@ -121,7 +135,7 @@ def test_nuflux(cth):
     sv.grid_sol()
     kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
     for kind in kinds:
-        _c, _d = kind.split()
+        _c, _ = kind.split()
         # thres = 1e7 if _c == 'pr' else 1e6
         thres = 1e7
         ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)

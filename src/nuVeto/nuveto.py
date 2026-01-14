@@ -184,37 +184,31 @@ class nuVeto(object):
         """returns the suppression factor due to the sibling muon"""
         fn = MuonProb(prpl)
         esamp = nuVeto.esamp(enu, accuracy, fn.eis[-1])
-        if mother in ["D0", "D0-bar"]:
+        nbody_args = [esamp,
+                      enu,
+                      fn,
+                      l_ice,
+                      ]
+
+        if mother in ["D0", "Dbar0"]:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D0_numu.npz",
-                esamp,
-                enu,
-                fn,
-                l_ice,
+                *nbody_args,
             )
         if mother in ["D+", "D-"]:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D+_numu.npz",
-                esamp,
-                enu,
-                fn,
-                l_ice,
+                *nbody_args,
             )
-        if mother in ["Ds+", "Ds-"]:
+        if mother in ["D_s+", "D_s-"]:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "Ds_numu.npz",
-                esamp,
-                enu,
-                fn,
-                l_ice,
+                *nbody_args,
             )
-        if mother == "K0L":
+        if mother == "K_L0":
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "K0L_numu.npz",
-                esamp,
-                enu,
-                fn,
-                l_ice,
+                *nbody_args,
             )
         if mother in ["mu+", "mu-"]:
             return np.ones_like(esamp)
@@ -243,7 +237,7 @@ class nuVeto(object):
         good = (logx + logx_width / 2 < np.log10(1 - rr)) & (x_range >= 5.0e-2)
 
         x_low = x_range[x_range < 5e-2]
-        dNdEE_low = np.array([dNdEE[good][-1]] * x_low.size)
+        dNdEE_low = np.full_like(x_low, dNdEE[good][-1])
 
         def dNdEE_interp(x_):
             return interpolate.pchip(
@@ -404,18 +398,8 @@ class nuVeto(object):
         # number of targets per cm2
         ndens = rho_air * Units.Na / config.A_target
         sec = self.mceq.pman[p_pdg]
-        prim2mceq = {
-            "p+-bar": "pbar-",
-            "n0-bar": "nbar0",
-            "D0-bar": "Dbar0",
-            "Lambda0-bar": "Lambdabar0",
-        }
         for prim in self.projectiles():
-            if prim in prim2mceq:
-                _ = prim2mceq[prim]
-            else:
-                _ = prim
-            prim_flux = sol[:, ref[_].lidx : ref[_].uidx]
+            prim_flux = sol[:, ref[prim].lidx : ref[prim].uidx]
             proj = self.mceq.pman[ParticleProperties.pdg_id[prim]]
             prim_xs = proj.inel_cross_section()
             try:
