@@ -237,7 +237,7 @@ class nuVeto(object):
         good = (logx + logx_width / 2 < np.log10(1 - rr)) & (x_range >= 5.0e-2)
 
         x_low = x_range[x_range < 5e-2]
-        dNdEE_low = np.array([dNdEE[good][-1]] * x_low.size)
+        dNdEE_low = np.full_like(x_low, dNdEE[good][-1])
 
         def dNdEE_interp(x_):
             return interpolate.pchip(

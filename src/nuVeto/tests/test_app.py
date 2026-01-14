@@ -8,6 +8,7 @@ from nuVeto.external import selfveto as extsv
 from nuVeto import passing, fluxes, nuVeto
 from nuVeto.utils import (Geometry,
                           Units,
+                          ParticleProperties,
                           amu,
                           mceq_categ_format,
                           calc_bins)
@@ -95,6 +96,7 @@ def test_projectiles():
                               'pbar-',
                               'pi+',
                               'pi-'})
+    assert set(projs) < set(ParticleProperties.pdg_id.keys())
 
 
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
