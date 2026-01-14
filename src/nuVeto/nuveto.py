@@ -399,7 +399,7 @@ class nuVeto(object):
         ndens = rho_air * Units.Na / config.A_target
         sec = self.mceq.pman[p_pdg]
         for prim in self.projectiles():
-            prim_flux = sol[:, ref[_].lidx : ref[_].uidx]
+            prim_flux = sol[:, ref[prim].lidx : ref[prim].uidx]
             proj = self.mceq.pman[ParticleProperties.pdg_id[prim]]
             prim_xs = proj.inel_cross_section()
             try:
