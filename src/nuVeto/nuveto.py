@@ -173,13 +173,11 @@ class nuVeto(object):
         )
         emu_mat = xmus[:, None] * esamp[None, :] * Units.GeV
         pmu_mat = ddec(np.stack(np.meshgrid(enu / esamp, xmus), axis=-1))
-        reaching = 1 - np.sum(
+        return np.maximum(0.0, 1 - np.sum(
             pmu_mat
             * fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape) * l_ice], axis=-1)),
             axis=0,
-        )
-        reaching[reaching < 0.0] = 0.0
-        return reaching
+        ))
 
     @staticmethod
     @lru_cache(2**12)
