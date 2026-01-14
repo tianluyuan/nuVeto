@@ -156,12 +156,13 @@ class nuVeto(object):
 
     @staticmethod
     def projectiles():
-        """Get allowed pimaries"""
+        """Get allowed projectiles"""
         pdg_ids = config.adv_set["allowed_projectiles"]
         return [ParticleProperties.modtab.pdg2modname[_] for _ in pdg_ids]
 
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
+        """Rely on tabulated decay kinematics for n>2body decays. Returns 1-Pdet."""
         with fpath.open("rb") as dfile:
             data = np.load(dfile)
             xmus = centers(data["xedges"])
@@ -173,13 +174,11 @@ class nuVeto(object):
         )
         emu_mat = xmus[:, None] * esamp[None, :] * Units.GeV
         pmu_mat = ddec(np.stack(np.meshgrid(enu / esamp, xmus), axis=-1))
-        reaching = 1 - np.sum(
+        return np.maximum(0.0, 1 - np.sum(
             pmu_mat
             * fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape) * l_ice], axis=-1)),
             axis=0,
-        )
-        reaching[reaching < 0.0] = 0.0
-        return reaching
+        ))
 
     @staticmethod
     @lru_cache(2**12)
@@ -188,43 +187,44 @@ class nuVeto(object):
         fn = MuonProb(prpl)
         esamp = nuVeto.esamp(enu, accuracy, fn.eis[-1])
         if mother in ["D0", "D0-bar"]:
-            reaching = nuVeto.nbody(
+            return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D0_numu.npz",
                 esamp,
                 enu,
                 fn,
                 l_ice,
             )
-        elif mother in ["D+", "D-"]:
-            reaching = nuVeto.nbody(
+        if mother in ["D+", "D-"]:
+            return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D+_numu.npz",
                 esamp,
                 enu,
                 fn,
                 l_ice,
             )
-        elif mother in ["Ds+", "Ds-"]:
-            reaching = nuVeto.nbody(
+        if mother in ["Ds+", "Ds-"]:
+            return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "Ds_numu.npz",
                 esamp,
                 enu,
                 fn,
                 l_ice,
             )
-        elif mother == "K0L":
-            reaching = nuVeto.nbody(
+        if mother == "K0L":
+            return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "K0L_numu.npz",
                 esamp,
                 enu,
                 fn,
                 l_ice,
             )
-        else:
-            # Assuming muon energy is E_parent - E_nu
-            reaching = 1.0 - fn.prpl(
-                list(zip((esamp - enu) * Units.GeV, [l_ice] * len(esamp)))
-            )
-        return reaching
+        if mother in ["mu+", "mu-"]:
+            return np.ones_like(esamp)
+
+        # Assuming muon energy is E_parent - E_nu
+        return 1.0 - fn.prpl(
+            list(zip((esamp - enu) * Units.GeV, [l_ice] * len(esamp)))
+        )
 
     @lru_cache(maxsize=2**12)
     def get_dNdEE(self, mother, daughter):
@@ -344,7 +344,7 @@ class nuVeto(object):
                     self.geom.overburden(self.costh), mother, enu, accuracy, prpl
                 )
             else:
-                pnmsib = np.ones(len(esamp))
+                pnmsib = np.ones_like(esamp)
             dnde = dNdEE(enu / esamp) / esamp
             nums += (dnde * pnmsib)[:, None] * rescale_phi
             dens += (dnde)[:, None] * rescale_phi
