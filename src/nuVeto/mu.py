@@ -1,5 +1,6 @@
 from pathlib import Path
 from collections import namedtuple
+import logging
 import pickle
 import gzip
 from importlib import resources
@@ -9,6 +10,7 @@ from scipy import interpolate
 from scipy.interpolate import RegularGridInterpolator
 from .utils import calc_bins, centers, Units
 
+logger = logging.getLogger(__name__)
 
 def hist_preach(infile):
     """ Builds histograms of P_reach based on MMC output text
@@ -67,16 +69,20 @@ def interp(preach, plight):
 class MuonProb(object):
     def __init__(self, rginterpolator):
         if rginterpolator is None:
+            logger.warning('MuonProb initialized with None, median approximation will be used.')
             self.mu_int = self.median_approx
         elif isinstance(rginterpolator, RegularGridInterpolator):
+            logger.info('MuonProb initialized with RegularGridInterpolator.')
             self.mu_int = rginterpolator
         elif (fpath := Path(rginterpolator)).is_file():
+            logger.info('MuonProb initialized with full path to file.')
             with open(fpath, 'rb') as f:
                 if fpath.suffix.lower() == '.npz':
                     self.mu_int = self.load_from_npz(f)
                 else:
-                    self.mu_int = pickle.load(fpath)
+                    self.mu_int = pickle.load(f)
         else:
+            logger.info('MuonProb initialized using existing resources.')
             with (resources.files('nuVeto') / 'data' / 'prpl' / f'{rginterpolator}.npz').open('rb') as f:
                 self.mu_int = self.load_from_npz(f)
 
@@ -93,25 +99,44 @@ class MuonProb(object):
             fill_value=None if data['fill_value'] == 'None' else data['fill_value'].item(),
             bounds_error=data['bounds_error'].item()
         )
-                
-    def median_emui(self, distance):
+
+    @staticmethod
+    def median_emui(distance):
         """
         Minimum muon energy required to survive the given thickness of ice with at
         least 1 TeV 50% of the time.
 
         :returns: minimum muon energy [GeV] for 1 TeV
         """
-        # require that the muon have median energy 1 TeV
         b, c = 2.52151, 7.13834
         return 1e3 * np.exp(1e-3 * distance / (b) + 1e-8 * (distance**2) / c)
 
-    def median_approx(self, coord):
+    @staticmethod
+    def median_approx(coord):
         coord = np.asarray(coord)
         muon_energy, ice_distance = coord[..., 0], coord[..., 1]
-        min_mue = self.median_emui(ice_distance)*Units.GeV
+        min_mue = MuonProb.median_emui(ice_distance)*Units.GeV
         return muon_energy > min_mue
 
     def prpl(self, coord):
         pdets = self.mu_int(coord)
         pdets[pdets > 1] = 1
         return pdets
+
+    @property
+    def eis(self):
+        """ Returns the values of initial muon energies used to construct the interpolator.
+        If median_approx is used (by initializing with None), returns [0., np.inf]
+        """
+        if isinstance(self.mu_int, RegularGridInterpolator):
+            return self.mu_int.grid[0]
+        return np.asarray([0., np.inf])
+
+    @property
+    def ldists(self):
+        """ Returns the values of travel distances used to construct the interpolator.
+        If median_approx is used (by initializing with None), returns [0., np.inf]
+        """
+        if isinstance(self.mu_int, RegularGridInterpolator):
+            return self.mu_int.grid[1]
+        np.asarray([0., np.inf])

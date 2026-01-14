@@ -218,9 +218,10 @@ def corsika(cos_theta_bin=-1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, '
                  plot_nuveto_lines, plot_legacy_veto_lines) for cth in cos_theta_bin]
         return
 
-    cfile = np.load((resources.files('nuVeto') / 'data' / 'corsika' / f'{corsika_file}.npz').open('rb'))
-    fraction = 'eff' in corsika_file
-    eff, elow, eup, xedges, yedges = (cfile[f'{mceq_categ_format(kind)}_{_}'] for _ in ['eff', 'elow', 'eup', 'xedges', 'yedges'])
+    with (resources.files('nuVeto') / 'data' / 'corsika' / f'{corsika_file}.npz').open('rb') as f:
+        cfile = np.load(f)
+        fraction = 'eff' in corsika_file
+        eff, elow, eup, xedges, yedges = (cfile[f'{mceq_categ_format(kind)}_{_}'] for _ in ['eff', 'elow', 'eup', 'xedges', 'yedges'])
     cos_theta = centers(yedges)[cos_theta_bin]
     clean = eff[:, cos_theta_bin] > 0
     xcenters = 10**centers(xedges)[clean]

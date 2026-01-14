@@ -9,6 +9,7 @@ given depth.
 
 from functools import lru_cache
 from importlib.resources import files
+import logging
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
@@ -20,6 +21,7 @@ from .utils import Units, ParticleProperties, Geometry, amu, centers
 from .mu import MuonProb
 from .uncertainties import BARR, barr_unc
 
+logger = logging.getLogger(__name__)
 
 class nuVeto(object):
     """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))
@@ -62,7 +64,7 @@ class nuVeto(object):
         self.geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
         if density[0] == "MSIS00_IC":
-            print(
+            logger.info(
                 'Passing "MSIS00_IC" assumes IceCube-centered coordinates, '
                 'which obviates the depth used here. Switching to "MSIS00" '
                 "for identical results."
@@ -141,10 +143,16 @@ class nuVeto(object):
         return mothers
 
     @staticmethod
-    def esamp(enu, accuracy):
-        """returns the sampling of parent energies for a given enu"""
-        # TODO: replace 1e8 with MMC-prpl interpolated bounds
-        return np.logspace(np.log10(enu), np.log10(enu + 1e8), int(1000 * accuracy))
+    def esamp(enu, accuracy, emu_max=1.e8):
+        """returns the sampling of parent energies for a given enu
+
+        The sampled parent energy cannot exceed enu+emu_max, as then the decay-muon energy
+        can exceed the energy range over which MMC data was tabulated
+        """
+        if not np.isfinite(emu_max):
+            logger.warning("The passed emu_max is not finite, assuming 1.e8 for parent-energy sampling.")
+            emu_max = 1.e8
+        return np.logspace(np.log10(enu), np.log10(enu+emu_max), int(1000 * accuracy))
 
     @staticmethod
     def projectiles():
@@ -154,30 +162,31 @@ class nuVeto(object):
 
     @staticmethod
     def nbody(fpath, esamp, enu, fn, l_ice):
-        with np.load(fpath.open("rb")) as dfile:
-            xmus = centers(dfile["xedges"])
+        with fpath.open("rb") as dfile:
+            data = np.load(dfile)
+            xmus = centers(data["xedges"])
             xnus = np.concatenate([xmus, [1]])
-            vals = np.nan_to_num(dfile["histograms"])
+            vals = np.nan_to_num(data["histograms"])
 
-            ddec = interpolate.RegularGridInterpolator(
-                (xnus, xmus), vals, bounds_error=False, fill_value=None
-            )
-            emu_mat = xmus[:, None] * esamp[None, :] * Units.GeV
-            pmu_mat = ddec(np.stack(np.meshgrid(enu / esamp, xmus), axis=-1))
-            reaching = 1 - np.sum(
-                pmu_mat
-                * fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape) * l_ice], axis=-1)),
-                axis=0,
-            )
-            reaching[reaching < 0.0] = 0.0
-            return reaching
+        ddec = interpolate.RegularGridInterpolator(
+            (xnus, xmus), vals, bounds_error=False, fill_value=None
+        )
+        emu_mat = xmus[:, None] * esamp[None, :] * Units.GeV
+        pmu_mat = ddec(np.stack(np.meshgrid(enu / esamp, xmus), axis=-1))
+        reaching = 1 - np.sum(
+            pmu_mat
+            * fn.prpl(np.stack([emu_mat, np.ones(emu_mat.shape) * l_ice], axis=-1)),
+            axis=0,
+        )
+        reaching[reaching < 0.0] = 0.0
+        return reaching
 
     @staticmethod
     @lru_cache(2**12)
     def psib(l_ice, mother, enu, accuracy, prpl):
         """returns the suppression factor due to the sibling muon"""
-        esamp = nuVeto.esamp(enu, accuracy)
         fn = MuonProb(prpl)
+        esamp = nuVeto.esamp(enu, accuracy, fn.eis[-1])
         if mother in ["D0", "D0-bar"]:
             reaching = nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D0_numu.npz",
@@ -299,7 +308,7 @@ class nuVeto(object):
         self, categ, daughter, enu, accuracy, prpl, ecr=None, particle=None
     ):
         """flux*yield"""
-        esamp = self.esamp(enu, accuracy)
+        esamp = self.esamp(enu, accuracy, MuonProb(prpl).eis[-1])
         mothers = self.categ_to_mothers(categ, daughter)
         nums = np.zeros((len(esamp), len(self.X_vec)))
         dens = np.zeros((len(esamp), len(self.X_vec)))
@@ -453,7 +462,7 @@ class nuVeto(object):
         # prpl -> None ==> median for muon reaching
         categ, daughter = kind.split()
 
-        esamp = self.esamp(enu, accuracy)
+        esamp = self.esamp(enu, accuracy, MuonProb(prpl).eis[-1])
 
         # Correlated only (no need for the unified calculation here) [really just for testing]
         passed = 0
