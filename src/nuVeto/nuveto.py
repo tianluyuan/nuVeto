@@ -156,7 +156,7 @@ class nuVeto(object):
 
     @staticmethod
     def projectiles():
-        """Get allowed pimaries"""
+        """Get allowed projectiles"""
         pdg_ids = config.adv_set["allowed_projectiles"]
         return [ParticleProperties.modtab.pdg2modname[_] for _ in pdg_ids]
 
