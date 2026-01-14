@@ -188,43 +188,44 @@ class nuVeto(object):
         fn = MuonProb(prpl)
         esamp = nuVeto.esamp(enu, accuracy, fn.eis[-1])
         if mother in ["D0", "D0-bar"]:
-            reaching = nuVeto.nbody(
+            return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D0_numu.npz",
                 esamp,
                 enu,
                 fn,
                 l_ice,
             )
-        elif mother in ["D+", "D-"]:
-            reaching = nuVeto.nbody(
+        if mother in ["D+", "D-"]:
+            return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D+_numu.npz",
                 esamp,
                 enu,
                 fn,
                 l_ice,
             )
-        elif mother in ["Ds+", "Ds-"]:
-            reaching = nuVeto.nbody(
+        if mother in ["Ds+", "Ds-"]:
+            return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "Ds_numu.npz",
                 esamp,
                 enu,
                 fn,
                 l_ice,
             )
-        elif mother == "K0L":
-            reaching = nuVeto.nbody(
+        if mother == "K0L":
+            return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "K0L_numu.npz",
                 esamp,
                 enu,
                 fn,
                 l_ice,
             )
-        else:
-            # Assuming muon energy is E_parent - E_nu
-            reaching = 1.0 - fn.prpl(
-                list(zip((esamp - enu) * Units.GeV, [l_ice] * len(esamp)))
-            )
-        return reaching
+        if mother in ['mu+', 'mu-']:
+            return np.ones_like(esamp)
+
+        # Assuming muon energy is E_parent - E_nu
+        return 1.0 - fn.prpl(
+            list(zip((esamp - enu) * Units.GeV, [l_ice] * len(esamp)))
+        )
 
     @lru_cache(maxsize=2**12)
     def get_dNdEE(self, mother, daughter):
@@ -344,7 +345,7 @@ class nuVeto(object):
                     self.geom.overburden(self.costh), mother, enu, accuracy, prpl
                 )
             else:
-                pnmsib = np.ones(len(esamp))
+                pnmsib = np.ones_like(esamp)
             dnde = dNdEE(enu / esamp) / esamp
             nums += (dnde * pnmsib)[:, None] * rescale_phi
             dens += (dnde)[:, None] * rescale_phi
