@@ -219,7 +219,7 @@ class nuVeto(object):
                 fn,
                 l_ice,
             )
-        if mother in ['mu+', 'mu-']:
+        if mother in ["mu+", "mu-"]:
             return np.ones_like(esamp)
 
         # Assuming muon energy is E_parent - E_nu
