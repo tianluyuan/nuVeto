@@ -125,7 +125,7 @@ class nuVeto(object):
             mothers = [f"pi{rcharge}", f"K{rcharge}", "K_L0"]
             if "nu_e" in daughter:
                 mothers.extend(["K_S0", f"mu{rcharge}"])
-            if "nu_mu" in daughter:
+            elif "nu_mu" in daughter:
                 mothers.extend([f"mu{lcharge}"])
             return mothers
         if categ == "pr":
