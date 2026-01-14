@@ -119,28 +119,26 @@ class nuVeto(object):
         lcharge = "+" if "bar" in daughter else "-"
         rbar = "bar" if "bar" in daughter else ""
         if categ == "conv":
+            if "nu_tau" in daughter:
+                return []
+
             mothers = [f"pi{rcharge}", f"K{rcharge}", "K_L0"]
-            if "nu_tau" in daughter:
-                mothers = []
-            elif "nu_e" in daughter:
+            if "nu_e" in daughter:
                 mothers.extend(["K_S0", f"mu{rcharge}"])
-            elif "nu_mu" in daughter:
+            if "nu_mu" in daughter:
                 mothers.extend([f"mu{lcharge}"])
-        elif categ == "pr":
+            return mothers
+        if categ == "pr":
             if "nu_tau" in daughter:
-                mothers = [f"D{rcharge}", f"D_s{rcharge}"]
-            else:
-                # , 'Lambda'+lbar+'0']#, 'Lambda_c'+rcharge]
-                mothers = [f"D{rcharge}", f"D_s{rcharge}", f"D{rbar}0"]
-        elif categ == "total":
-            mothers = nuVeto.categ_to_mothers(
+                return [f"D{rcharge}", f"D_s{rcharge}"]
+            # , 'Lambda'+lbar+'0']#, 'Lambda_c'+rcharge]
+            return [f"D{rcharge}", f"D_s{rcharge}", f"D{rbar}0"]
+        if categ == "total":
+            return nuVeto.categ_to_mothers(
                 "conv", daughter
             ) + nuVeto.categ_to_mothers("pr", daughter)
-        else:
-            mothers = [
-                categ,
-            ]
-        return mothers
+
+        return [categ,]
 
     @staticmethod
     def esamp(enu, accuracy, emu_max=1.e8):
