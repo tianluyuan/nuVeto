@@ -125,7 +125,7 @@ def test_pnmshower(cth):
 @pytest.mark.parametrize('enu,l_ice,mother',
                          product(np.logspace(3, 7, 5),
                                  np.linspace(1500, 100000, 5),
-                                 'mu+ pi+ K+ K_L0 D+ D0 Ds+'.split()))
+                                 'mu+ pi+ K+ K_L0 D+ D0 D_s+'.split()))
 def test_pnmsib(enu, l_ice, mother):
     psibs = nuVeto.psib(l_ice, mother, enu, 3, 'ice_allm97_step_1')
     assert np.all(0 <= psibs) and np.all(psibs <= 1)
