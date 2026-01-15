@@ -110,7 +110,7 @@ class nuVeto(object):
 
         X_vec = np.logspace(np.log10(2e-3), np.log10(self.mceq.density_model.max_X), 12)
         self.dX_vec = np.diff(X_vec)
-        self.X_vec = 10 ** centers(np.log10(X_vec))
+        self.X_vec = centers(X_vec)
 
     @staticmethod
     def categ_to_mothers(categ, daughter):

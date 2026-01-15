@@ -149,7 +149,6 @@ def test_nuflux(cth):
     sv.grid_sol()
     kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
     for kind in kinds:
-        _c, _ = kind.split()
         # thres = 1e7 if _c == 'pr' else 1e6
         thres = 1e7
         ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
@@ -158,10 +157,7 @@ def test_nuflux(cth):
                           for en in sv.mceq.e_grid[ensel]])
 
         print(kind, cth, theirs/mine)
-        if _c == 'conv':
-            assert np.all(np.abs(theirs/mine - 1) < 0.2)
-        else:
-            assert np.all(np.abs(theirs/mine - 1) < 0.8)
+        assert np.all(np.abs(theirs/mine - 1) < 0.2)
 
 
 @pytest.mark.parametrize('cth', [0.9, 1])
