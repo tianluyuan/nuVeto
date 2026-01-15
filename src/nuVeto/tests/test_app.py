@@ -98,6 +98,20 @@ def test_projectiles():
                               'pi-'})
     assert set(projs) < set(ParticleProperties.pdg_id.keys())
 
+    for hadr in ['DPMJETIII191',
+                 'DPMJETIII306',
+                 'EPOSLHC',
+                 'QGSJET01C',
+                 'QGSJETII03',
+                 'QGSJETII04',
+                 'SIBYLL21',
+                 'SIBYLL23',
+                 'SIBYLL23C',
+                 'SIBYLL23C03',
+                 'SIBYLL23CPP',
+                 ]:
+        assert set(projs) < set(nuVeto(1., hadr=hadr).mceq.pman.pname2pref.keys())
+
 
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
 def test_pnmshower(cth):

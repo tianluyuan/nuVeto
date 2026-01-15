@@ -181,7 +181,7 @@ class nuVeto(object):
     @staticmethod
     @lru_cache(2**12)
     def psib(l_ice, mother, enu, accuracy, prpl):
-        """returns the suppression factor due to the sibling muon"""
+        """returns the atm. numu(bar) suppression factor due to the sibling muon"""
         fn = MuonProb(prpl)
         esamp = nuVeto.esamp(enu, accuracy, fn.eis[-1])
         nbody_args = [esamp,
@@ -213,10 +213,13 @@ class nuVeto(object):
         if mother in ["mu+", "mu-"]:
             return np.ones_like(esamp)
 
-        # Assuming muon energy is E_parent - E_nu
-        return 1.0 - fn.prpl(
-            list(zip((esamp - enu) * Units.GeV, [l_ice] * len(esamp)))
-        )
+        if mother in ["pi+", "pi-", "K+", "K-"]:
+            # Assuming muon energy is E_parent - E_nu
+            return 1.0 - fn.prpl(
+                list(zip((esamp - enu) * Units.GeV, [l_ice] * len(esamp)))
+            )
+
+        raise RuntimeError(f"Unable to get muon decay distributions for {mother}, cannot calculate psib.")
 
     @lru_cache(maxsize=2**12)
     def get_dNdEE(self, mother, daughter):
@@ -264,9 +267,8 @@ class nuVeto(object):
         Used to compute the Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
         l_ice = self.geom.overburden(self.costh)
-        # np.abs hack to prevent negative fluxes
-        mu = np.abs(self.get_solution("mu-", grid_sol)) + np.abs(
-            self.get_solution("mu+", grid_sol)
+        mu = np.maximum(self.get_solution("mu-", grid_sol), 0.) + np.maximum(
+            self.get_solution("mu+", grid_sol), 0.
         )
         fn = MuonProb(prpl)
         coords = list(
@@ -347,9 +349,8 @@ class nuVeto(object):
         """Retrieves solution of the calculation on the energy grid.
 
         Args:
-          particle_name (str): The name of the particle such, e.g.
-            ``total_mu+`` for the total flux spectrum of positive muons or
-            ``pr_antinumu`` for the flux spectrum of prompt anti muon neutrinos
+          particle_name (str): The name of the particle, e.g. ``mu+``, ``D0``
+          grid_sol (ndarray): Output of the grid_sol method above
           mag (float, optional): 'magnification factor': the solution is
             multiplied by ``sol`` :math:`= \\Phi \\cdot E^{mag}`
           grid_idx (int, optional): if the integrator has been configured to save
