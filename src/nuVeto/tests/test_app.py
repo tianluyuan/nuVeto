@@ -98,6 +98,20 @@ def test_projectiles():
                               'pi-'})
     assert set(projs) < set(ParticleProperties.pdg_id.keys())
 
+    for hadr in ['DPMJETIII191',
+                 'DPMJETIII306',
+                 'EPOSLHC',
+                 'QGSJET01C',
+                 'QGSJETII03',
+                 'QGSJETII04',
+                 'SIBYLL21',
+                 'SIBYLL23',
+                 'SIBYLL23C',
+                 'SIBYLL23C03',
+                 'SIBYLL23CPP',
+                 ]:
+        assert set(projs) < set(nuVeto(1., hadr=hadr).mceq.pman.pname2pref.keys())
+
 
 @pytest.mark.parametrize('cth', [0.1, 0.3, 0.8])
 def test_pnmshower(cth):
@@ -111,7 +125,7 @@ def test_pnmshower(cth):
 @pytest.mark.parametrize('enu,l_ice,mother',
                          product(np.logspace(3, 7, 5),
                                  np.linspace(1500, 100000, 5),
-                                 'mu+ pi+ K+ K_L0 D+ D0 Ds+'.split()))
+                                 'mu+ pi+ K+ K_L0 D+ D0 D_s+'.split()))
 def test_pnmsib(enu, l_ice, mother):
     psibs = nuVeto.psib(l_ice, mother, enu, 3, 'ice_allm97_step_1')
     assert np.all(0 <= psibs) and np.all(psibs <= 1)
@@ -133,21 +147,16 @@ def test_elbert(cth):
 def test_nuflux(cth):
     sv = nuVeto(cth)
     sv.grid_sol()
-    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
+    kinds = [f'{_c} {_n}{_b}' for _c, _n, _b in
+             product(['conv', 'pr'], ['nu_mu', 'nu_e'], ['', 'bar'])]
     for kind in kinds:
-        _c, _ = kind.split()
-        # thres = 1e7 if _c == 'pr' else 1e6
-        thres = 1e7
-        ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
+        ensel = (sv.mceq.e_grid > 1e3) & (sv.mceq.e_grid < 1e7)
         theirs = sv.mceq.get_solution(mceq_categ_format(kind))[ensel]
         mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1]
                           for en in sv.mceq.e_grid[ensel]])
 
         print(kind, cth, theirs/mine)
-        if _c == 'conv':
-            assert np.all(np.abs(theirs/mine - 1) < 0.2)
-        else:
-            assert np.all(np.abs(theirs/mine - 1) < 0.8)
+        assert np.all(np.abs(theirs/mine - 1) < 0.2)
 
 
 @pytest.mark.parametrize('cth', [0.9, 1])
@@ -155,7 +164,8 @@ def test_nonneg(cth, capsys):
     with capsys.disabled():
         sv = nuVeto(cth, debug_level=2)
         enus = [6.2e6, 1e7]
-        kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
+        kinds = [f'{_c} {_n}{_b}' for _c, _n, _b in
+                 product(['conv', 'pr'], ['nu_mu', 'nu_e'], ['', 'bar'])]
         for enu, kind in product(enus, kinds):
             n, d = sv.get_fluxes(enu, kind)
             assert n > 0 and d > 0
