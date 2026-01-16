@@ -150,7 +150,6 @@ def test_nuflux(cth):
     kinds = [f'{_c} {_n}{_b}' for _c, _n, _b in
              product(['conv', 'pr'], ['nu_mu', 'nu_e'], ['', 'bar'])]
     for kind in kinds:
-        kind = f'{_c} {_n}{_b}'
         ensel = (sv.mceq.e_grid > 1e3) & (sv.mceq.e_grid < 1e7)
         theirs = sv.mceq.get_solution(mceq_categ_format(kind))[ensel]
         mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1]
