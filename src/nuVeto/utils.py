@@ -108,7 +108,7 @@ class Geometry(EarthGeometry):
         return (2*d*r-d**2-l_over**2)/(2*l_over*z)
 
     def cos_theta_eff(self, cos_theta):
-        """ Returns the effective cos_theta relative the the normal at earth surface.
+        """ Returns the effective cos_theta relative to the normal at earth surface.
 
         :param cos_theta: cosine of zenith angle (detector)
         """

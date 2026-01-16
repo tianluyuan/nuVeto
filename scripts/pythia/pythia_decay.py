@@ -44,7 +44,7 @@ for parent in UnstableParents:
     resultsNuMu[parent] = []
     resultsMuons[parent] = []
 
-    for i in range(number_of_decays):
+    for _ in range(number_of_decays):
         # clean previous stuff
         pythia.event.reset()
         # pdgid, status, col, acol, p, m
