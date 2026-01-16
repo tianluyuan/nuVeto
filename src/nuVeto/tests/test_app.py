@@ -147,11 +147,10 @@ def test_elbert(cth):
 def test_nuflux(cth):
     sv = nuVeto(cth)
     sv.grid_sol()
-    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
+    kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e',
+             'conv nu_mubar', 'conv nu_ebar', 'pr nu_mubar', 'pr nu_ebar',]
     for kind in kinds:
-        # thres = 1e7 if _c == 'pr' else 1e6
-        thres = 1e7
-        ensel = (sv.mceq.e_grid > 1e2) & (sv.mceq.e_grid < thres)
+        ensel = (sv.mceq.e_grid > 1e3) & (sv.mceq.e_grid < 1e7)
         theirs = sv.mceq.get_solution(mceq_categ_format(kind))[ensel]
         mine = np.asarray([fluxes(en, cth, kind, corr_only=True)[1]
                           for en in sv.mceq.e_grid[ensel]])
@@ -165,7 +164,8 @@ def test_nonneg(cth, capsys):
     with capsys.disabled():
         sv = nuVeto(cth, debug_level=2)
         enus = [6.2e6, 1e7]
-        kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e']
+        kinds = ['conv nu_mu', 'conv nu_e', 'pr nu_mu', 'pr nu_e',
+                 'conv nu_mubar', 'conv nu_ebar', 'pr nu_mubar', 'pr nu_ebar']
         for enu, kind in product(enus, kinds):
             n, d = sv.get_fluxes(enu, kind)
             assert n > 0 and d > 0
