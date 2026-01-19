@@ -3,7 +3,7 @@ from MCEq.geometry.geometry import EarthGeometry
 from particletools.tables import SibyllParticleTable, PYTHIAParticleData
 
 
-class Units(object):
+class Units:
     # units
     Na = 6.0221415e+23  # mol/cm^3
     km = 5.0677309374099995  # km to GeV^-1 value from SQuIDS
@@ -12,7 +12,7 @@ class Units(object):
     gr = 5.62e23  # gr to GeV value from SQuIDS
     sec = 1523000.0  # $ sec to GeV^-1 from SQuIDS
     day = sec*60**2*24
-    yr = day*356.25
+    yr = day*365.25
     GeV = 1
     MeV = 1e-3*GeV
     TeV = 1.e3*GeV
@@ -21,7 +21,7 @@ class Units(object):
     phicm2 = (cm**2*GeV*sec)**-1
 
 
-class ParticleProperties(object):
+class ParticleProperties:
     modtab = SibyllParticleTable()
     pd = PYTHIAParticleData()
 

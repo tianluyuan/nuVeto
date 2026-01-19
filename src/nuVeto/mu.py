@@ -66,7 +66,7 @@ def interp(preach, plight):
     return interpolate.RegularGridInterpolator((df.index, df.columns), df.values, bounds_error=False, fill_value=None)
 
 
-class MuonProb(object):
+class MuonProb:
     def __init__(self, rginterpolator):
         if rginterpolator is None:
             logger.warning('MuonProb initialized with None, median approximation will be used.')
@@ -83,7 +83,7 @@ class MuonProb(object):
                     self.mu_int = pickle.load(f)
         else:
             logger.info('MuonProb initialized using existing resources.')
-            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{rginterpolator}.npz').open('rb') as f:
+            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{fpath.stem}.npz').open('rb') as f:
                 self.mu_int = self.load_from_npz(f)
 
     @staticmethod
