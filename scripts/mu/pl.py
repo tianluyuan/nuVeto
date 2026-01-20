@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import stats, interpolate
+from scipy import interpolate, stats
 
 
 def sigmoid(emu, center, scale):

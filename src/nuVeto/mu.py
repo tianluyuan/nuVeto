@@ -1,14 +1,16 @@
-from pathlib import Path
-from collections import namedtuple
+import gzip
 import logging
 import pickle
-import gzip
+from collections import namedtuple
 from importlib import resources
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from scipy import interpolate
 from scipy.interpolate import RegularGridInterpolator
-from .utils import calc_bins, centers, Units
+
+from .utils import Units, calc_bins, centers
 
 logger = logging.getLogger(__name__)
 
@@ -24,10 +26,10 @@ def hist_preach(infile):
     for (ei, _l), efs in df.groupby(['ei', 'l']):
         bins = calc_bins(efs['ef'])
         histo = Hist(*np.histogram(efs['ef'], bins=bins, density=True))
-        [preach.append((ei, _l, ef, ew, val)) for ef, ew, val in zip(centers(histo.edges),
-                                                                    np.ediff1d(
-            histo.edges),
-            histo.counts)]
+        [preach.append((ei, _l, ef, ew, val))
+         for ef, ew, val in zip(centers(histo.edges),
+                                np.ediff1d(histo.edges),
+                                histo.counts)]
 
     return np.asarray(preach)
 
@@ -46,7 +48,7 @@ def int_ef(preach, plight):
             preach = hist_preach(preach)
     else:
         # search in default directory
-        with (resources.files('nuVeto') / 'data' / 'mmc' / f'{preach.stem}.npz').open('rb') as f:
+        with (resources.files('nuVeto') / 'data' / 'mmc' / f'{preach.with_suffix(".npz")}').open('rb') as f:
             preach = np.load(f)['data']
 
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
@@ -66,7 +68,7 @@ def interp(preach, plight):
     return interpolate.RegularGridInterpolator((df.index, df.columns), df.values, bounds_error=False, fill_value=None)
 
 
-class MuonProb(object):
+class MuonProb:
     def __init__(self, rginterpolator):
         if rginterpolator is None:
             logger.warning('MuonProb initialized with None, median approximation will be used.')
@@ -83,7 +85,11 @@ class MuonProb(object):
                     self.mu_int = pickle.load(f)
         else:
             logger.info('MuonProb initialized using existing resources.')
-            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{rginterpolator}.npz').open('rb') as f:
+            if fpath.suffix.lower() in {'.npz', '.pkl', '.pickle', '.pklz', '.npy'}:
+                fstem = fpath.stem
+            else:
+                fstem = fpath.name
+            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{fstem}.npz').open('rb') as f:
                 self.mu_int = self.load_from_npz(f)
 
     @staticmethod
@@ -119,24 +125,23 @@ class MuonProb(object):
         return muon_energy > min_mue
 
     def prpl(self, coord):
-        pdets = self.mu_int(coord)
-        pdets[pdets > 1] = 1
-        return pdets
+        return np.minimum(self.mu_int(coord), 1.)
 
     @property
     def eis(self):
         """ Returns the values of initial muon energies used to construct the interpolator.
-        If median_approx is used (by initializing with None), returns [0., np.inf]
+        If median_approx is used (by initializing with None), returns array([nan])
         """
         if isinstance(self.mu_int, RegularGridInterpolator):
             return self.mu_int.grid[0]
-        return np.asarray([0., np.inf])
+        return np.array([np.nan])
 
     @property
     def ldists(self):
         """ Returns the values of travel distances used to construct the interpolator.
-        If median_approx is used (by initializing with None), returns [0., np.inf]
+
+        If median_approx is used (by initializing with None), returns array([nan])
         """
         if isinstance(self.mu_int, RegularGridInterpolator):
             return self.mu_int.grid[1]
-        np.asarray([0., np.inf])
+        return np.array([np.nan])

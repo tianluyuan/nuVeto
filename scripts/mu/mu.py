@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-import logging
 import argparse
+import logging
 from importlib.resources import as_file, files
 from pathlib import Path
+
 import numpy as np
-from nuVeto.mu import hist_preach, interp
 import pl
+
+from nuVeto.mu import hist_preach, interp
 
 
 def main():

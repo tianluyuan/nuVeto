@@ -1,8 +1,5 @@
-from . import mu
-from . import utils
-from . import uncertainties
-from . import nuveto
-from .nuveto import nuVeto, passing, fluxes, builder
+from . import mu, nuveto, uncertainties, utils
+from .nuveto import builder, fluxes, nuVeto, passing
 
 __all__ = ['mu',
            'utils',

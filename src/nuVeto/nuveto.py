@@ -7,19 +7,20 @@ given depth.
 
 """
 
+import logging
 from functools import lru_cache
 from importlib.resources import files
-import logging
+
+import crflux.models as pm
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
-
-from MCEq.core import MCEqRun
 from MCEq import config
-import crflux.models as pm
-from .utils import Units, ParticleProperties, Geometry, amu, centers
+from MCEq.core import MCEqRun
+
 from .mu import MuonProb
 from .uncertainties import BARR, barr_unc
+from .utils import Geometry, ParticleProperties, Units, amu, centers
 
 logger = logging.getLogger(__name__)
 
@@ -190,17 +191,17 @@ class nuVeto(object):
                       l_ice,
                       ]
 
-        if mother in ["D0", "Dbar0"]:
+        if mother in {"D0", "Dbar0"}:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D0_numu.npz",
                 *nbody_args,
             )
-        if mother in ["D+", "D-"]:
+        if mother in {"D+", "D-"}:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "D+_numu.npz",
                 *nbody_args,
             )
-        if mother in ["D_s+", "D_s-"]:
+        if mother in {"D_s+", "D_s-"}:
             return nuVeto.nbody(
                 files("nuVeto") / "data" / "decay_distributions" / "Ds_numu.npz",
                 *nbody_args,
@@ -210,10 +211,10 @@ class nuVeto(object):
                 files("nuVeto") / "data" / "decay_distributions" / "K0L_numu.npz",
                 *nbody_args,
             )
-        if mother in ["mu+", "mu-"]:
+        if mother in {"mu+", "mu-"}:
             return np.ones_like(esamp)
 
-        if mother in ["pi+", "pi-", "K+", "K-"]:
+        if mother in {"pi+", "pi-", "K+", "K-"}:
             # Assuming muon energy is E_parent - E_nu
             return 1.0 - fn.prpl(
                 list(zip((esamp - enu) * Units.GeV, [l_ice] * len(esamp)))

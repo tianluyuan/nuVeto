@@ -1,19 +1,23 @@
-from pathlib import Path
-import pytest
-from itertools import product
 from importlib import resources
+from itertools import product
+from pathlib import Path
+
+import crflux.models as pm
 import numpy as np
+import pytest
+
+from nuVeto import fluxes, nuVeto, passing
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto import passing, fluxes, nuVeto
-from nuVeto.utils import (Geometry,
-                          Units,
-                          ParticleProperties,
-                          amu,
-                          mceq_categ_format,
-                          calc_bins)
-from nuVeto.mu import interp, MuonProb
-import crflux.models as pm
+from nuVeto.mu import MuonProb, interp
+from nuVeto.utils import (
+    Geometry,
+    ParticleProperties,
+    Units,
+    amu,
+    calc_bins,
+    mceq_categ_format,
+)
 
 
 def test_calc_bins():
@@ -24,7 +28,7 @@ def test_calc_bins():
 
 
 def test_interp():
-    prpl = interp("ice_allm97.npz", lambda emu: np.heaviside(emu - 1000, 1))
+    prpl = interp("ice_allm97", lambda emu: np.heaviside(emu - 1000, 1))
 
     geo = Geometry(1950*Units.m)
     psib = nuVeto.psib(geo.overburden(0.3), 'pi+', 1e5*Units.GeV, 3.5, prpl)
@@ -67,7 +71,7 @@ def test_pdet():
     emui = np.logspace(3, 8, 500)*Units.GeV
     coords = np.stack(np.meshgrid(emui, l_ice), axis=-1)
     for fpath in (resources.files('nuVeto') / 'data' / 'prpl').iterdir():
-        muprob = MuonProb(Path(fpath.name).stem)
+        muprob = MuonProb(Path(fpath).stem)
         pdets = muprob.prpl(coords)
         assert np.all(pdets >= 0) and np.all(pdets <= 1)
 
