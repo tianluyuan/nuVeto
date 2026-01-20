@@ -67,7 +67,7 @@ def test_pdet():
     emui = np.logspace(3, 8, 500)*Units.GeV
     coords = np.stack(np.meshgrid(emui, l_ice), axis=-1)
     for fpath in (resources.files('nuVeto') / 'data' / 'prpl').iterdir():
-        muprob = MuonProb(Path(fpath.name).stem)
+        muprob = MuonProb(Path(fpath).stem)
         pdets = muprob.prpl(coords)
         assert np.all(pdets >= 0) and np.all(pdets <= 1)
 

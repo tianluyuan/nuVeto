@@ -46,7 +46,7 @@ def int_ef(preach, plight):
             preach = hist_preach(preach)
     else:
         # search in default directory
-        with (resources.files('nuVeto') / 'data' / 'mmc' / f'{preach.stem}.npz').open('rb') as f:
+        with (resources.files('nuVeto') / 'data' / 'mmc' / f'{preach.with_suffix(".npz")}').open('rb') as f:
             preach = np.load(f)['data']
 
     df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
@@ -83,7 +83,11 @@ class MuonProb:
                     self.mu_int = pickle.load(f)
         else:
             logger.info('MuonProb initialized using existing resources.')
-            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{fpath.stem}.npz').open('rb') as f:
+            if fpath.suffix.lower() in {'.npz', '.pkl', '.pickle', '.pklz', '.npy'}:
+                fstem = fpath.stem
+            else:
+                fstem = fpath.name
+            with (resources.files('nuVeto') / 'data' / 'prpl' / f'{fstem}.npz').open('rb') as f:
                 self.mu_int = self.load_from_npz(f)
 
     @staticmethod
