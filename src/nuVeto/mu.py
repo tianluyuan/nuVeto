@@ -123,9 +123,7 @@ class MuonProb:
         return muon_energy > min_mue
 
     def prpl(self, coord):
-        pdets = self.mu_int(coord)
-        pdets[pdets > 1] = 1
-        return pdets
+        return np.minimum(self.mu_int(coord), 1.)
 
     @property
     def eis(self):
