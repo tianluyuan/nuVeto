@@ -26,10 +26,10 @@ def hist_preach(infile):
     for (ei, _l), efs in df.groupby(['ei', 'l']):
         bins = calc_bins(efs['ef'])
         histo = Hist(*np.histogram(efs['ef'], bins=bins, density=True))
-        [preach.append((ei, _l, ef, ew, val)) for ef, ew, val in zip(centers(histo.edges),
-                                                                    np.ediff1d(
-            histo.edges),
-            histo.counts)]
+        [preach.append((ei, _l, ef, ew, val))
+         for ef, ew, val in zip(centers(histo.edges),
+                                np.ediff1d(histo.edges),
+                                histo.counts)]
 
     return np.asarray(preach)
 
