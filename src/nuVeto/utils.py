@@ -42,11 +42,11 @@ class ParticleProperties:
         other_masses = []
         mother_pdg = ParticleProperties.pdg_id[mother]
         daughter_pdg = ParticleProperties.pdg_id[daughter]
-        for _, prod in ParticleProperties.pd.decay_channels(mother_pdg):
-            if daughter_pdg in prod:
-                mass_tot = sum([ParticleProperties.pd.mass(abs(_p))
-                                for _p in prod])-ParticleProperties.pd.mass(daughter_pdg)
-                other_masses.append(mass_tot)
+        other_masses = [
+            sum(ParticleProperties.pd.mass(abs(_p)) for _p in prod) - ParticleProperties.pd.mass(daughter_pdg)
+            for _, prod in ParticleProperties.pd.decay_channels(mother_pdg)
+            if daughter_pdg in prod
+        ]
 
         return (min(other_masses)/ParticleProperties.mass_dict[mother])**2
 
@@ -56,11 +56,8 @@ class ParticleProperties:
         """
         mother_pdg = ParticleProperties.pdg_id[mother]
         daughter_pdg = ParticleProperties.pdg_id[daughter]
-        brs = 0
-        for br, prod in ParticleProperties.pd.decay_channels(mother_pdg):
-            if daughter_pdg in prod and len(prod) == 2:
-                brs += br
-        return brs
+        return sum(br for br, prod in ParticleProperties.pd.decay_channels(mother_pdg)
+                   if daughter_pdg in prod and len(prod) == 2)
 
 
 class Geometry(EarthGeometry):
