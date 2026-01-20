@@ -1,6 +1,6 @@
 import numpy as np
 from MCEq.geometry.geometry import EarthGeometry
-from particletools.tables import SibyllParticleTable, PYTHIAParticleData
+from particletools.tables import PYTHIAParticleData, SibyllParticleTable
 
 
 class Units:

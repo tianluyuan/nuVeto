@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
-import paper
 
+import paper
 
 if __name__ == '__main__':
     figs = [fn for fn in dir(paper) if fn.startswith('fig_')]

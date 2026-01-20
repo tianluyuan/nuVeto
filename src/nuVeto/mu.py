@@ -1,14 +1,16 @@
-from pathlib import Path
-from collections import namedtuple
+import gzip
 import logging
 import pickle
-import gzip
+from collections import namedtuple
 from importlib import resources
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from scipy import interpolate
 from scipy.interpolate import RegularGridInterpolator
-from .utils import calc_bins, centers, Units
+
+from .utils import Units, calc_bins, centers
 
 logger = logging.getLogger(__name__)
 

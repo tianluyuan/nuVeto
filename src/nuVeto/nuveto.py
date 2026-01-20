@@ -7,19 +7,20 @@ given depth.
 
 """
 
+import logging
 from functools import lru_cache
 from importlib.resources import files
-import logging
+
+import crflux.models as pm
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
-
-from MCEq.core import MCEqRun
 from MCEq import config
-import crflux.models as pm
-from .utils import Units, ParticleProperties, Geometry, amu, centers
+from MCEq.core import MCEqRun
+
 from .mu import MuonProb
 from .uncertainties import BARR, barr_unc
+from .utils import Geometry, ParticleProperties, Units, amu, centers
 
 logger = logging.getLogger(__name__)
 

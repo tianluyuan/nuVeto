@@ -1,6 +1,7 @@
-import pythia8mc as pythia8
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pythia8mc as pythia8
+
 pythia = pythia8.Pythia()
 
 pythia.readString("ProcessLevel:all = off")

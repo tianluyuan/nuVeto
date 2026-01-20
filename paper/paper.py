@@ -1,17 +1,18 @@
 import sys
-from pathlib import Path
 from importlib import resources
-import numpy as np
-from scipy.interpolate import interp1d
-import crflux.models as pm
-from nuVeto.examples import plots
-from nuVeto.external import selfveto as extsv
-from nuVeto.external import helper as exthp
-from nuVeto import fluxes
-from nuVeto.utils import Units
-import matplotlib as mpl
-from matplotlib import pyplot as plt
+from pathlib import Path
 
+import crflux.models as pm
+import matplotlib as mpl
+import numpy as np
+from matplotlib import pyplot as plt
+from scipy.interpolate import interp1d
+
+from nuVeto import fluxes
+from nuVeto.examples import plots
+from nuVeto.external import helper as exthp
+from nuVeto.external import selfveto as extsv
+from nuVeto.utils import Units
 
 plt.style.use('paper.mplstyle')
 

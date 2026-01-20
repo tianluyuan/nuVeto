@@ -1,19 +1,23 @@
-from pathlib import Path
-import pytest
-from itertools import product
 from importlib import resources
+from itertools import product
+from pathlib import Path
+
+import crflux.models as pm
 import numpy as np
+import pytest
+
+from nuVeto import fluxes, nuVeto, passing
 from nuVeto.external import helper as exthp
 from nuVeto.external import selfveto as extsv
-from nuVeto import passing, fluxes, nuVeto
-from nuVeto.utils import (Geometry,
-                          Units,
-                          ParticleProperties,
-                          amu,
-                          mceq_categ_format,
-                          calc_bins)
-from nuVeto.mu import interp, MuonProb
-import crflux.models as pm
+from nuVeto.mu import MuonProb, interp
+from nuVeto.utils import (
+    Geometry,
+    ParticleProperties,
+    Units,
+    amu,
+    calc_bins,
+    mceq_categ_format,
+)
 
 
 def test_calc_bins():

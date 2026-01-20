@@ -1,17 +1,27 @@
-from pathlib import Path
 from importlib import resources
-from .. import nuVeto, passing, fluxes
-from ..external import helper as exthp
-from ..external import selfveto as extsv
-from ..utils import Units, ParticleProperties, Geometry, amu, centers, calc_bins, mceq_categ_format
-from nuVeto.mu import MuonProb
-from nuVeto.uncertainties import BARR
-from matplotlib import pyplot as plt
+from pathlib import Path
+
+import crflux.models as pm
+import numpy as np
 from matplotlib import colors
+from matplotlib import pyplot as plt
 from matplotlib.ticker import LogLocator
 from scipy import interpolate
-import numpy as np
-import crflux.models as pm
+
+from .. import fluxes, nuVeto, passing
+from ..external import helper as exthp
+from ..external import selfveto as extsv
+from ..mu import MuonProb
+from ..uncertainties import BARR
+from ..utils import (
+    Geometry,
+    ParticleProperties,
+    Units,
+    amu,
+    calc_bins,
+    centers,
+    mceq_categ_format,
+)
 
 
 def tex(inp):
