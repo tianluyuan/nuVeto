@@ -130,17 +130,18 @@ class MuonProb:
     @property
     def eis(self):
         """ Returns the values of initial muon energies used to construct the interpolator.
-        If median_approx is used (by initializing with None), returns [0., np.inf]
+        If median_approx is used (by initializing with None), returns array([nan])
         """
         if isinstance(self.mu_int, RegularGridInterpolator):
             return self.mu_int.grid[0]
-        return np.asarray([0., np.inf])
+        return np.array([np.nan])
 
     @property
     def ldists(self):
         """ Returns the values of travel distances used to construct the interpolator.
-        If median_approx is used (by initializing with None), returns [0., np.inf]
+
+        If median_approx is used (by initializing with None), returns array([nan])
         """
         if isinstance(self.mu_int, RegularGridInterpolator):
             return self.mu_int.grid[1]
-        np.asarray([0., np.inf])
+        return np.array([np.nan])
