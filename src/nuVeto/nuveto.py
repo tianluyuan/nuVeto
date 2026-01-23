@@ -94,6 +94,7 @@ class nuVeto(object):
         X_vec = np.logspace(np.log10(2e-3), np.log10(nuVeto.mceq.density_model.max_X), 12)
         self._dX_vec = np.diff(X_vec)
         self._X_vec = X_vec[:-1] * 0.57 + X_vec[1:] * 0.43
+        self._rho = nuVeto.mceq.density_model.X2rho(self.X_vec) * Units.gr / Units.cm**3
 
     @property
     def costh(self):
@@ -114,6 +115,10 @@ class nuVeto(object):
     @property
     def X_vec(self):
         return self._X_vec
+
+    @property
+    def rho(self):
+        return self._rho
 
     def sync_mceq(self):
         if nuVeto.mceq is None:
@@ -334,17 +339,14 @@ class nuVeto(object):
     @lru_cache(maxsize=2**12)
     def get_rescale_phi(self, mother, ecr=None, particle=None):
         """Flux of the mother at all heights"""
-        self.sync_mceq()
-
         grid_sol = self.grid_sol(
             ecr, particle
         )  # MCEq solution (fluxes tabulated as a function of height)
         dX = self.dX_vec * Units.gr / Units.cm**2
-        rho = nuVeto.mceq.density_model.X2rho(self.X_vec) * Units.gr / Units.cm**3
         inv_decay_length_array = (
             ParticleProperties.mass_dict[mother]
             / (nuVeto.mceq.e_grid[:, None] * Units.GeV)
-        ) / (ParticleProperties.lifetime_dict[mother] * rho[None, :])
+        ) / (ParticleProperties.lifetime_dict[mother] * self.rho[None, :])
         rescale_phi = (
             dX[None, :]
             * inv_decay_length_array
