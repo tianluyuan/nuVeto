@@ -31,7 +31,7 @@ class MCEqArgs(NamedTuple):
     pmodel: tuple
     theta: float
     density: tuple
-    barr_mods: dict | list
+    barr_mods: tuple
 
 
 class nuVeto(object):
