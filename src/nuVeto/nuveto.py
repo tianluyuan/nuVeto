@@ -96,6 +96,15 @@ class nuVeto(object):
         self._X_vec = X_vec[:-1] * 0.57 + X_vec[1:] * 0.43
         self._rho = nuVeto.mceq.density_model.X2rho(self.X_vec) * Units.gr / Units.cm**3
 
+    def __repr__(self):
+        return (
+            f"<{self.__class__.__name__}(\n"
+            f"  costh={self.costh:.4f},\n"
+            f"  depth={self.geom.depth/Units.m:.2f} m,\n"
+            f"  mceq_args={self._mceq_args}\n"
+            f")>"
+        )
+
     @property
     def costh(self):
         return self._costh
