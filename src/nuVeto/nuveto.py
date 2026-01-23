@@ -46,8 +46,8 @@ class nuVeto(object):
         CR Flux from `crflux.models.pm`.
     hadr : str
         Hadronic interaction model.
-    barr_mods : dict or list
-        Barr parameters.
+    barr_mods : tuple
+        Barr parameters (not implemented).
     depth : float
         Depth below the surface with units attached (e.g., val*Units.m).
     density : tuple
@@ -599,8 +599,8 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
         CR Flux from crflux.models.
     hadr : str
         Hadronic interaction model.
-    barr_mods : dict or list
-        Barr parameters.
+    barr_mods : tuple
+        Barr parameters (not implemented).
     depth : float
         Depth below the surface with units attached (e.g. val*Units.m).
     density : tuple
@@ -649,8 +649,8 @@ def passing(
         CR Flux from crflux.models.
     hadr : str
         Hadronic interaction model.
-    barr_mods : dict or list
-        Barr parameters.
+    barr_mods : tuple
+        Barr parameters (not implemented).
     depth : float
         Depth below the surface with units attached (e.g. val*Units.m).
     density : tuple
