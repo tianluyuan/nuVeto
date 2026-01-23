@@ -10,6 +10,7 @@ given depth.
 import logging
 from functools import lru_cache
 from importlib.resources import files
+from typing import NamedTuple
 
 import crflux.models as pm
 import numpy as np
@@ -23,6 +24,15 @@ from .uncertainties import BARR, barr_unc
 from .utils import Geometry, ParticleProperties, Units, amu, centers
 
 logger = logging.getLogger(__name__)
+
+
+class MCEqArgs(NamedTuple):
+    hadr: str
+    pmodel: tuple
+    theta: float
+    density: tuple
+    barr_mods: dict | list
+
 
 class nuVeto(object):
     """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))
@@ -47,9 +57,13 @@ class nuVeto(object):
 
     Notes
     -----
-    A separate MCEq instance needs to be created for each combination of the
-    passed arguments. Available fluxes are documented in `crflux.models.pm`.
+    A single MCEq instance is created at the class level to keep memory low.
+    Available fluxes are documented in `crflux.models.pm`.
     """
+
+    mceq = None
+    curr_mceq_args = None
+
     def __init__(
         self,
         costh,
@@ -60,9 +74,9 @@ class nuVeto(object):
         density=("CORSIKA", ("SouthPole", "December")),
         debug_level=1,
     ):
-        self.costh = costh
-        self.pmodel = pmodel
-        self.geom = Geometry(depth)
+        self._costh = costh
+        self._pmodel = pmodel
+        self._geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
         if density[0] == "MSIS00_IC":
             logger.info(
@@ -73,45 +87,86 @@ class nuVeto(object):
             density = ("MSIS00", density[1])
 
         config.debug_level = debug_level
-        # config.enable_em = False
-        config.enable_muon_energy_loss = False
-        config.return_as = "total energy"
-        config.adv_set["allowed_projectiles"] = [
-            2212,
-            -2212,
-            2112,
-            -2112,
-            211,
-            -211,
-            321,
-            -321,
-            3122,
-            -3122,
-            310,
-            130,
-        ]
-        self.mceq = MCEqRun(
-            # provide the string of the interaction model
-            interaction_model=hadr,
-            # primary cosmic ray flux model
-            # support a tuple (primary model class (not instance!), arguments)
-            primary_model=pmodel,
-            # zenith angle \theta in degrees, measured positively from vertical direction at surface
-            theta_deg=theta,
-            # atmospheric density model
-            density_model=density,
-        )
 
-        if len(barr_mods) > 0:
-            for barr_mod in barr_mods:
-                # Modify proton-air -> mod[0]
-                self.mceq.set_mod_pprod(2212, BARR[barr_mod[0]].pdg, barr_unc, barr_mod)
-            # Populate the modifications to the matrices by re-filling the interaction matrix
-            self.mceq.regenerate_matrices(skip_decay_matrix=True)
+        self._mceq_args = MCEqArgs(hadr, pmodel, theta, density, barr_mods)
+        self._sync_mceq()
 
-        X_vec = np.logspace(np.log10(2e-3), np.log10(self.mceq.density_model.max_X), 12)
+        X_vec = np.logspace(np.log10(2e-3), np.log10(nuVeto.mceq.density_model.max_X), 12)
         self.dX_vec = np.diff(X_vec)
         self.X_vec = X_vec[:-1] * 0.57 + X_vec[1:] * 0.43
+
+    @property
+    def costh(self):
+        return self._costh
+
+    @property
+    def pmodel(self):
+        return self._pmodel
+
+    @property
+    def geom(self):
+        return self._geom
+
+    def _sync_mceq(self):
+        if nuVeto.mceq is None:
+            logger.info(
+                "Initializing first and only MCEq instance"
+            )
+            # config.enable_em = False
+            config.enable_muon_energy_loss = False
+            config.return_as = "total energy"
+            config.adv_set["allowed_projectiles"] = [
+                2212,
+                -2212,
+                2112,
+                -2112,
+                211,
+                -211,
+                321,
+                -321,
+                3122,
+                -3122,
+                310,
+                130,
+            ]
+            nuVeto.mceq = MCEqRun(
+                # provide the string of the interaction model
+                interaction_model=self._mceq_args.hadr,
+                # primary cosmic ray flux model
+                # support a tuple (primary model class (not instance!), arguments)
+                primary_model=self._mceq_args.pmodel,
+                # zenith angle \theta in degrees, measured positively from vertical direction at surface
+                theta_deg=self._mceq_args.theta,
+                # atmospheric density model
+                density_model=self._mceq_args.density,
+            )
+            if len(self._mceq_args.barr_mods) > 0:
+                for barr_mod in self._mceq_args.barr_mods:
+                    # Modify proton-air -> mod[0]
+                    nuVeto.mceq.set_mod_pprod(2212,
+                                              BARR[barr_mod[0]].pdg,
+                                              barr_unc,
+                                              barr_mod)
+                # Populate the modifications to the matrices by re-filling the interaction matrix
+                nuVeto.mceq.regenerate_matrices(skip_decay_matrix=True)
+        else:
+            ref, curr = self._mceq_args, nuVeto.curr_mceq_args
+
+            if curr.theta   != ref.theta:   nuVeto.mceq.set_theta_deg(ref.theta)
+            if curr.hadr    != ref.hadr:    nuVeto.mceq.set_interaction_model(ref.hadr)
+            if curr.pmodel  != ref.pmodel:  nuVeto.mceq.set_primary_model(*ref.pmodel)
+            if curr.density != ref.density: nuVeto.mceq.set_density_model(ref.density)
+
+            if (len(ref.barr_mods) > 0 and curr.barr_mods != ref.barr_mods):
+                for barr_mod in ref.barr_mods:
+                    # Modify proton-air -> mod[0]
+                    nuVeto.mceq.set_mod_pprod(2212,
+                                              BARR[barr_mod[0]].pdg,
+                                              barr_unc,
+                                              barr_mod)
+                # Populate the modifications to the matrices by re-filling the interaction matrix
+                nuVeto.mceq.regenerate_matrices(skip_decay_matrix=True)
+        nuVeto.curr_mceq_args = self._mceq_args
 
     @staticmethod
     def categ_to_mothers(categ, daughter):
@@ -222,16 +277,17 @@ class nuVeto(object):
 
         raise RuntimeError(f"Unable to get muon decay distributions for {mother}, cannot calculate psib.")
 
+    @staticmethod
     @lru_cache(maxsize=2**12)
-    def get_dNdEE(self, mother, daughter):
+    def get_dNdEE(mother, daughter):
         """Differential parent-->neutrino (mother--daughter) yield"""
         ihijo = 20
-        e_grid = self.mceq.e_grid
-        delta = self.mceq.e_widths
+        e_grid = nuVeto.mceq.e_grid
+        delta = nuVeto.mceq.e_widths
         x_range = e_grid[ihijo] / e_grid
         rr = ParticleProperties.rr(mother, daughter)
         dNdEE_edge = ParticleProperties.br_2body(mother, daughter) / (1 - rr)
-        dN_mat = self.mceq._decays.get_matrix(
+        dN_mat = nuVeto.mceq._decays.get_matrix(
             (ParticleProperties.pdg_id[mother], 0),
             (ParticleProperties.pdg_id[daughter], 0),
         )
@@ -255,12 +311,13 @@ class nuVeto(object):
     @lru_cache(maxsize=2**12)
     def grid_sol(self, ecr=None, particle=None):
         """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
+        self._sync_mceq()
         if ecr is not None:
-            self.mceq.set_single_primary_particle(ecr, particle)
+            nuVeto.mceq.set_single_primary_particle(ecr, particle)
         else:
-            self.mceq.set_primary_model(*self.pmodel)
-        self.mceq.solve(int_grid=self.X_vec, grid_var="X")
-        return self.mceq.grid_sol
+            nuVeto.mceq.set_primary_model(*self.pmodel)
+        nuVeto.mceq.solve(int_grid=self.X_vec, grid_var="X")
+        return nuVeto.mceq.grid_sol
 
     @lru_cache(maxsize=2**12)
     def nmu(self, ecr, particle, prpl="ice_allm97_step_1"):
@@ -273,24 +330,26 @@ class nuVeto(object):
         )
         fn = MuonProb(prpl)
         coords = list(
-            zip(self.mceq.e_grid * Units.GeV, [l_ice] * len(self.mceq.e_grid))
+            zip(nuVeto.mceq.e_grid * Units.GeV, [l_ice] * len(nuVeto.mceq.e_grid))
         )
 
         return integrate.trapezoid(
-            mu * fn.prpl(coords) * self.mceq.e_grid, np.log(self.mceq.e_grid)
+            mu * fn.prpl(coords) * nuVeto.mceq.e_grid, np.log(nuVeto.mceq.e_grid)
         )
 
     @lru_cache(maxsize=2**12)
     def get_rescale_phi(self, mother, ecr=None, particle=None):
         """Flux of the mother at all heights"""
+        self._sync_mceq()
+
         grid_sol = self.grid_sol(
             ecr, particle
         )  # MCEq solution (fluxes tabulated as a function of height)
         dX = self.dX_vec * Units.gr / Units.cm**2
-        rho = self.mceq.density_model.X2rho(self.X_vec) * Units.gr / Units.cm**3
+        rho = nuVeto.mceq.density_model.X2rho(self.X_vec) * Units.gr / Units.cm**3
         inv_decay_length_array = (
             ParticleProperties.mass_dict[mother]
-            / (self.mceq.e_grid[:, None] * Units.GeV)
+            / (nuVeto.mceq.e_grid[:, None] * Units.GeV)
         ) / (ParticleProperties.lifetime_dict[mother] * rho[None, :])
         rescale_phi = (
             dX[None, :]
@@ -317,7 +376,7 @@ class nuVeto(object):
                 np.array(
                     [
                         interpolate.interp1d(
-                            np.log(self.mceq.e_grid[rescale_phi[:, i] > 0]),
+                            np.log(nuVeto.mceq.e_grid[rescale_phi[:, i] > 0]),
                             np.log(rescale_phi[:, i][rescale_phi[:, i] > 0]),
                             kind="quadratic",
                             bounds_error=False,
@@ -364,9 +423,10 @@ class nuVeto(object):
         Returns:
           (numpy.array): flux of particles on energy grid :attr:`e_grid`
         """
+        self._sync_mceq()
 
         # MCEq index conversion
-        ref = self.mceq.pman.pname2pref
+        ref = nuVeto.mceq.pman.pname2pref
         p_pdg = ParticleProperties.pdg_id[particle_name]
         reduce_res = True
 
@@ -377,7 +437,7 @@ class nuVeto(object):
             sol = np.asarray(grid_sol)
             xv = np.asarray(self.X_vec)
             reduce_res = False
-        elif grid_idx >= len(self.mceq.grid_sol):  # Surface only case
+        elif grid_idx >= len(nuVeto.mceq.grid_sol):  # Surface only case
             sol = np.array([grid_sol[-1]])
             xv = np.array([self.X_vec[-1]])
         else:  # Particular height case
@@ -387,11 +447,11 @@ class nuVeto(object):
         # MCEq solution for particle
         direct = sol[:, ref[particle_name].lidx : ref[particle_name].uidx]
         res = np.zeros(direct.shape)
-        rho_air = 1.0 / self.mceq.density_model.r_X2rho(xv)
+        rho_air = 1.0 / nuVeto.mceq.density_model.r_X2rho(xv)
 
         # meson decay length
         decayl = (
-            (self.mceq.e_grid * Units.GeV)
+            (nuVeto.mceq.e_grid * Units.GeV)
             / ParticleProperties.mass_dict[particle_name]
             * ParticleProperties.lifetime_dict[particle_name]
             / Units.cm
@@ -399,10 +459,10 @@ class nuVeto(object):
 
         # number of targets per cm2
         ndens = rho_air * Units.Na / config.A_target
-        sec = self.mceq.pman[p_pdg]
+        sec = nuVeto.mceq.pman[p_pdg]
         for prim in self.projectiles():
             prim_flux = sol[:, ref[prim].lidx : ref[prim].uidx]
-            proj = self.mceq.pman[ParticleProperties.pdg_id[prim]]
+            proj = nuVeto.mceq.pman[ParticleProperties.pdg_id[prim]]
             prim_xs = proj.inel_cross_section()
             try:
                 int_yields = proj.hadr_yields[sec]
@@ -425,7 +485,7 @@ class nuVeto(object):
                 res += sol[:, ref[f"{_}_l"].lidx : ref[f"{_}_l"].uidx]
                 res += sol[:, ref[f"{_}_r"].lidx : ref[f"{_}_r"].uidx]
 
-        res *= self.mceq.e_grid[None, :] ** mag
+        res *= nuVeto.mceq.e_grid[None, :] ** mag
 
         if reduce_res:
             res = res[0]
@@ -545,8 +605,8 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
 
     Notes
     -----
-    A separate MCEq instance needs to be created for each combination of the
-    passed arguments. Available fluxes can be found in `crflux.models.pm`.
+    A single MCEq instance is created at the class level and synchronized as needed.
+    Available fluxes are documented in `crflux.models.pm`.
     """
     return nuVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
 
