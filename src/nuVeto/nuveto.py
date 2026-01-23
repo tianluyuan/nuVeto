@@ -73,7 +73,6 @@ class nuVeto(object):
         debug_level=1,
     ):
         self._costh = costh
-        self._pmodel = pmodel
         self._geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
         if density[0] == "MSIS00_IC":
@@ -111,7 +110,19 @@ class nuVeto(object):
 
     @property
     def pmodel(self):
-        return self._pmodel
+        return self._mceq_args.pmodel
+
+    @property
+    def hadr(self):
+        return self._mceq_args.hadr
+
+    @property
+    def density(self):
+        return self._mceq_args.density
+
+    @property
+    def theta(self):
+        return self._mceq_args.theta
 
     @property
     def geom(self):
@@ -163,16 +174,16 @@ class nuVeto(object):
                 density_model=self._mceq_args.density,
             )
         else:
-            ref, curr = self._mceq_args, nuVeto._curr_mceq_args
+            _curr = nuVeto._curr_mceq_args
 
-            if curr.theta   != ref.theta:
-                nuVeto.mceq.set_theta_deg(ref.theta)
-            if curr.hadr    != ref.hadr:
-                nuVeto.mceq.set_interaction_model(ref.hadr)
-            if curr.pmodel  != ref.pmodel:
-                nuVeto.mceq.set_primary_model(*ref.pmodel)
-            if curr.density != ref.density:
-                nuVeto.mceq.set_density_model(ref.density)
+            if _curr.theta   != self.theta:
+                nuVeto.mceq.set_theta_deg(self.theta)
+            if _curr.hadr    != self.hadr:
+                nuVeto.mceq.set_interaction_model(self.hadr)
+            if _curr.pmodel  != self.pmodel:
+                nuVeto.mceq.set_primary_model(*self.pmodel)
+            if _curr.density != self.density:
+                nuVeto.mceq.set_density_model(self.density)
 
         nuVeto._curr_mceq_args = self._mceq_args
 
