@@ -20,7 +20,6 @@ from MCEq import config
 from MCEq.core import MCEqRun
 
 from .mu import MuonProb
-from .uncertainties import BARR, barr_unc
 from .utils import Geometry, ParticleProperties, Units, amu, centers
 
 logger = logging.getLogger(__name__)
@@ -31,7 +30,6 @@ class MCEqArgs(NamedTuple):
     pmodel: tuple
     theta: float
     density: tuple
-    barr_mods: tuple
 
 
 class nuVeto(object):
@@ -88,7 +86,9 @@ class nuVeto(object):
 
         config.debug_level = debug_level
 
-        self._mceq_args = MCEqArgs(hadr, pmodel, theta, density, barr_mods)
+        if len(barr_mods) > 0:
+            logger.warning("Barr modifications are not implemented and will be ignored")
+        self._mceq_args = MCEqArgs(hadr, pmodel, theta, density)
         self.sync_mceq()
 
         X_vec = np.logspace(np.log10(2e-3), np.log10(nuVeto._mceq.density_model.max_X), 12)
@@ -148,15 +148,6 @@ class nuVeto(object):
                 # atmospheric density model
                 density_model=self._mceq_args.density,
             )
-            if len(self._mceq_args.barr_mods) > 0:
-                for barr_mod in self._mceq_args.barr_mods:
-                    # Modify proton-air -> mod[0]
-                    nuVeto._mceq.set_mod_pprod(2212,
-                                              BARR[barr_mod[0]].pdg,
-                                              barr_unc,
-                                              barr_mod)
-                # Populate the modifications to the matrices by re-filling the interaction matrix
-                nuVeto._mceq.regenerate_matrices(skip_decay_matrix=True)
         else:
             ref, curr = self._mceq_args, nuVeto._curr_mceq_args
 
@@ -165,15 +156,6 @@ class nuVeto(object):
             if curr.pmodel  != ref.pmodel:  nuVeto._mceq.set_primary_model(*ref.pmodel)
             if curr.density != ref.density: nuVeto._mceq.set_density_model(ref.density)
 
-            if (len(ref.barr_mods) > 0 and curr.barr_mods != ref.barr_mods):
-                for barr_mod in ref.barr_mods:
-                    # Modify proton-air -> mod[0]
-                    nuVeto._mceq.set_mod_pprod(2212,
-                                              BARR[barr_mod[0]].pdg,
-                                              barr_unc,
-                                              barr_mod)
-                # Populate the modifications to the matrices by re-filling the interaction matrix
-                nuVeto._mceq.regenerate_matrices(skip_decay_matrix=True)
         nuVeto._curr_mceq_args = self._mceq_args
 
     @staticmethod
