@@ -151,10 +151,14 @@ class nuVeto(object):
         else:
             ref, curr = self._mceq_args, nuVeto._curr_mceq_args
 
-            if curr.theta   != ref.theta:   nuVeto._mceq.set_theta_deg(ref.theta)
-            if curr.hadr    != ref.hadr:    nuVeto._mceq.set_interaction_model(ref.hadr)
-            if curr.pmodel  != ref.pmodel:  nuVeto._mceq.set_primary_model(*ref.pmodel)
-            if curr.density != ref.density: nuVeto._mceq.set_density_model(ref.density)
+            if curr.theta   != ref.theta:
+                nuVeto._mceq.set_theta_deg(ref.theta)
+            if curr.hadr    != ref.hadr:
+                nuVeto._mceq.set_interaction_model(ref.hadr)
+            if curr.pmodel  != ref.pmodel:
+                nuVeto._mceq.set_primary_model(*ref.pmodel)
+            if curr.density != ref.density:
+                nuVeto._mceq.set_density_model(ref.density)
 
         nuVeto._curr_mceq_args = self._mceq_args
 
