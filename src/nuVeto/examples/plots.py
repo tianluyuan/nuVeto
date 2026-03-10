@@ -163,7 +163,7 @@ def prpls(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'),
 
 
 def elbert(slice_val=1., kind='conv nu_mu', pmodel=(pm.GaisserHonda, None), prpl='ice_allm97_step_1', corr_only=False):
-    hadrs = ['DPMJET-III-3.0.6', 'SIBYLL2.3e']
+    hadrs = ['DPMJET-III-19.3', 'SIBYLL2.3e']
     echoice = exthp.corr if corr_only else exthp.passrates
     if slice_val > 1:
         cths = np.linspace(0, 1, 100)

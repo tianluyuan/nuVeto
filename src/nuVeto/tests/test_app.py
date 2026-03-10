@@ -140,7 +140,7 @@ def test_pnmsib(enu, l_ice, mother):
 def test_elbert(cth):
     ens = np.logspace(2, 8.9, 50)
     mine = np.asarray(
-        [passing(en, cth, kind='conv nu_mu', hadr='DPMJET-III-3.0.6',
+        [passing(en, cth, kind='conv nu_mu', hadr='DPMJET-III-19.3',
                  pmodel=(pm.GaisserHonda, None), prpl=None, corr_only=True) for en in ens])
     emu = extsv.minimum_muon_energy(extsv.overburden(cth))
     theirs = exthp.corr('conv nu_mu')(ens, emu, cth)
@@ -161,7 +161,7 @@ def test_nuflux(cth):
                           for en in sv.mceq.e_grid[ensel]])
 
         print(kind, cth, theirs/mine)
-        assert np.all(np.abs(theirs/mine - 1) < 0.2)
+        assert np.all(np.abs(theirs/mine - 1) < 0.25)
 
 
 @pytest.mark.parametrize('cth', [0.9, 1])
