@@ -16,7 +16,7 @@ import crflux.models as pm
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
-from MCEq import config
+from MCEq import config, misc
 from MCEq.core import MCEqRun
 
 from .mu import MuonProb
@@ -474,7 +474,7 @@ class nuVeto(object):
         )
 
         # number of targets per cm2
-        ndens = rho_air * Units.Na / config.A_target
+        ndens = rho_air * Units.Na / misc.average_A_target(config.A_target)
         sec = nuVeto.mceq.pman[p_pdg]
         for prim in self.projectiles():
             prim_flux = sol[:, ref[prim].lidx : ref[prim].uidx]
