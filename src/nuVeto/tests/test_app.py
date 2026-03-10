@@ -102,17 +102,18 @@ def test_projectiles():
                               'pi-'})
     assert set(projs) < set(ParticleProperties.pdg_id.keys())
 
-    for hadr in ['DPMJETIII191',
-                 'DPMJETIII306',
+    for hadr in ['DPMJETIII193',
                  'EPOSLHC',
-                 'QGSJET01C',
-                 'QGSJETII03',
+                 'EPOSLHCR',
                  'QGSJETII04',
+                 'QGSJETIII',
                  'SIBYLL21',
-                 'SIBYLL23',
-                 'SIBYLL23C',
-                 'SIBYLL23C03',
-                 'SIBYLL23CPP',
+                 'SIBYLL23D',
+                 'SIBYLL23E',
+                 'SIBYLL23ESTARBAR',
+                 'SIBYLL23ESTARMIXED',
+                 'SIBYLL23ESTARRHO',
+                 'SIBYLL23ESTARSTRANGE'
                  ]:
         assert set(projs) < set(nuVeto(1., hadr=hadr).mceq.pman.pname2pref.keys())
 

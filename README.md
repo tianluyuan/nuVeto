@@ -50,7 +50,7 @@ enu = 1e5*Units.GeV
 cos_theta = 0.5
 pf = passing(enu, cos_theta, kind='conv nu_mu',
              pmodel=(pm.HillasGaisser2012, 'H3a'),
-             hadr='SIBYLL2.3c', depth=1950*Units.m,
+             hadr='SIBYLL2.3e', depth=1950*Units.m,
              density=('CORSIKA', ('SouthPole','December')))
 ```
 where kind can be `(conv|pr|_parent_) nu_(e|mu)(bar)`
