@@ -16,7 +16,7 @@ import crflux.models as pm
 import numpy as np
 import scipy.integrate as integrate
 import scipy.interpolate as interpolate
-from MCEq import config
+from MCEq import config, misc
 from MCEq.core import MCEqRun
 
 from .mu import MuonProb
@@ -66,7 +66,7 @@ class nuVeto(object):
         self,
         costh,
         pmodel=(pm.HillasGaisser2012, "H3a"),
-        hadr="SIBYLL2.3c",
+        hadr="SIBYLL2.3e",
         barr_mods=(),
         depth=1950 * Units.m,
         density=("CORSIKA", ("SouthPole", "December")),
@@ -474,7 +474,7 @@ class nuVeto(object):
         )
 
         # number of targets per cm2
-        ndens = rho_air * Units.Na / config.A_target
+        ndens = rho_air * Units.Na / misc.average_A_target()
         sec = nuVeto.mceq.pman[p_pdg]
         for prim in self.projectiles():
             prim_flux = sol[:, ref[prim].lidx : ref[prim].uidx]
@@ -632,7 +632,7 @@ def passing(
     cos_theta,
     kind="conv nu_mu",
     pmodel=(pm.HillasGaisser2012, "H3a"),
-    hadr="SIBYLL2.3c",
+    hadr="SIBYLL2.3e",
     barr_mods=(),
     depth=1950 * Units.m,
     density=("CORSIKA", ("SouthPole", "December")),
@@ -688,7 +688,7 @@ def fluxes(
     cos_theta,
     kind="conv nu_mu",
     pmodel=(pm.HillasGaisser2012, "H3a"),
-    hadr="SIBYLL2.3c",
+    hadr="SIBYLL2.3e",
     barr_mods=(),
     depth=1950 * Units.m,
     density=("CORSIKA", ("SouthPole", "December")),

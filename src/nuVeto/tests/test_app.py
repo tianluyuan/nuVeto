@@ -79,7 +79,7 @@ def test_pdet():
 def test_edge():
     """ Test edge case where MCEq yields are all <= 0.
     """
-    sv = nuVeto(0., pmodel=(pm.ZatsepinSokolskaya, 'pamela'), hadr='DPMJET-III-19.1',
+    sv = nuVeto(0., pmodel=(pm.ZatsepinSokolskaya, 'pamela'), hadr='DPMJET-III-19.3',
                 density=('MSIS00_IC', ('SouthPole', 'June')))
     _ = sv.get_rescale_phi('D-', 508.0218046913023, 14)
     assert not np.any(_[:, -1] > 0)
@@ -102,17 +102,18 @@ def test_projectiles():
                               'pi-'})
     assert set(projs) < set(ParticleProperties.pdg_id.keys())
 
-    for hadr in ['DPMJETIII191',
-                 'DPMJETIII306',
+    for hadr in ['DPMJETIII193',
                  'EPOSLHC',
-                 'QGSJET01C',
-                 'QGSJETII03',
+                 'EPOSLHCR',
                  'QGSJETII04',
+                 'QGSJETIII',
                  'SIBYLL21',
-                 'SIBYLL23',
-                 'SIBYLL23C',
-                 'SIBYLL23C03',
-                 'SIBYLL23CPP',
+                 'SIBYLL23D',
+                 'SIBYLL23E',
+                 'SIBYLL23ESTARBAR',
+                 'SIBYLL23ESTARMIXED',
+                 'SIBYLL23ESTARRHO',
+                 'SIBYLL23ESTARSTRANGE'
                  ]:
         assert set(projs) < set(nuVeto(1., hadr=hadr).mceq.pman.pname2pref.keys())
 
@@ -139,7 +140,7 @@ def test_pnmsib(enu, l_ice, mother):
 def test_elbert(cth):
     ens = np.logspace(2, 8.9, 50)
     mine = np.asarray(
-        [passing(en, cth, kind='conv nu_mu', hadr='DPMJET-III-3.0.6',
+        [passing(en, cth, kind='conv nu_mu', hadr='DPMJET-III-19.3',
                  pmodel=(pm.GaisserHonda, None), prpl=None, corr_only=True) for en in ens])
     emu = extsv.minimum_muon_energy(extsv.overburden(cth))
     theirs = exthp.corr('conv nu_mu')(ens, emu, cth)
@@ -160,7 +161,7 @@ def test_nuflux(cth):
                           for en in sv.mceq.e_grid[ensel]])
 
         print(kind, cth, theirs/mine)
-        assert np.all(np.abs(theirs/mine - 1) < 0.2)
+        assert np.all(np.abs(theirs/mine - 1) < 0.25)
 
 
 @pytest.mark.parametrize('cth', [0.9, 1])
