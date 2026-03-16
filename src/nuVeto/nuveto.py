@@ -44,8 +44,6 @@ class nuVeto(object):
         CR Flux from `crflux.models.pm`.
     hadr : str
         Hadronic interaction model.
-    barr_mods : tuple
-        Barr parameters (not implemented).
     depth : float
         Depth below the surface with units attached (e.g., val*Units.m).
     density : tuple
@@ -67,7 +65,6 @@ class nuVeto(object):
         costh,
         pmodel=(pm.HillasGaisser2012, "H3a"),
         hadr="SIBYLL2.3e",
-        barr_mods=(),
         depth=1950 * Units.m,
         density=("CORSIKA", ("SouthPole", "December")),
         debug_level=1,
@@ -85,8 +82,6 @@ class nuVeto(object):
 
         config.debug_level = debug_level
 
-        if len(barr_mods) > 0:
-            logger.warning("Barr modifications are not implemented and will be ignored")
         self._mceq_args = MCEqArgs(hadr, pmodel, theta, density)
         self.sync_mceq()
 
@@ -595,7 +590,7 @@ class nuVeto(object):
 
 
 @lru_cache(maxsize=2**12)
-def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
+def builder(cos_theta, pmodel, hadr, depth, density):
     """
     Creates and caches (LRU) a nuVeto object for the given parameters.
 
@@ -607,8 +602,6 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
         CR Flux from crflux.models.
     hadr : str
         Hadronic interaction model.
-    barr_mods : tuple
-        Barr parameters (not implemented).
     depth : float
         Depth below the surface with units attached (e.g. val*Units.m).
     density : tuple
@@ -624,7 +617,7 @@ def builder(cos_theta, pmodel, hadr, barr_mods, depth, density):
     A single MCEq instance is created at the class level and synchronized as needed.
     Available fluxes are documented in `crflux.models.pm`.
     """
-    return nuVeto(cos_theta, pmodel, hadr, barr_mods, depth, density)
+    return nuVeto(cos_theta, pmodel, hadr, depth, density)
 
 
 def passing(
@@ -633,7 +626,6 @@ def passing(
     kind="conv nu_mu",
     pmodel=(pm.HillasGaisser2012, "H3a"),
     hadr="SIBYLL2.3e",
-    barr_mods=(),
     depth=1950 * Units.m,
     density=("CORSIKA", ("SouthPole", "December")),
     accuracy=3.5,
@@ -657,8 +649,6 @@ def passing(
         CR Flux from crflux.models.
     hadr : str
         Hadronic interaction model.
-    barr_mods : tuple
-        Barr parameters (not implemented).
     depth : float
         Depth below the surface with units attached (e.g. val*Units.m).
     density : tuple
@@ -678,7 +668,7 @@ def passing(
     float
         The passing atmospheric neutrino flux or the passing fraction.
     """
-    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
+    sv = builder(cos_theta, pmodel, hadr, depth, density)
     num, den = sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)
     return num / den if fraction else num
 
@@ -689,7 +679,6 @@ def fluxes(
     kind="conv nu_mu",
     pmodel=(pm.HillasGaisser2012, "H3a"),
     hadr="SIBYLL2.3e",
-    barr_mods=(),
     depth=1950 * Units.m,
     density=("CORSIKA", ("SouthPole", "December")),
     accuracy=3.5,
@@ -712,8 +701,6 @@ def fluxes(
         CR Flux from crflux.models.
     hadr : str
         Hadronic interaction model.
-    barr_mods : dict or list
-        Barr parameters.
     depth : float
         Depth below the surface with units attached (e.g. val*Units.m).
     density : tuple
@@ -731,5 +718,5 @@ def fluxes(
     tuple of float
         The passing and total atmospheric neutrino fluxes.
     """
-    sv = builder(cos_theta, pmodel, hadr, barr_mods, depth, density)
+    sv = builder(cos_theta, pmodel, hadr, depth, density)
     return sv.get_fluxes(enu, kind, accuracy, prpl, corr_only)

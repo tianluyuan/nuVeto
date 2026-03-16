@@ -12,7 +12,6 @@ from .. import fluxes, nuVeto, passing
 from ..external import helper as exthp
 from ..external import selfveto as extsv
 from ..mu import MuonProb
-from ..uncertainties import BARR
 from ..utils import (
     Geometry,
     ParticleProperties,
@@ -55,11 +54,11 @@ def fn(slice_val):
     return pr_enu if slice_val <= 1 else pr_cth
 
 
-def pr_enu(cos_theta=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3e', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'December')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
+def pr_enu(cos_theta=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3e', depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'December')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     ens = np.logspace(3, 7, 100) if corr_only else np.logspace(3, 7, 39)
-    passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth,
+    passed = [passing(en, cos_theta, kind, pmodel, hadr, depth,
                       density, accuracy, fraction, prpl, corr_only) for en in ens]
     if fraction:
         passed_fn = interpolate.interp1d(ens, passed, kind='quadratic')
@@ -81,11 +80,11 @@ def pr_enu(cos_theta=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a')
     return prs[0]
 
 
-def pr_cth(enu=1e5, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3e', barr_mods=(), depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'December')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
+def pr_cth(enu=1e5, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3e', depth=1950*Units.m, density=('CORSIKA', ('SouthPole', 'December')), accuracy=3.5, fraction=True, prpl='ice_allm97_step_1', corr_only=False, **kwargs):
     """ plot the passing rate (flux or fraction)
     """
     cths = np.linspace(0, 1, 21)
-    passed = [passing(enu, cos_theta, kind, pmodel, hadr, barr_mods, depth,
+    passed = [passing(enu, cos_theta, kind, pmodel, hadr, depth,
                       density, accuracy, fraction, prpl, corr_only) for cos_theta in cths]
     if fraction:
         prs = plt.plot(cths, passed, **kwargs)
@@ -109,39 +108,6 @@ def depth(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'),
                       label=f'depth {depth / Units.m:.0f} m')
     plt.title(f'{hadr} {tex(kind)} {tex(slice_val)}')
     plt.legend()
-
-
-def brackets(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3e', fraction=True, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
-    params = params.split(' ')
-    uppers = [BARR[param].error for param in params]
-    lowers = [-BARR[param].error for param in params]
-    all_barr_mods = [tuple(zip(params, uppers)), tuple(zip(params, lowers))]
-    pr = fn(slice_val)(slice_val, kind, pmodel, hadr,
-                       label=f'{tex(kind)} {tex(slice_val)}')
-    for barr_mods in all_barr_mods:
-        fn(slice_val)(slice_val, kind, pmodel, hadr, barr_mods, fraction=fraction,
-                      color=pr.get_color(), alpha=1-abs(barr_mods[0][-1]))
-
-
-def samples(slice_val=1, kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3e', fraction=True,
-            seed=88, nsamples=10, params='g h1 h2 i w6 y1 y2 z ch_a ch_b ch_e'):
-    params = params.split(' ')
-    pr = fn(slice_val)(slice_val, kind, pmodel, hadr=hadr,
-                       label=f'{tex(kind)} {tex(slice_val)}')
-    np.random.seed(seed)
-    for _ in range(nsamples-1):
-        # max(-1, throw) prevents throws that dip below -100%
-        errors = [max(-1, np.random.normal(scale=BARR[param].error))
-                  for param in params]
-        barr_mods = tuple(zip(params, errors))
-        fn(slice_val)(slice_val,
-                      kind,
-                      pmodel,
-                      hadr,
-                      barr_mods,
-                      fraction=fraction,
-                      color=pr.get_color(),
-                      alpha=1-min(np.mean(np.abs(errors)), 0.9))
 
 
 def accuracy(slice_val=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a'), hadr='SIBYLL2.3e', fraction=True):
