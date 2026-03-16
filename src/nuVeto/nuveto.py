@@ -8,6 +8,7 @@ given depth.
 """
 
 import logging
+import warnings
 from functools import lru_cache
 from importlib.resources import files
 from typing import NamedTuple
@@ -22,6 +23,9 @@ from MCEq.core import MCEqRun
 from .mu import MuonProb
 from .utils import Geometry, ParticleProperties, Units, amu, centers
 
+logging.basicConfig(
+    format='%(levelname)s:%(name)s:%(message)s',
+)
 logger = logging.getLogger(__name__)
 
 
@@ -72,6 +76,15 @@ class nuVeto(object):
         density=("CORSIKA", ("SouthPole", "December")),
         debug_level=1,
     ):
+        logger.warning("The barr_mods argument will be removed in the next major version.")
+        warnings.warn("The barr_mods argument will be removed in the next major version.",
+                      DeprecationWarning,
+                      stacklevel=2)
+        logger.warning("The default interaction model will be changed to SIBYLL2.3e in the next major version, due to removals in MCEq.")
+        warnings.warn("The default interaction model will be changed to SIBYLL2.3e in the next major version, due to removals in MCEq.",
+                      DeprecationWarning,
+                      stacklevel=2)
+
         self._costh = costh
         self._geom = Geometry(depth)
         theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
@@ -87,6 +100,7 @@ class nuVeto(object):
 
         if len(barr_mods) > 0:
             logger.warning("Barr modifications are not implemented and will be ignored")
+
         self._mceq_args = MCEqArgs(hadr, pmodel, theta, density)
         self.sync_mceq()
 
