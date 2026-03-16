@@ -388,25 +388,23 @@ class nuVeto(object):
 
             ###
             # TODO: optimize to only run when esamp[0] is non-zero
-            rescale_phi = np.exp(
-                np.array(
-                    [
-                        interpolate.interp1d(
-                            np.log(nuVeto.mceq.e_grid[rescale_phi[:, i] > 0]),
-                            np.log(rescale_phi[:, i][rescale_phi[:, i] > 0]),
-                            kind="quadratic",
-                            bounds_error=False,
-                            fill_value=-np.inf,
-                        )(np.log(esamp))
-                        if np.count_nonzero(rescale_phi[:, i] > 0) > 2
-                        else [
-                            -np.inf,
-                        ]
-                        * esamp.shape[0]
-                        for i in range(rescale_phi.shape[1])
-                    ]
-                )
-            ).T
+            log_esamp = np.log(esamp)
+            rows = []
+            for i in range(rescale_phi.shape[1]):
+                mask = rescale_phi[:, i] > 0
+                if np.count_nonzero(mask) > 2:
+                    row = np.nan_to_num(
+                        interpolate.make_interp_spline(
+                            np.log(nuVeto.mceq.e_grid[mask]),
+                            np.log(rescale_phi[:, i][mask]),
+                            k=2,
+                        )(log_esamp, extrapolate=False),
+                        nan=-np.inf,
+                    )
+                else:
+                    row = [-np.inf] * esamp.shape[0]
+                rows.append(row)
+            rescale_phi = np.exp(np.array(rows)).T
 
             if "nu_mu" in daughter:
                 # muon accompanies nu_mu only
@@ -553,14 +551,8 @@ class nuVeto(object):
             nmu = [self.nmu(ecr, particle, prpl) for ecr in ecrs]
 
             # nmufn --> fine grid interpolation of pnm
-            nmufn = interpolate.interp1d(
-                ecrs,
-                nmu,
-                kind="linear",
-                assume_sorted=True,
-                bounds_error=False,
-                fill_value=(0, np.nan),
-            )
+            def nmufn(ecr_val):
+                return np.interp(ecr_val, ecrs, nmu, left=0, right=np.nan)
             # nums --> numerator
             nums = []
             # dens --> denominator

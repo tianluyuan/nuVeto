@@ -62,10 +62,10 @@ def pr_enu(cos_theta=1., kind='conv nu_mu', pmodel=(pm.HillasGaisser2012, 'H3a')
     passed = [passing(en, cos_theta, kind, pmodel, hadr, barr_mods, depth,
                       density, accuracy, fraction, prpl, corr_only) for en in ens]
     if fraction:
-        passed_fn = interpolate.interp1d(ens, passed, kind='quadratic')
+        passed_fn = interpolate.make_interp_spline(ens, passed, k=2)
     else:
-        def passed_fn(es): return 10**interpolate.interp1d(ens,
-                                                           np.log10(passed), kind='quadratic')(es)
+        def passed_fn(es): return 10**interpolate.make_interp_spline(ens,
+                                                                     np.log10(passed), k=2)(es)
     ens_plot = np.logspace(3, 7, 100)
     if fraction:
         prs = plt.plot(ens_plot, passed_fn(ens_plot), **kwargs)
@@ -437,8 +437,8 @@ def prob_nomu(cos_theta, particle=14, pmodel=(pm.HillasGaisser2012, 'H3a'), hadr
     ecrs_fine = amu(particle)*np.logspace(3, 10, 1000)
     sv = nuVeto(cos_theta, pmodel, hadr)
     nmu = [sv.nmu(ecr, particle, prpl) for ecr in ecrs]
-    nmufn = interpolate.interp1d(ecrs, nmu, kind='linear',
-                                 assume_sorted=True, fill_value=(0, np.nan))
+    def nmufn(ecr_val):
+        return np.interp(ecr_val, ecrs, nmu, left=0, right=np.nan)
     plt.semilogx(ecrs_fine, np.exp(-nmufn(ecrs_fine)), label='interpolated')
     plt.semilogx(ecrs, np.exp(-np.asarray(nmu)), 'ko')
     plt.xlabel(r'$E_{CR} [GeV]$')

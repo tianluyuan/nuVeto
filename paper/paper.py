@@ -6,7 +6,7 @@ import crflux.models as pm
 import matplotlib as mpl
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.interpolate import interp1d
+from scipy.interpolate import make_interp_spline
 
 from nuVeto import fluxes
 from nuVeto.examples import plots
@@ -45,8 +45,8 @@ def earth_attenuation(enu, cos_theta, kind='conv nu_mu'):
 
     t = earth.get_t_earth(zenith)*Units.Na
     phisol = np.dot(v, (ci*np.exp(w*t)))/phi_0
-    phisolfn = interp1d(energy_nodes, phisol,
-                        kind='quadratic', assume_sorted=True)
+    phisolfn = make_interp_spline(energy_nodes, phisol,
+                        k=2)
     return phisolfn(enu)
 
 
@@ -306,8 +306,8 @@ def fig_flux():
         astro = np.ones(cths_full.shape)*aachen8(enu*Units.GeV)
         earth = np.asarray(
             [earth_attenuation(enu, cth, 'astro_numu') for cth in cths_full])
-        astrofn = interp1d(cths_full, np.log10(earth*astro*enu**3),
-                           kind='quadratic')
+        astrofn = make_interp_spline(cths_full, np.log10(earth*astro*enu**3),
+                           k=2)
         plt.plot(cths_plot, 10**astrofn(cths_plot)/2, color='gray',
                  label=r'Astrophysical $\nu_\mu$')
         for kind in kinds:
@@ -325,10 +325,10 @@ def fig_flux():
             total_full = np.concatenate((total[:0:-1], total))
             passing_full = np.concatenate((total[:0:-1], passing))
 
-            totalfn = interp1d(cths_full, np.log10(earth*total_full*enu**3),
-                               kind='quadratic')
-            passfn = interp1d(cths_full, np.log10(earth*passing_full*enu**3),
-                              kind='quadratic')
+            totalfn = make_interp_spline(cths_full, np.log10(earth*total_full*enu**3),
+                               k=2)
+            passfn = make_interp_spline(cths_full, np.log10(earth*passing_full*enu**3),
+                              k=2)
             pr = plt.plot(cths_plot, 10**totalfn(cths_plot), ':')
             plt.plot(cths_plot, 10**passfn(cths_plot), color=pr[0].get_color(),
                      label=titling[kind])

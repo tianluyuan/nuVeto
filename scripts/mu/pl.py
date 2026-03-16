@@ -45,7 +45,7 @@ def pl_noearlymu(emu):
     nstrarr = nstrarr.reshape(2, nstrarr.shape[0]/2)
     # take P(Nstr|Ee) likelihood from chaack
 
-    def nstr(ee): return 10**interpolate.interp1d(
+    def nstr(ee): return 10**interpolate.make_interp_spline(
         np.log10(nstrarr[0]), np.log10(nstrarr[1]),
-        kind='linear', bounds_error=False, fill_value='extrapolate')(np.log10(ee))
+        k=1)(np.log10(ee))
     return 1-nstr(emu)
