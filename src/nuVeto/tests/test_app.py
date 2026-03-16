@@ -167,7 +167,7 @@ def test_nuflux(cth):
 @pytest.mark.parametrize('cth', [0.9, 1])
 def test_nonneg(cth, capsys):
     with capsys.disabled():
-        sv = nuVeto(cth, debug_level=2)
+        sv = nuVeto(cth, hadr='EPOSLHC', debug_level=2)
         enus = [6.2e6, 1e7]
         kinds = [f'{_c} {_n}{_b}' for _c, _n, _b in
                  product(['conv', 'pr'], ['nu_mu', 'nu_e'], ['', 'bar'])]
