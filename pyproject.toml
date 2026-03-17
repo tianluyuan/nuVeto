@@ -14,7 +14,7 @@ license = {file = "LICENSE"}
 
 requires-python = ">= 3.9"
 dependencies = [
-  "numpy>=1.7.0, <2.4.0",
+  "numpy>=1.7.0, <3",
   "scipy>=1.6.0, <2",
   "MCEq>=1.4.0, <2",
   "pandas<4"
