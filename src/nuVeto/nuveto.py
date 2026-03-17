@@ -378,15 +378,15 @@ class nuVeto(object):
         nums = np.zeros((len(esamp), len(self.X_vec)))
         dens = np.zeros((len(esamp), len(self.X_vec)))
         pnmsib = np.ones_like(esamp)
+        log_esamp = np.log(esamp)
+        log_e_grid = np.log(nuVeto.mceq.e_grid)
+
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, ecr, particle)
 
             ###
             # TODO: optimize to only run when esamp[0] is non-zero
-            log_esamp = np.log(esamp)
-            log_e_grid = np.log(nuVeto.mceq.e_grid)
-
             log_rescale_phi_interp = np.full(
                 (rescale_phi.shape[1], esamp.shape[0]), -np.inf)
             for i in range(rescale_phi.shape[1]):
