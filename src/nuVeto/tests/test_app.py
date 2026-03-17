@@ -161,7 +161,7 @@ def test_nuflux(cth):
                           for en in sv.mceq.e_grid[ensel]])
 
         print(kind, cth, theirs/mine)
-        assert np.all(np.abs(theirs/mine - 1) < 0.25)
+        assert np.all(np.abs(theirs/mine - 1) < 0.2)
 
 
 @pytest.mark.parametrize('cth', [0.9, 1])

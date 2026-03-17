@@ -157,6 +157,7 @@ class nuVeto(object):
                 310,
                 130,
             ]
+            config.dXmax = 10.
             nuVeto.mceq = MCEqRun(
                 # provide the string of the interaction model
                 interaction_model=self._mceq_args.hadr,
