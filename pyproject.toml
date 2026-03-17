@@ -17,7 +17,7 @@ dependencies = [
   "numpy>=1.7.0, <2.4.0",
   "scipy>=1.6.0, <2",
   "MCEq>=1.4.0, <2",
-  "pandas<3"
+  "pandas<4"
 ]
 
 classifiers = [

@@ -446,7 +446,7 @@ def elbert_only(slice_val=1., kind='conv nu_mu'):
 def hist_preach(infile, plotdir=None):
     import pandas as pd
     napf = 36
-    df = pd.read_csv(infile, delim_whitespace=True, header=None,
+    df = pd.read_csv(infile, sep=r'\s+', header=None,
                      names='ei l ef'.split())
     # If the muon doesn't reach, MMC saves ef as -distance traveled
     df[df < 0] = 0
