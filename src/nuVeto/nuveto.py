@@ -377,6 +377,7 @@ class nuVeto(object):
         mothers = self.categ_to_mothers(categ, daughter)
         nums = np.zeros((len(esamp), len(self.X_vec)))
         dens = np.zeros((len(esamp), len(self.X_vec)))
+        pnmsib = np.ones_like(esamp)
         for mother in mothers:
             dNdEE = self.get_dNdEE(mother, daughter)[-1]
             rescale_phi = self.get_rescale_phi(mother, ecr, particle)
@@ -384,30 +385,28 @@ class nuVeto(object):
             ###
             # TODO: optimize to only run when esamp[0] is non-zero
             log_esamp = np.log(esamp)
-            rows = []
+            log_e_grid = np.log(nuVeto.mceq.e_grid)
+
+            log_rescale_phi_interp = np.full(
+                (rescale_phi.shape[1], esamp.shape[0]), -np.inf)
             for i in range(rescale_phi.shape[1]):
                 mask = rescale_phi[:, i] > 0
-                if np.count_nonzero(mask) > 2:
-                    row = np.nan_to_num(
+                if mask.sum() > 2:
+                    log_rescale_phi_interp[i] = np.nan_to_num(
                         interpolate.make_interp_spline(
-                            np.log(nuVeto.mceq.e_grid[mask]),
+                            log_e_grid[mask],
                             np.log(rescale_phi[:, i][mask]),
                             k=2,
                         )(log_esamp, extrapolate=False),
                         nan=-np.inf,
                     )
-                else:
-                    row = [-np.inf] * esamp.shape[0]
-                rows.append(row)
-            rescale_phi = np.exp(np.array(rows)).T
+            rescale_phi = np.exp(log_rescale_phi_interp).T
 
             if "nu_mu" in daughter:
                 # muon accompanies nu_mu only
                 pnmsib = self.psib(
                     self.geom.overburden(self.costh), mother, enu, accuracy, prpl
                 )
-            else:
-                pnmsib = np.ones_like(esamp)
             dnde = dNdEE(enu / esamp) / esamp
             nums += (dnde * pnmsib)[:, None] * rescale_phi
             dens += (dnde)[:, None] * rescale_phi
@@ -545,9 +544,6 @@ class nuVeto(object):
             # pnm (exp(-nmu)) --> probability of no muon (just a poisson probability)
             nmu = [self.nmu(ecr, particle, prpl) for ecr in ecrs]
 
-            # nmufn --> fine grid interpolation of pnm
-            def nmufn(ecr_val):
-                return np.interp(ecr_val, ecrs, nmu, left=0, right=np.nan)
             # nums --> numerator
             nums = []
             # dens --> denominator
@@ -558,8 +554,9 @@ class nuVeto(object):
                 # cr_flux --> cosmic ray flux
                 # phim2 --> units of flux * m^2 (look it up in the units)
                 cr_flux = pmodel.nucleus_flux(particle, ecr.item()) * Units.phim2
+                # nmu-fn interp --> fine grid interpolation of pnm
                 # poisson exp(-Nmu) [last term in eq 12]
-                pnmarr = np.exp(-nmufn(ecr - esamp))
+                pnmarr = np.exp(-np.interp(ecr - esamp, ecrs, nmu, left=0, right=np.nan))
 
                 num_ecr = 0  # single entry in nums
                 den_ecr = 0  # single entry in dens
