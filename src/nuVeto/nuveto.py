@@ -581,10 +581,11 @@ class nuVeto(object):
             dens = []
             # istart --> integration starting point, the lowest energy index for the integral
             istart = max(0, np.argmax(ecrs > enu) - 1)
-            for ecr in ecrs[istart:]:  # integral in primary energy (E_CR)
-                # cr_flux --> cosmic ray flux
-                # phim2 --> units of flux * m^2 (look it up in the units)
-                cr_flux = pmodel.nucleus_flux(particle, ecr.item()) * Units.phim2
+            # integral in primary energy (E_CR)
+            # cr_flux --> cosmic ray flux
+            # phim2 --> units of flux * m^2 (look it up in the units)
+            for ecr, cr_flux in zip(ecrs[istart:], pmodel.nucleus_flux(particle, ecrs[istart:]) * Units.phim2):
+                # nmu-fn interp --> fine grid interpolation of pnm
                 # poisson exp(-Nmu) [last term in eq 12]
                 pnmarr = np.exp(-nmufn(ecr - esamp))
 
