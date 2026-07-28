@@ -41,7 +41,7 @@ jobs:
     - uses: astral-sh/ruff-action@v3
       with:
         src: "src scripts"
-        version: "latest"        
+        version: "latest"
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
