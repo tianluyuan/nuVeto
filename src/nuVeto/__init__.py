@@ -1,11 +1,13 @@
 from . import mu, nuveto, uncertainties, utils
 from .nuveto import builder, fluxes, nuVeto, passing
 
-__all__ = ['mu',
-           'utils',
-           'nuveto',
-           'uncertainties',
-           'nuVeto',
-           'passing',
+__all__ = [
+           'builder',
            'fluxes',
-           'builder']
+           'mu',
+           'nuVeto',
+           'nuveto',
+           'passing',
+           'uncertainties',
+           'utils',
+]

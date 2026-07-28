@@ -447,7 +447,7 @@ def hist_preach(infile, plotdir=None):
     import pandas as pd
     napf = 36
     df = pd.read_csv(infile, sep=r'\s+', header=None,
-                     names='ei l ef'.split())
+                     names=['ei', 'l', 'ef'])
     # If the muon doesn't reach, MMC saves ef as -distance traveled
     df[df < 0] = 0
     for idx, (ei, sdf) in enumerate(df.groupby('ei')):

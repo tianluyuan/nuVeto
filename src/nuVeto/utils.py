@@ -64,7 +64,7 @@ class Geometry(EarthGeometry):
     def __init__(self, depth):
         """ Depth of detector and elevation of surface above sea-level
         """
-        super(Geometry, self).__init__()
+        super().__init__()
         self.depth = depth
         self.h_obs *= Units.cm
         self.h_atm *= Units.cm

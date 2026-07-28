@@ -14,10 +14,9 @@ from typing import NamedTuple
 
 import crflux.models as pm
 import numpy as np
-import scipy.integrate as integrate
-import scipy.interpolate as interpolate
 from MCEq import config, misc
 from MCEq.core import MCEqRun
+from scipy import integrate, interpolate
 
 from .mu import MuonProb
 from .utils import Geometry, ParticleProperties, Units, amu, centers
@@ -32,7 +31,7 @@ class MCEqArgs(NamedTuple):
     density: tuple
 
 
-class nuVeto(object):
+class nuVeto:
     """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))
     Initializes the nuVeto object for a specific physical configuration.
 
