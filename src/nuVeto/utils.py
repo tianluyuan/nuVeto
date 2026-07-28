@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 import numpy as np
 from MCEq.geometry.geometry import EarthGeometry
 from particletools.tables import PYTHIAParticleData, SibyllParticleTable
@@ -25,10 +27,10 @@ class ParticleProperties:
     modtab = SibyllParticleTable()
     pd = PYTHIAParticleData()
 
-    mass_dict = {}
-    lifetime_dict = {}
-    pdg_id = {}
-    sibling = {}
+    mass_dict: ClassVar[dict] = {}
+    lifetime_dict: ClassVar[dict] = {}
+    pdg_id: ClassVar[dict] = {}
+    sibling: ClassVar[dict] = {}
 
     for k in modtab.part_table:
         pdg_id[k] = modtab.modname2pdg[k]

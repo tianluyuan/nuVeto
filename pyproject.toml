@@ -43,3 +43,8 @@ where = ["src/"]
 
 [tool.ruff]
 exclude = ["external"]
+
+[tool.ruff.lint]
+ignore = [
+    "N999", # Allow invalid (non-lowercase) module names
+]

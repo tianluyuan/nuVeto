@@ -457,7 +457,7 @@ def hist_preach(infile, plotdir=None):
                 plt.tight_layout()
                 if plotdir is not None:
                     plt.savefig(Path(plotdir).expanduser() /  f'{(idx - 1) / napf}.png')
-            fig, axs = plt.subplots(6, 6, figsize=(10, 10))
+            _fig, axs = plt.subplots(6, 6, figsize=(10, 10))
             # fig.text(0.5, 0.04, r'$E_f$', ha='center', va='center')
             # fig.text(0.06, 0.5, r'$P(E_f|E_i, l)$', ha='center', va='center', rotation='vertical')
             axs = axs.flatten()

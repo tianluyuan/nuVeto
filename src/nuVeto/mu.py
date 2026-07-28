@@ -43,7 +43,8 @@ def int_ef(preach, plight):
         if preach.suffix == '.npz':
             preach = np.load(preach)['data']
         elif preach.suffix == '.pklz':
-            preach = pickle.load(gzip.open(preach, 'rb'))
+            with gzip.open(preach, 'rb') as gz:
+                preach = pickle.load(gz)
         else:
             preach = hist_preach(preach)
     else:
@@ -95,7 +96,7 @@ class MuonProb:
     @staticmethod
     def load_from_npz(f):
         data = np.load(f)
-        ngrid_keys = len([_ for _ in data.keys() if _.startswith('grid_')])
+        ngrid_keys = len([_ for _ in data if _.startswith('grid_')])
         grid = tuple(data[f'grid_{_}'] for _ in range(ngrid_keys))
 
         return RegularGridInterpolator(
