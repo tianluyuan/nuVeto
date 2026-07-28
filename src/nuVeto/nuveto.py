@@ -14,10 +14,9 @@ from typing import NamedTuple
 
 import crflux.models as pm
 import numpy as np
-import scipy.integrate as integrate
-import scipy.interpolate as interpolate
 from MCEq import config, misc
 from MCEq.core import MCEqRun
+from scipy import integrate, interpolate
 
 from .mu import MuonProb
 from .utils import Geometry, ParticleProperties, Units, amu, centers
@@ -32,7 +31,7 @@ class MCEqArgs(NamedTuple):
     density: tuple
 
 
-class nuVeto(object):
+class nuVeto:
     """Class for computing the neutrino passing fraction i.e. (1-(Veto probability))
     Initializes the nuVeto object for a specific physical configuration.
 
@@ -89,6 +88,11 @@ class nuVeto(object):
         self._dX_vec = np.diff(X_vec)
         self._X_vec = X_vec[:-1] * 0.57 + X_vec[1:] * 0.43
         self._rho = nuVeto.mceq.density_model.X2rho(self.X_vec) * Units.gr / Units.cm**3
+
+        # Note: lru_cache is applied here to the bound methods below to avoid B019 error
+        self.grid_sol = lru_cache(maxsize=2**12)(self._grid_sol)
+        self.nmu = lru_cache(maxsize=2**12)(self._nmu)
+        self.get_rescale_phi = lru_cache(maxsize=2**12)(self._get_rescale_phi)
 
     def __repr__(self):
         return (
@@ -323,8 +327,7 @@ class nuVeto(object):
 
         return x_range, dNdEE, dNdEE_interp
 
-    @lru_cache(maxsize=2**12)
-    def grid_sol(self, ecr=None, particle=None):
+    def _grid_sol(self, ecr=None, particle=None):
         """MCEq grid solution for \\frac{dN_{CR,p}}_{dE_p}"""
         self.sync_mceq()
         if ecr is not None:
@@ -334,8 +337,7 @@ class nuVeto(object):
         nuVeto.mceq.solve(int_grid=self.X_vec, grid_var="X")
         return nuVeto.mceq.grid_sol
 
-    @lru_cache(maxsize=2**12)
-    def nmu(self, ecr, particle, prpl="ice_allm97_step_1"):
+    def _nmu(self, ecr, particle, prpl="ice_allm97_step_1"):
         """Number of expected muons for a given primary energy / particle.
         Used to compute the Poisson probability of getting no muons"""
         grid_sol = self.grid_sol(ecr, particle)
@@ -352,8 +354,7 @@ class nuVeto(object):
             mu * fn.prpl(coords) * nuVeto.mceq.e_grid, np.log(nuVeto.mceq.e_grid)
         )
 
-    @lru_cache(maxsize=2**12)
-    def get_rescale_phi(self, mother, ecr=None, particle=None):
+    def _get_rescale_phi(self, mother, ecr=None, particle=None):
         """Flux of the mother at all heights"""
         grid_sol = self.grid_sol(
             ecr, particle

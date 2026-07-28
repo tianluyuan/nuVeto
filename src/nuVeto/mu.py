@@ -19,7 +19,7 @@ def hist_preach(infile):
     """
     Hist = namedtuple('Hist', 'counts edges')
     df = pd.read_csv(infile, sep=r'\s+', header=None,
-                     names='ei l ef'.split())
+                     names=['ei', 'l', 'ef'])
     # If the muon doesn't reach, MMC saves ef as -distance traveled
     df[df < 0] = 0
     preach = []
@@ -43,7 +43,8 @@ def int_ef(preach, plight):
         if preach.suffix == '.npz':
             preach = np.load(preach)['data']
         elif preach.suffix == '.pklz':
-            preach = pickle.load(gzip.open(preach, 'rb'))
+            with gzip.open(preach, 'rb') as gz:
+                preach = pickle.load(gz)
         else:
             preach = hist_preach(preach)
     else:
@@ -51,7 +52,7 @@ def int_ef(preach, plight):
         with (resources.files('nuVeto') / 'data' / 'mmc' / f'{preach.with_suffix(".npz")}').open('rb') as f:
             preach = np.load(f)['data']
 
-    df = pd.DataFrame(preach, columns='ei l ef ew pdf'.split())
+    df = pd.DataFrame(preach, columns=['ei', 'l', 'ef', 'ew', 'pdf'])
     intg = []
     for (ei, _l), sdf in df.groupby(['ei', 'l']):
         intg.append((ei, _l, np.sum(sdf['ew']*sdf['pdf']*plight(sdf['ef']))))
@@ -63,7 +64,7 @@ def interp(preach, plight):
     """ returns an interpolate.RegularGridInterpolator of integral preach * plight over e_f, yields prpl
     """
     intg = int_ef(preach, plight)
-    df = pd.DataFrame(intg, columns='ei l prpl'.split())
+    df = pd.DataFrame(intg, columns=['ei', 'l', 'prpl'])
     df = df.pivot_table(index='ei', columns='l', values='prpl').fillna(0)
     return interpolate.RegularGridInterpolator((df.index, df.columns), df.values, bounds_error=False, fill_value=None)
 
@@ -95,7 +96,7 @@ class MuonProb:
     @staticmethod
     def load_from_npz(f):
         data = np.load(f)
-        ngrid_keys = len([_ for _ in data.keys() if _.startswith('grid_')])
+        ngrid_keys = len([_ for _ in data if _.startswith('grid_')])
         grid = tuple(data[f'grid_{_}'] for _ in range(ngrid_keys))
 
         return RegularGridInterpolator(
