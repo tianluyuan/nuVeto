@@ -66,6 +66,36 @@ def test_overburden():
     assert np.all(center.overburden(cosths) == geom.r_E/Units.m)
 
 
+def test_overburden_elevation():
+    """The chord to a raised surface obeys the law of cosines and matches
+    the external selfveto calculation."""
+    depth = 1950.
+    for elevation in (0., 110., 2834.):
+        geo = Geometry(depth*Units.m, surface_elevation=elevation*Units.m)
+        r = geo.r_obs
+        z = geo.r_det
+        for cth in (0.1, 0.3, 0.8):
+            l_m = geo.overburden(cth)  # meters
+            l = l_m * Units.m          # natural units
+            # law of cosines: r^2 == z^2 + l^2 + 2 z l cos(theta)
+            assert np.isclose(r**2, z**2 + l**2 + 2*z*l*cth)
+            # inverse mapping round-trips
+            assert np.isclose(geo.overburden_to_cos_theta(l), cth)
+            theirs = extsv.overburden(
+                cth, depth=depth,
+                elevation=elevation)
+            assert np.isclose(l_m, theirs)
+
+
+def test_geometry_alignment():
+    """The MCEq column ends at the surface elevation that nuVeto's
+    overburden starts from."""
+    sv = nuVeto(0.3)
+    assert np.isclose(sv.mceq.density_model.geom.h_obs, 283400.)
+    assert np.isclose(sv.geom.h_obs, 283400.*Units.cm)
+    assert sv.mceq.density_model.theta_deg == sv.theta
+
+
 def test_pdet():
     l_ice = np.linspace(1000, 200000, 500)
     emui = np.logspace(3, 8, 500)*Units.GeV
@@ -79,8 +109,10 @@ def test_pdet():
 def test_edge():
     """ Test edge case where MCEq yields are all <= 0.
     """
+    nuVeto.mceq = None
+    nuVeto._curr_mceq_args = None
     sv = nuVeto(0., pmodel=(pm.ZatsepinSokolskaya, 'pamela'), hadr='DPMJET-III-19.3',
-                density=('MSIS00_IC', ('SouthPole', 'June')))
+                density=('MSIS00_IC', ('Tokyo', 'June')))
     _ = sv.get_rescale_phi('D-', 508.0218046913023, 14)
     assert not np.any(_[:, -1] > 0)
 

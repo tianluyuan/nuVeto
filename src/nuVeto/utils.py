@@ -63,57 +63,71 @@ class ParticleProperties:
 
 
 class Geometry(EarthGeometry):
-    def __init__(self, depth):
-        """ Depth of detector and elevation of surface above sea-level
+    def __init__(self, depth, surface_elevation=None):
+        """ Spherical Earth geometry for a detector at *depth* below a
+        surface at an elevation *surface_elevation* above sea level.
+
+        :param depth: depth of the detector below the surface, with units
+            attached (e.g., val*Units.m)
+        :param surface_elevation: elevation of the surface above sea level,
+            with units attached (e.g., val*Units.m). ``None`` falls back to
+            the MCEq config default (sea level).
         """
         super().__init__()
         self.depth = depth
         self.h_obs *= Units.cm
         self.h_atm *= Units.cm
         self.r_E *= Units.cm
+        if surface_elevation is not None:
+            self.h_obs = surface_elevation
         self.r_top = self.r_E + self.h_atm
+        # radius of the surface above the detector and of the detector
         self.r_obs = self.r_E + self.h_obs
+        self.r_det = self.r_obs - self.depth
 
     def overburden(self, cos_theta):
-        """Returns the overburden for a detector at *depth* below some surface
-        at *elevation*.
+        """Returns the overburden for a detector at *depth* below a surface
+        at elevation *surface_elevation* above sea level.
 
         From law of cosines,
         x^2 == r^2+(r-d)^2-2r(r-d)cos(gamma)
-        where
+        where r is the radius of the surface, d the depth, and
         r*cos(gamma) = r-d+x*cos(theta), solve and return x.
 
         :param cos_theta: cosine of zenith angle in detector coord
         """
         d = self.depth
-        r = self.r_E
-        z = r-d
+        r = self.r_obs
+        z = self.r_det
         return (np.sqrt(z**2*cos_theta**2+d*(2*r-d))-z*cos_theta)/Units.m
 
     def overburden_to_cos_theta(self, l_over):
-        """Returns the theta for a given overburden for a detector at 
-        *depth* below some surface at *elevation*.
+        """Returns the theta for a given overburden for a detector at
+        *depth* below a surface at elevation *surface_elevation* above sea level.
 
         From law of cosines,
         x^2 == r^2+(r-d)^2-2r(r-d)cos(gamma)
-        where
-        r*cos(gamma) = r-d+x*cos(theta), solve and return x.
+        where r is the radius of the surface, d the depth, and
+        r*cos(gamma) = r-d+x*cos(theta), solve for cos(theta).
 
-        :param cos_theta: cosine of zenith angle in detector coord
+        :param l_over: overburden with units attached (e.g., val*Units.m)
         """
         d = self.depth
-        r = self.r_E
-        z = r-d
+        r = self.r_obs
+        z = self.r_det
         return (2*d*r-d**2-l_over**2)/(2*l_over*z)
 
     def cos_theta_eff(self, cos_theta):
-        """ Returns the effective cos_theta relative to the normal at earth surface.
+        """ Returns the effective cos_theta relative to the normal at the
+        surface (at elevation *surface_elevation* above sea level).
+
+        The shower axis is a straight line, so its impact parameter is
+        conserved: sin(theta_surf) = (z/r) sin(theta_det).
 
         :param cos_theta: cosine of zenith angle (detector)
         """
-        d = self.depth
-        r = self.r_E
-        z = r-d
+        r = self.r_obs
+        z = self.r_det
         return np.sqrt(1-(z/r)**2*(1-cos_theta**2))
 
 

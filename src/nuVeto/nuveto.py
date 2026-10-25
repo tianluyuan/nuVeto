@@ -54,6 +54,10 @@ class nuVeto:
     -----
     A single MCEq instance is created at the class level to keep memory low.
     Available fluxes are documented in `crflux.models.pm`.
+    The observation level of the MCEq density model -- the ground of its
+    site, as placed by MCEq -- is adopted as the surface the atmospheric
+    column and the muon overburden share. ``depth`` is counted from that
+    surface.
     """
 
     mceq = None
@@ -69,8 +73,6 @@ class nuVeto:
         debug_level=1,
     ):
         self._costh = costh
-        self._geom = Geometry(depth)
-        theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
         if density[0] == "MSIS00_IC":
             logger.info(
                 'Passing "MSIS00_IC" assumes IceCube-centered coordinates, '
@@ -81,8 +83,19 @@ class nuVeto:
 
         config.debug_level = debug_level
 
+        self._geom = Geometry(depth)
+        theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
+
         self._mceq_args = MCEqArgs(hadr, pmodel, theta, density)
         self.sync_mceq()
+
+        dm_geom = getattr(nuVeto.mceq.density_model, "geom", None)
+        h_obs = dm_geom.h_obs * Units.cm if dm_geom is not None else 0.0
+        self._geom = Geometry(depth, surface_elevation=h_obs)
+        theta = np.degrees(np.arccos(self.geom.cos_theta_eff(self.costh)))
+        if theta != self.theta:
+            self._mceq_args = self._mceq_args._replace(theta=theta)
+            self.sync_mceq()
 
         X_vec = np.logspace(np.log10(2e-3), np.log10(nuVeto.mceq.density_model.max_X), 12)
         self._dX_vec = np.diff(X_vec)
@@ -99,6 +112,7 @@ class nuVeto:
             f"<{self.__class__.__name__}(\n"
             f"  costh={self.costh:.4f},\n"
             f"  depth={self.geom.depth/Units.m:.2f} m,\n"
+            f"  h_obs={self.geom.h_obs/Units.m:.2f} m,\n"
             f"  mceq_args={self._mceq_args}\n"
             f")>"
         )
@@ -145,7 +159,6 @@ class nuVeto:
                 "Initializing shared class.mceq instance"
             )
             # config.enable_em = False
-            config.enable_muon_energy_loss = False
             config.return_as = "total energy"
             config.adv_set["allowed_projectiles"] = [
                 2212,
@@ -161,7 +174,7 @@ class nuVeto:
                 310,
                 130,
             ]
-            config.dXmax = 10.
+            config.etd2_path["dX_max"] = 10.0
             nuVeto.mceq = MCEqRun(
                 # provide the string of the interaction model
                 interaction_model=self._mceq_args.hadr,
@@ -177,7 +190,7 @@ class nuVeto:
             _curr = nuVeto._curr_mceq_args
 
             if _curr.theta   != self.theta:
-                nuVeto.mceq.set_theta_deg(self.theta)
+                nuVeto.mceq.set_zenith_azimuth(self.theta)
             if _curr.hadr    != self.hadr:
                 nuVeto.mceq.set_interaction_model(self.hadr)
             if _curr.pmodel  != self.pmodel:
