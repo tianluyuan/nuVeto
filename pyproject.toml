@@ -12,7 +12,7 @@ description = "Package implements the formalism for calculating passing fraction
 readme = "README.md"
 license = {file = "LICENSE"}
 
-requires-python = ">= 3.9"
+requires-python = ">= 3.11"
 dependencies = [
   "numpy>=1.7.0",
   "scipy>=1.6.0",
