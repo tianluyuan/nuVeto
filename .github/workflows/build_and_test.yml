@@ -31,8 +31,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.10", "3.12", "3.x"]
-        numpy-version: ["numpy<2.0", "numpy>=2.0"]
+        python-version: ["3.11", "3.13", "3.x"]
         os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
@@ -41,20 +40,30 @@ jobs:
       uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
+    - uses: astral-sh/setup-uv@v10
     - uses: astral-sh/ruff-action@v3
       with:
         src: "src scripts"
         version: "latest"
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install -e .[testing]
+        uv venv --python "$(command -v python)"
+        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+        echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
+        source .venv/bin/activate
+        if [ -f requirements.txt ]; then uv pip install -r requirements.txt; fi
+        if ! uv pip install -e ".[testing]"; then
+          echo "::warning::Install failed; retrying with h5py nightly wheels"
+          uv pip install --prerelease=allow --no-deps --no-build \
+            --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple \
+            h5py
+          uv pip install -e ".[testing]"
+        fi
     - name: Run pytest
       run: pytest
     - name: Test mu.py
       run: |
-        pip install -e .
+        uv pip install -e .
         ./scripts/mu/mu.py ice_allm97 -o fake/path/mymudet.npz --plight pl_step_1000
         pytest -k test_pdet
 
