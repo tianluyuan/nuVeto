@@ -40,7 +40,7 @@ jobs:
       uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
-    - uses: astral-sh/setup-uv@v10
+    - uses: astral-sh/setup-uv@v10.3.3
     - uses: astral-sh/ruff-action@v3
       with:
         src: "src scripts"
