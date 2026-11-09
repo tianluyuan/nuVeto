@@ -41,17 +41,14 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - uses: astral-sh/setup-uv@v10.3.3
+      with:
+        activate-environment: "true"
     - uses: astral-sh/ruff-action@v3
       with:
         src: "src scripts"
         version: "latest"
     - name: Install dependencies
       run: |
-        uv venv --python "$(command -v python)"
-        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
-        echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
-        source .venv/bin/activate
-        if [ -f requirements.txt ]; then uv pip install -r requirements.txt; fi
         if ! uv pip install -e ".[testing]"; then
           echo "::warning::Install failed; retrying with h5py nightly wheels"
           uv pip install --prerelease=allow --no-deps --no-build \
